@@ -1,0 +1,17 @@
+{
+  "name": "sparkly",
+  "private": true,
+  "packageManager": "pnpm@11.7.0",
+  "scripts": {
+    "dev": "nx run frontend:dev",
+    "build": "nx run-many -t build",
+    "check": "nx run-many -t check",
+    "graph": "nx graph"
+  },
+  "devDependencies": {
+    "nx": "23.2.1"
+  },
+  "nx": {
+    "includedScripts": []
+  }
+}

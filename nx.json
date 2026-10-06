@@ -1,0 +1,24 @@
+{
+  "$schema": "./node_modules/nx/schemas/nx-schema.json",
+  "namedInputs": {
+    "default": [
+      "{projectRoot}/**/*",
+      "!{projectRoot}/dist/**/*",
+      "!{projectRoot}/bin/**/*",
+      "!{projectRoot}/target/**/*",
+      "!{projectRoot}/**/__pycache__/**/*",
+      "!{projectRoot}/.venv/**/*",
+      "!{projectRoot}/.svelte-kit/**/*",
+      "!{projectRoot}/build/**/*"
+    ],
+    "jsTooling": [
+      "{workspaceRoot}/pnpm-lock.yaml",
+      "{workspaceRoot}/package.json",
+      "{workspaceRoot}/pnpm-workspace.yaml",
+      {
+        "runtime": "node --version"
+      }
+    ]
+  },
+  "analytics": true
+}

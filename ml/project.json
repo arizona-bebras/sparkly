@@ -1,0 +1,24 @@
+{
+  "$schema": "../node_modules/nx/schemas/project-schema.json",
+  "name": "ml",
+  "projectType": "application",
+  "sourceRoot": "ml/src",
+  "targets": {
+    "check": {
+      "executor": "nx:run-commands",
+      "cache": false,
+      "options": {
+        "command": "python3 -m compileall -q src",
+        "cwd": "ml"
+      }
+    },
+    "dev": {
+      "executor": "nx:run-commands",
+      "cache": false,
+      "options": {
+        "command": "PYTHONPATH=src python3 -m sparkly_ml",
+        "cwd": "ml"
+      }
+    }
+  }
+}

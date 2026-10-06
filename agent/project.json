@@ -1,0 +1,32 @@
+{
+  "$schema": "../node_modules/nx/schemas/project-schema.json",
+  "name": "agent",
+  "projectType": "application",
+  "sourceRoot": "agent/src",
+  "targets": {
+    "build": {
+      "executor": "nx:run-commands",
+      "cache": false,
+      "options": {
+        "command": "cargo build",
+        "cwd": "agent"
+      }
+    },
+    "check": {
+      "executor": "nx:run-commands",
+      "cache": false,
+      "options": {
+        "command": "cargo check",
+        "cwd": "agent"
+      }
+    },
+    "dev": {
+      "executor": "nx:run-commands",
+      "cache": false,
+      "options": {
+        "command": "cargo run",
+        "cwd": "agent"
+      }
+    }
+  }
+}

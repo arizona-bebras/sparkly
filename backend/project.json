@@ -1,0 +1,53 @@
+{
+  "$schema": "../node_modules/nx/schemas/project-schema.json",
+  "name": "backend",
+  "projectType": "application",
+  "sourceRoot": "backend",
+  "targets": {
+    "build": {
+      "executor": "nx:run-commands",
+      "cache": true,
+      "options": {
+        "command": "go build -o bin/backend .",
+        "cwd": "backend"
+      },
+      "outputs": [
+        "{projectRoot}/bin"
+      ],
+      "inputs": [
+        "default",
+        {
+          "runtime": "go version"
+        },
+        {
+          "env": "GOOS"
+        },
+        {
+          "env": "GOARCH"
+        },
+        {
+          "env": "CGO_ENABLED"
+        },
+        {
+          "env": "GOFLAGS"
+        }
+      ]
+    },
+    "check": {
+      "executor": "nx:run-commands",
+      "cache": false,
+      "options": {
+        "command": "go vet ./...",
+        "cwd": "backend"
+      }
+    },
+    "dev": {
+      "executor": "nx:run-commands",
+      "cache": false,
+      "options": {
+        "command": "go run .",
+        "cwd": "backend"
+      }
+    }
+  }
+}
