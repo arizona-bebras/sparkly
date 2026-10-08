@@ -1,15 +1,15 @@
 <script>
-import { onMount } from "svelte";
+import { createQuery } from "@tanstack/svelte-query";
 import { client } from "$proto";
 
-onMount(async () => {
-	console.log("onMount");
-	const res = await client.say({
-		sentence: "I feel happy. Tell me about yourself",
-	});
-	console.log(res.sentence);
-});
-</script> 
+const query = createQuery(() => ({
+	queryKey: ["say"],
+	queryFn: async () =>
+		await client.say({
+			sentence: "I feel happy. Tell me about yourself",
+		}),
+}));
+</script>  
 
 
 <svelte:head>
