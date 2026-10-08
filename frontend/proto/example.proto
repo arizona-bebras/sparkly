@@ -1,0 +1,32 @@
+syntax = "proto3";
+
+service ElizaService {
+  rpc Say(SayRequest) returns (SayResponse) {}
+  rpc GetUser(GetUserRequest) returns (GetUserResponse) {}
+}
+
+message SayRequest {
+  string sentence = 1;
+}
+
+message SayResponse {
+  string sentence = 1;
+}
+
+message User {
+  string id = 1;
+  string username = 2;
+  string email = 3;
+  string city = 4;
+  int32 age = 5;
+  bool is_active = 6;
+}
+
+message GetUserRequest {
+  string id = 1;
+}
+
+message GetUserResponse {
+  User user = 1;
+}
+
