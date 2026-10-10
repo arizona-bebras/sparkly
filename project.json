@@ -4,6 +4,7 @@
   "projectType": "library",
   "targets": {
     "lint": {
+      "inputs": ["protoContracts", "jsTooling"],
       "executor": "nx:run-commands",
       "cache": false,
       "options": {
@@ -11,6 +12,7 @@
       }
     },
     "format": {
+      "inputs": ["protoContracts", "jsTooling"],
       "executor": "nx:run-commands",
       "cache": false,
       "options": {
@@ -18,6 +20,7 @@
       }
     },
     "check": {
+      "inputs": ["protoContracts", "jsTooling"],
       "executor": "nx:run-commands",
       "cache": false,
       "options": {

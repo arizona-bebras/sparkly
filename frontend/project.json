@@ -6,9 +6,11 @@
   "targets": {
     "lint": {
       "executor": "nx:run-commands",
-      "cache": false,
+      "cache": true,
+      "inputs": ["default", "jsTooling"],
+      "outputs": [],
       "options": {
-        "command": "pnpm run lint",
+        "command": "pnpm exec vp lint --deny-warnings",
         "cwd": "frontend"
       }
     },
@@ -16,7 +18,7 @@
       "executor": "nx:run-commands",
       "cache": false,
       "options": {
-        "command": "pnpm run lint:fix",
+        "command": "pnpm exec vp lint --fix",
         "cwd": "frontend"
       }
     },
@@ -24,33 +26,41 @@
       "executor": "nx:run-commands",
       "cache": false,
       "options": {
-        "command": "pnpm run fmt",
+        "command": "pnpm exec vp fmt --write",
         "cwd": "frontend"
       }
     },
     "fmt:check": {
       "executor": "nx:run-commands",
-      "cache": false,
+      "cache": true,
+      "inputs": ["default", "jsTooling"],
+      "outputs": [],
       "options": {
-        "command": "pnpm run fmt:check",
+        "command": "pnpm exec vp fmt --check",
         "cwd": "frontend"
       }
     },
     "build": {
       "executor": "nx:run-commands",
       "cache": true,
+      "dependsOn": ["check"],
       "options": {
-        "command": "pnpm run build",
+        "command": "pnpm exec vp build",
         "cwd": "frontend"
       },
       "outputs": ["{projectRoot}/build", "{projectRoot}/.svelte-kit"],
       "inputs": ["default", "jsTooling"]
     },
     "check": {
+      "executor": "nx:noop",
+      "cache": false,
+      "dependsOn": ["lint", "fmt:check", "check:types"]
+    },
+    "check:types": {
       "executor": "nx:run-commands",
       "cache": false,
       "options": {
-        "command": "pnpm run check",
+        "command": "pnpm run check:types",
         "cwd": "frontend"
       },
       "outputs": [],
@@ -59,8 +69,9 @@
     "dev": {
       "executor": "nx:run-commands",
       "cache": false,
+      "continuous": true,
       "options": {
-        "command": "pnpm run dev",
+        "command": "pnpm exec vp dev",
         "cwd": "frontend"
       },
       "outputs": [],
@@ -69,8 +80,10 @@
     "preview": {
       "executor": "nx:run-commands",
       "cache": false,
+      "continuous": true,
+      "dependsOn": ["build"],
       "options": {
-        "command": "pnpm run preview",
+        "command": "pnpm exec vp preview",
         "cwd": "frontend"
       },
       "outputs": [],

@@ -1,6 +1,14 @@
 {
   "$schema": "./node_modules/nx/schemas/nx-schema.json",
   "namedInputs": {
+    "protoContracts": [
+      "{workspaceRoot}/buf.yaml",
+      "{workspaceRoot}/buf.lock",
+      "{workspaceRoot}/agent/proto/**/*",
+      "{workspaceRoot}/analytics/proto/**/*",
+      "{workspaceRoot}/backend/proto/**/*",
+      "{workspaceRoot}/ml/proto/**/*"
+    ],
     "default": [
       "{projectRoot}/**/*",
       "!{projectRoot}/dist/**/*",

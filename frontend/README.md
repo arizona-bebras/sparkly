@@ -8,6 +8,7 @@
 pnpm install
 pnpm nx run frontend:dev
 pnpm nx run frontend:check
+pnpm nx run frontend:check:types
 pnpm nx run frontend:build
 pnpm nx run frontend:preview
 pnpm nx run frontend:lint
@@ -17,6 +18,8 @@ pnpm nx run frontend:fmt:check
 ```
 
 Локальные команды: `pnpm dev`, `pnpm check`, `pnpm build`, `pnpm preview`.
+
+Nx запускает команды Vite Plus напрямую. `frontend:check` объединяет задачи `lint`, `fmt:check` и `check:types`; `frontend:build` зависит от `check`, а `frontend:preview` — от `build`. Lint, проверка форматирования и сборка кешируются Nx. Задачи с исправлением файлов (`lint:fix`, `fmt`) выполняются без кеша; `dev` и `preview` отмечены как непрерывные задачи.
 
 Vite Plus используется для сервера разработки (`vp dev`), production-сборки (`vp build`), предпросмотра (`vp preview`), lint и форматирования. Команды запускаются через локальную зависимость, глобальная установка `vp` не требуется. Версии `vite-plus` и встроенного Vite закреплены в каталоге `pnpm-workspace.yaml`; alias и override обеспечивают одну версию Vite для SvelteKit и плагинов.
 
