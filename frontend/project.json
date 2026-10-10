@@ -4,6 +4,38 @@
   "projectType": "application",
   "sourceRoot": "frontend/src",
   "targets": {
+    "lint": {
+      "executor": "nx:run-commands",
+      "cache": false,
+      "options": {
+        "command": "pnpm run lint",
+        "cwd": "frontend"
+      }
+    },
+    "lint:fix": {
+      "executor": "nx:run-commands",
+      "cache": false,
+      "options": {
+        "command": "pnpm run lint:fix",
+        "cwd": "frontend"
+      }
+    },
+    "fmt": {
+      "executor": "nx:run-commands",
+      "cache": false,
+      "options": {
+        "command": "pnpm run fmt",
+        "cwd": "frontend"
+      }
+    },
+    "fmt:check": {
+      "executor": "nx:run-commands",
+      "cache": false,
+      "options": {
+        "command": "pnpm run fmt:check",
+        "cwd": "frontend"
+      }
+    },
     "build": {
       "executor": "nx:run-commands",
       "cache": true,
@@ -11,14 +43,8 @@
         "command": "pnpm run build",
         "cwd": "frontend"
       },
-      "outputs": [
-        "{projectRoot}/build",
-        "{projectRoot}/.svelte-kit"
-      ],
-      "inputs": [
-        "default",
-        "jsTooling"
-      ]
+      "outputs": ["{projectRoot}/build", "{projectRoot}/.svelte-kit"],
+      "inputs": ["default", "jsTooling"]
     },
     "check": {
       "executor": "nx:run-commands",
@@ -28,10 +54,7 @@
         "cwd": "frontend"
       },
       "outputs": [],
-      "inputs": [
-        "default",
-        "jsTooling"
-      ]
+      "inputs": ["default", "jsTooling"]
     },
     "dev": {
       "executor": "nx:run-commands",
@@ -41,10 +64,7 @@
         "cwd": "frontend"
       },
       "outputs": [],
-      "inputs": [
-        "default",
-        "jsTooling"
-      ]
+      "inputs": ["default", "jsTooling"]
     },
     "preview": {
       "executor": "nx:run-commands",
@@ -54,10 +74,7 @@
         "cwd": "frontend"
       },
       "outputs": [],
-      "inputs": [
-        "default",
-        "jsTooling"
-      ]
+      "inputs": ["default", "jsTooling"]
     }
   }
 }

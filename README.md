@@ -11,7 +11,7 @@ Protobuf-контракты хранятся в каталогах `proto/` со
 
 ## Разработка
 
-Требуются Node.js 22.12+, pnpm 11.7.0 и родные инструменты проектов: Go, Rust/Cargo, Python.
+Требуются Node.js 22.18+, pnpm 11.7.0 и родные инструменты проектов: Go, Rust/Cargo, Python.
 
 ```sh
 pnpm install
