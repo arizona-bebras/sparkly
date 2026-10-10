@@ -1,0 +1,29 @@
+{
+  "$schema": "./node_modules/nx/schemas/project-schema.json",
+  "name": "proto",
+  "projectType": "library",
+  "targets": {
+    "lint": {
+      "executor": "nx:run-commands",
+      "cache": false,
+      "options": {
+        "command": "pnpm proto:lint"
+      }
+    },
+    "format": {
+      "executor": "nx:run-commands",
+      "cache": false,
+      "options": {
+        "command": "pnpm proto:format"
+      }
+    },
+    "check": {
+      "executor": "nx:run-commands",
+      "cache": false,
+      "options": {
+        "commands": ["pnpm proto:lint", "pnpm proto:format:check"],
+        "parallel": false
+      }
+    }
+  }
+}

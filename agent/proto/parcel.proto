@@ -2,6 +2,8 @@ syntax = "proto3";
 
 package sparkly.agent.v1;
 
+import "buf/validate/validate.proto";
+
 message Parcel {
   bytes batch_id = 1;
   repeated Event events = 2;
@@ -13,6 +15,8 @@ message Event {
   uint64 monotonic_us = 1;
 
   oneof payload {
+    option (buf.validate.oneof).required = true;
+
     Boot boot = 2;
     Metric metric = 3;
     Log log = 4;
@@ -35,6 +39,8 @@ message Metric {
 
 message Log {
   oneof content {
+    option (buf.validate.oneof).required = true;
+
     RawLog raw_log = 1;
     bytes defmt_log = 2;
   }
