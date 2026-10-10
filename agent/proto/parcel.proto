@@ -1,0 +1,75 @@
+syntax = "proto3";
+
+package sparkly.agent.v1;
+
+import "buf/validate/validate.proto";
+
+message Parcel {
+  bytes batch_id = 1;
+  repeated Event events = 2;
+}
+
+message Event {
+  // Микросекунды с начала данной загрузки; сбрасывается при перезагрузке.
+  // 0 — допустимое значение. Сравнивается только внутри одного boot_seq.
+  uint64 monotonic_us = 1;
+
+  oneof payload {
+    option (buf.validate.oneof).required = true;
+
+    Boot boot = 2;
+    Metric metric = 3;
+    Log log = 4;
+    Crash crash = 5;
+  }
+}
+
+message Boot {
+  string reset_reason = 1;
+  string firmware_version = 2;
+  string agent_version = 3;
+  string build_id = 4;
+  uint64 boot_seq = 5;
+}
+
+message Metric {
+  uint64 metric_id = 1;
+  float value = 2;
+}
+
+message Log {
+  oneof content {
+    option (buf.validate.oneof).required = true;
+
+    RawLog raw_log = 1;
+    bytes defmt_log = 2;
+  }
+  repeated Frame frames = 3;
+}
+
+message RawLog {
+  LogLevel level = 1;
+  string message = 2;
+}
+
+enum LogLevel {
+  LOG_LEVEL_UNSPECIFIED = 0;
+  LOG_LEVEL_TRACE = 1;
+  LOG_LEVEL_DEBUG = 2;
+  LOG_LEVEL_INFO = 3;
+  LOG_LEVEL_WARN = 4;
+  LOG_LEVEL_ERROR = 5;
+  LOG_LEVEL_FATAL = 6;
+}
+
+message Crash {
+  optional uint64 sp = 1;
+  bytes stack = 2;
+  map<string, uint64> registers = 3;
+  string reason = 4;
+  repeated Frame frames = 5;
+}
+
+message Frame {
+  uint64 pc = 1;
+}

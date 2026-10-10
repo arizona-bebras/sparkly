@@ -6,9 +6,15 @@
     "dev": "nx run frontend:dev",
     "build": "nx run-many -t build",
     "check": "nx run-many -t check",
+    "proto:lint": "buf lint",
+    "proto:format": "buf format -w",
+    "proto:format:check": "buf format --diff --exit-code",
+    "proto:check": "nx run proto:check",
+    "proto:deps": "buf dep update",
     "graph": "nx graph"
   },
   "devDependencies": {
+    "@bufbuild/buf": "1.73.0",
     "nx": "23.2.1"
   },
   "nx": {

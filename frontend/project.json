@@ -4,60 +4,90 @@
   "projectType": "application",
   "sourceRoot": "frontend/src",
   "targets": {
-    "build": {
+    "lint": {
       "executor": "nx:run-commands",
       "cache": true,
+      "inputs": ["default", "jsTooling"],
+      "outputs": [],
       "options": {
-        "command": "pnpm run build",
+        "command": "pnpm exec vp lint --deny-warnings",
         "cwd": "frontend"
-      },
-      "outputs": [
-        "{projectRoot}/build",
-        "{projectRoot}/.svelte-kit"
-      ],
-      "inputs": [
-        "default",
-        "jsTooling"
-      ]
+      }
     },
-    "check": {
+    "lint:fix": {
       "executor": "nx:run-commands",
       "cache": false,
       "options": {
-        "command": "pnpm run check",
+        "command": "pnpm exec vp lint --fix",
+        "cwd": "frontend"
+      }
+    },
+    "fmt": {
+      "executor": "nx:run-commands",
+      "cache": false,
+      "options": {
+        "command": "pnpm exec vp fmt --write",
+        "cwd": "frontend"
+      }
+    },
+    "fmt:check": {
+      "executor": "nx:run-commands",
+      "cache": true,
+      "inputs": ["default", "jsTooling"],
+      "outputs": [],
+      "options": {
+        "command": "pnpm exec vp fmt --check",
+        "cwd": "frontend"
+      }
+    },
+    "build": {
+      "executor": "nx:run-commands",
+      "cache": true,
+      "dependsOn": ["check"],
+      "options": {
+        "command": "pnpm exec vp build",
+        "cwd": "frontend"
+      },
+      "outputs": ["{projectRoot}/build", "{projectRoot}/.svelte-kit"],
+      "inputs": ["default", "jsTooling"]
+    },
+    "check": {
+      "executor": "nx:noop",
+      "cache": false,
+      "dependsOn": ["lint", "fmt:check", "check:types"]
+    },
+    "check:types": {
+      "executor": "nx:run-commands",
+      "cache": false,
+      "options": {
+        "command": "pnpm run check:types",
         "cwd": "frontend"
       },
       "outputs": [],
-      "inputs": [
-        "default",
-        "jsTooling"
-      ]
+      "inputs": ["default", "jsTooling"]
     },
     "dev": {
       "executor": "nx:run-commands",
       "cache": false,
+      "continuous": true,
       "options": {
-        "command": "pnpm run dev",
+        "command": "pnpm exec vp dev",
         "cwd": "frontend"
       },
       "outputs": [],
-      "inputs": [
-        "default",
-        "jsTooling"
-      ]
+      "inputs": ["default", "jsTooling"]
     },
     "preview": {
       "executor": "nx:run-commands",
       "cache": false,
+      "continuous": true,
+      "dependsOn": ["build"],
       "options": {
-        "command": "pnpm run preview",
+        "command": "pnpm exec vp preview",
         "cwd": "frontend"
       },
       "outputs": [],
-      "inputs": [
-        "default",
-        "jsTooling"
-      ]
+      "inputs": ["default", "jsTooling"]
     }
   }
 }
