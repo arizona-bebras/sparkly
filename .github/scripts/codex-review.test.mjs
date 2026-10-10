@@ -85,6 +85,79 @@ test("renders verdict, confidence, immutable links and GitHub annotations", () =
   assert.deepEqual(clean.check.annotations, []);
 });
 
+test("workflow publishes structured check titles, conclusions and inline annotations", async () => {
+  const workflow = readFileSync(new URL("../workflows/codex-review.yml", import.meta.url), "utf8");
+  const script = workflow.match(/          script: \|\n((?:            .*\n|\n)+)/)?.[1];
+  assert.ok(script, "Publish step must contain a GitHub script");
+  const publish = new (Object.getPrototypeOf(async function () {}).constructor)(
+    "require",
+    "process",
+    "context",
+    "github",
+    script,
+  );
+  const context = {
+    serverUrl: "https://github.com",
+    repo: { owner: "owner", repo: "repo" },
+    runId: 123,
+  };
+  const findingReport = reviewReport(review, {
+    root,
+    repository: "owner/repo",
+    sha: "a".repeat(40),
+  }).check;
+  const cleanReport = reviewReport(
+    { ...review, findings: [], overall_correctness: "patch is correct" },
+    {
+      root,
+      repository: "owner/repo",
+      sha: "a".repeat(40),
+    },
+  ).check;
+  for (const [report, outcome, conclusion] of [
+    [findingReport, "success", "neutral"],
+    [cleanReport, "success", "success"],
+    [findingReport, "failure", "failure"],
+    [null, "success", "failure"],
+  ]) {
+    let check;
+    await publish(
+      (name) =>
+        name === "node:fs"
+          ? {
+              readFileSync() {
+                if (!report) throw new Error("Missing report");
+                return JSON.stringify(report);
+              },
+            }
+          : { join },
+      {
+        env: {
+          REVIEW_OUTPUT_DIR: "/tmp/review",
+          REVIEW_OUTCOME: outcome,
+          PR_HEAD_SHA: "a".repeat(40),
+        },
+      },
+      context,
+      {
+        rest: {
+          checks: {
+            async create(payload) {
+              check = payload;
+            },
+          },
+        },
+      },
+    );
+    assert.equal(check.head_sha, "a".repeat(40));
+    assert.equal(check.conclusion, conclusion);
+    assert.ok(!check.output.title.includes("undefined"));
+    const completed = report && outcome === "success";
+    assert.equal(check.output.title, completed ? report.title : "Codex review не завершилось");
+    assert.deepEqual(check.output.annotations, completed ? report.annotations : []);
+  }
+});
+
 test("escapes model-supplied markdown and keeps check summary within API limit", () => {
   const report = reviewReport(
     { ...review, overall_explanation: "<script>[unsafe](url)</script>" },

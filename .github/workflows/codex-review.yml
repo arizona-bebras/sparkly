@@ -35,7 +35,7 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-node@v6
         with:
-          node-version: '22.22.2'
+          node-version: "22.22.2"
       - name: Review with installed Codex CLI
         id: codex
         env:
@@ -57,20 +57,25 @@ jobs:
             try {
               report = JSON.parse(fs.readFileSync(path.join(process.env.REVIEW_OUTPUT_DIR, 'check.json'), 'utf8'));
             } catch {
-              report = { summary: `Codex review не завершилось. [Логи workflow](${runUrl}).`, findings: 0 };
+              report = { summary: `Codex review не завершилось. [Логи workflow](${runUrl}).` };
             }
-            const completed = process.env.REVIEW_OUTCOME === 'success';
+            const completed = process.env.REVIEW_OUTCOME === 'success' &&
+              typeof report.title === 'string' &&
+              typeof report.summary === 'string' &&
+              ['success', 'neutral'].includes(report.conclusion) &&
+              Array.isArray(report.annotations);
             await github.rest.checks.create({
               ...context.repo,
               name: 'Codex PR review',
               head_sha: process.env.PR_HEAD_SHA,
               status: 'completed',
-              conclusion: completed ? (report.findings ? 'neutral' : 'success') :
+              conclusion: completed ? report.conclusion :
                 (process.env.REVIEW_OUTCOME === 'cancelled' ? 'cancelled' : 'failure'),
               details_url: runUrl,
               output: {
-                title: completed ? `Codex: ${report.findings} замечаний` : 'Codex review не завершилось',
+                title: completed ? report.title : 'Codex review не завершилось',
                 summary: report.summary,
+                annotations: completed ? report.annotations : [],
               },
             });
       - name: Upload review
