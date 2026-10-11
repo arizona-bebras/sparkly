@@ -5,8 +5,9 @@ package sparkly.backend.v1;
 option go_package = "sparkly/backend/proto/v1;backendv1";
 
 import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
 
-// 1. ОБЩИЕ ТИПЫ И МОДЕЛИ (Domain Entities)
+// 1. Domain Entities
 
 message PaginationRequest {
     int32 page = 1;
@@ -30,10 +31,9 @@ message Park {
     string id = 1;
     string name = 2;
     string description = 3;
-    string public_key = 4;
-    int32 device_count = 5;
-    google.protobuf.Timestamp created_at = 6;
-    google.protobuf.Timestamp updated_at = 7;
+    int32 device_count = 4;
+    google.protobuf.Timestamp created_at = 5;
+    google.protobuf.Timestamp updated_at = 6;
 }
 
 message DeviceGroup {
@@ -49,14 +49,13 @@ message DeviceGroup {
 message Device {
     string id = 1;
     string name = 2;
-    string public_key = 3;
-    string park_id = 4;
-    google.protobuf.Timestamp joined_at = 5;
-    optional string group_id = 6;
-    string ip_address = 7;
-    google.protobuf.Timestamp last_seen_at = 8;
-    google.protobuf.Timestamp created_at = 9;
-    google.protobuf.Timestamp updated_at = 10;
+    string park_id = 3;
+    repeated string group_ids = 4;
+    string ip_address = 5;
+    google.protobuf.Timestamp joined_at = 6;
+    google.protobuf.Timestamp last_seen_at = 7;
+    google.protobuf.Timestamp created_at = 8;
+    google.protobuf.Timestamp updated_at = 9;
 }
 
 enum IssueSeverity {
@@ -110,6 +109,10 @@ message TokenResponse {
     int64 expires_in = 3;
 }
 
+message CheckAuthResponse {
+    bool auth = 1;
+}
+
 message UpdateUserRequest {
     string id = 1;
     optional string email = 2;
@@ -133,7 +136,6 @@ message DeleteUserResponse {
 message CreateParkRequest {
     string name = 1;
     string description = 2;
-    optional string public_key = 3;
 }
 
 message GetParkRequest {
@@ -150,7 +152,7 @@ message GetAllParksResponse {
 }
 
 message GetParksByFiltersRequest {
-    string query = 1;
+    string name = 1;
     PaginationRequest pagination = 2;
 }
 
@@ -163,7 +165,6 @@ message UpdateParkRequest {
     string id = 1;
     optional string name = 2;
     optional string description = 3;
-    optional string public_key = 4;
 }
 
 message DeleteParkRequest {
@@ -178,7 +179,7 @@ message DeleteParkResponse {
     bool success = 1;
 }
 
-// Группы парка (Device Groups)
+// Device Groups
 message CreateGroupRequest {
     string park_id = 1;
     string name = 2;
@@ -237,18 +238,6 @@ message RemoveDeviceFromGroupResponse {
 
 // 4. DEVICE SERVICE MESSAGES
 
-message AddDeviceRequest {
-    string park_id = 1;
-    optional string group_id = 2;
-    string name = 3;
-    string public_key = 4;
-}
-
-message AddDeviceResponse {
-    Device device = 1;
-    string device_token = 2;
-}
-
 message GetDeviceRequest {
     string id = 1;
 }
@@ -265,10 +254,10 @@ message GetAllDevicesResponse {
 
 message GetDevicesByFiltersRequest {
     string park_id = 1;
-    optional string group_id = 2;
-    optional string architecture = 3;
-    optional string firmware_version = 4;
-    optional string query = 5;
+    repeated string device_ids = 2;
+    repeated string group_ids = 3;
+    optional string name = 4;
+    repeated string build_ids = 5;
     PaginationRequest pagination = 6;
 }
 
@@ -277,23 +266,8 @@ message GetDevicesByFiltersResponse {
     PaginationResponse pagination = 2;
 }
 
-message UpdateDeviceRequest {
-    string id = 1;
-    optional string name = 2;
-    optional string group_id = 3;
-    optional string public_key = 4;
-}
-
-message DeleteDeviceRequest {
-    string id = 1;
-}
-
 message DeviceResponse {
     Device device = 1;
-}
-
-message DeleteDeviceResponse {
-    bool success = 1;
 }
 
 // 5. ISSUE SERVICE MESSAGES (Замена Incidents)
@@ -316,10 +290,9 @@ message GetIssuesByFiltersRequest {
     string park_id = 1;
     optional IssueSeverity severity = 2;
     optional bool is_resolved = 3;
-    optional string query = 4;
-    optional google.protobuf.Timestamp from_time = 5;
-    optional google.protobuf.Timestamp to_time = 6;
-    PaginationRequest pagination = 7;
+    optional google.protobuf.Timestamp from_time = 4;
+    optional google.protobuf.Timestamp to_time = 5;
+    PaginationRequest pagination = 6;
 }
 
 message GetIssuesByFiltersResponse {
@@ -331,68 +304,8 @@ message ResolveIssueRequest {
     string id = 1;
 }
 
-message UpdateIssueRequest {
-    string id = 1;
-    optional string title = 2;
-    optional string description = 3;
-    optional IssueSeverity severity = 4;
-}
-
-message DeleteIssueRequest {
-    string id = 1;
-}
-
 message IssueResponse {
     Issue issue = 1;
-}
-
-message DeleteIssueResponse {
-    bool success = 1;
-}
-
-// 6. RELEASE SERVICE MESSAGES
-
-message AddReleaseRequest {
-    string park_id = 1;
-    string version = 2;
-    optional string commit = 3;
-    string target_architecture = 4;
-    string binary_url = 5;
-    string checksum_sha256 = 6;
-    optional string elf_object_key = 7;
-    optional string dwarf_object_key = 8;
-    string description = 9;
-    int64 file_size = 10;
-}
-
-message GetAllReleasesRequest {
-    string park_id = 1;
-    PaginationRequest pagination = 2;
-}
-
-message GetAllReleasesResponse {
-    repeated Release releases = 1;
-    PaginationResponse pagination = 2;
-}
-
-message UpdateDevicesRequest {
-    string release_id = 1;
-    string park_id = 2;
-    optional string group_id = 3;
-    repeated string device_ids = 4;
-    int32 rollout_percentage = 5;
-    bool auto_rollback_on_failure = 6;
-}
-
-message UpdateDevicesResponse {
-    string rollout_id = 1;
-    string status = 2;
-    int32 target_device_count = 3;
-    google.protobuf.Timestamp started_at = 4;
-}
-
-message ReleaseResponse {
-    Release release = 1;
 }
 
 // SERVICES DEFINITIONS
@@ -400,6 +313,8 @@ message ReleaseResponse {
 service UserService {
     rpc Reg (RegisterRequest) returns (TokenResponse);
     rpc GetToken (TokenRequest) returns (TokenResponse);
+    rpc CheckAuth (google.protobuf.Empty) returns (CheckAuthResponse);
+    
     rpc UpdateUser (UpdateUserRequest) returns (UserResponse);
     rpc DeleteUser (DeleteUserRequest) returns (DeleteUserResponse);
 }
@@ -422,12 +337,9 @@ service ParkService {
 }
 
 service DeviceService {
-    rpc AddDevice (AddDeviceRequest) returns (AddDeviceResponse);
     rpc GetDevice (GetDeviceRequest) returns (DeviceResponse);
     rpc GetAllDevices (GetAllDevicesRequest) returns (GetAllDevicesResponse);
     rpc GetDevicesByFilters (GetDevicesByFiltersRequest) returns (GetDevicesByFiltersResponse);
-    rpc UpdateDevice (UpdateDeviceRequest) returns (DeviceResponse);
-    rpc DeleteDevice (DeleteDeviceRequest) returns (DeleteDeviceResponse);
 }
 
 service IssueService {
@@ -435,12 +347,4 @@ service IssueService {
     rpc GetAllIssues (GetAllIssuesRequest) returns (GetAllIssuesResponse);
     rpc GetIssuesByFilters (GetIssuesByFiltersRequest) returns (GetIssuesByFiltersResponse);
     rpc ResolveIssue (ResolveIssueRequest) returns (IssueResponse);
-    rpc UpdateIssue (UpdateIssueRequest) returns (IssueResponse);
-    rpc DeleteIssue (DeleteIssueRequest) returns (DeleteIssueResponse);
-}
-
-service ReleaseService {
-    rpc AddRelease (AddReleaseRequest) returns (ReleaseResponse);
-    rpc GetAllReleases (GetAllReleasesRequest) returns (GetAllReleasesResponse);
-    rpc UpdateDevices (UpdateDevicesRequest) returns (UpdateDevicesResponse);
 }
