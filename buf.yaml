@@ -1,0 +1,15 @@
+version: v2
+modules:
+  - path: .
+    includes:
+      - agent/proto
+      - analytics/proto
+      - backend/proto
+      - ml/proto
+deps:
+  - buf.build/bufbuild/protovalidate
+lint:
+  use:
+    - STANDARD
+  except:
+    - PACKAGE_DIRECTORY_MATCH

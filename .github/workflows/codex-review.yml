@@ -1,0 +1,94 @@
+name: Codex review
+
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: codex-review-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  review:
+    name: Review PR changes
+    if: github.event.pull_request.draft == false
+    runs-on: [self-hosted, codex]
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      checks: write
+    env:
+      PR_NUMBER: ${{ github.event.pull_request.number }}
+      PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+      PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+    steps:
+      - name: Prepare review directory
+        run: echo "REVIEW_OUTPUT_DIR=$RUNNER_TEMP/codex-review-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT" >> "$GITHUB_ENV"
+      # Only trusted base-branch code is checked out and executed on the runner.
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "22.22.2"
+      - name: Review with installed Codex CLI
+        id: codex
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CODEX_BIN: ${{ vars.CODEX_BIN }}
+          CODEX_REVIEW_MODEL: ${{ vars.CODEX_REVIEW_MODEL }}
+        run: node .github/scripts/codex-review.mjs
+      - name: Publish check on the PR commit
+        if: always()
+        uses: actions/github-script@v9
+        env:
+          REVIEW_OUTCOME: ${{ steps.codex.outcome }}
+        with:
+          script: |
+            const fs = require('node:fs');
+            const path = require('node:path');
+            const runUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+            let report;
+            try {
+              report = JSON.parse(fs.readFileSync(path.join(process.env.REVIEW_OUTPUT_DIR, 'check.json'), 'utf8'));
+            } catch {
+              report = { summary: `Codex review не завершилось. [Логи workflow](${runUrl}).` };
+            }
+            const completed = process.env.REVIEW_OUTCOME === 'success' &&
+              typeof report.title === 'string' &&
+              typeof report.summary === 'string' &&
+              ['success', 'neutral'].includes(report.conclusion) &&
+              Array.isArray(report.annotations);
+            await github.rest.checks.create({
+              ...context.repo,
+              name: 'Codex PR review',
+              head_sha: process.env.PR_HEAD_SHA,
+              status: 'completed',
+              conclusion: completed ? report.conclusion :
+                (process.env.REVIEW_OUTCOME === 'cancelled' ? 'cancelled' : 'failure'),
+              details_url: runUrl,
+              output: {
+                title: completed ? report.title : 'Codex review не завершилось',
+                summary: report.summary,
+                annotations: completed ? report.annotations : [],
+              },
+            });
+      - name: Upload review
+        if: steps.codex.outcome == 'success'
+        uses: actions/upload-artifact@v7
+        with:
+          name: codex-review-pr-${{ github.event.pull_request.number }}
+          path: |
+            ${{ env.REVIEW_OUTPUT_DIR }}/review.md
+            ${{ env.REVIEW_OUTPUT_DIR }}/review.json
+          if-no-files-found: error
+          retention-days: 7
+      - name: Clean temporary review files
+        if: always()
+        run: |
+          node -e "require('node:fs').rmSync(process.env.REVIEW_OUTPUT_DIR, { recursive: true, force: true })"

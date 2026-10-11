@@ -1,0 +1,164 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  merge_group:
+  workflow_dispatch:
+    inputs:
+      all:
+        description: Run every component
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+  actions: read
+  pull-requests: read
+
+concurrency:
+  group: ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+env:
+  NX_DAEMON: 'false'
+  NX_TUI: 'false'
+  NX_NO_CLOUD: 'true'
+
+jobs:
+  plan:
+    name: Affected components
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    outputs:
+      matrix: ${{ steps.plan.outputs.matrix }}
+      has-work: ${{ steps.plan.outputs.has-work }}
+      plan: ${{ steps.plan.outputs.plan }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22.22.2'
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Test CI scripts
+        run: node --test .github/scripts/*.test.mjs
+      - name: Initial CI baseline
+        id: baseline
+        run: echo "sha=$(git rev-list --max-parents=0 HEAD | tail -n 1)" >> "$GITHUB_OUTPUT"
+      - uses: nrwl/nx-set-shas@v5
+        with:
+          main-branch-name: main
+          fallback-sha: ${{ steps.baseline.outputs.sha }}
+      - name: Build component matrix
+        id: plan
+        env:
+          FORCE_ALL: ${{ github.event_name == 'workflow_dispatch' && inputs.all }}
+        run: node .github/scripts/ci.mjs plan
+
+  component:
+    name: ${{ matrix.project }} · ${{ matrix.build && 'check & build' || 'check' }}
+    needs: plan
+    if: needs.plan.outputs.has-work == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.plan.outputs.matrix) }}
+    env:
+      PROJECT: ${{ matrix.project }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22.22.2'
+          cache: pnpm
+      - uses: actions/setup-go@v7
+        if: matrix.runtime == 'go'
+        with:
+          go-version-file: ${{ matrix.project }}/go.mod
+          cache-dependency-path: ${{ matrix.project }}/go.mod
+      - name: Set up Rust
+        if: matrix.runtime == 'rust'
+        run: |
+          rustup toolchain install stable --profile minimal
+          rustup default stable
+      - uses: actions/setup-python@v7
+        if: matrix.runtime == 'python'
+        with:
+          python-version: '3.14'
+      - name: Install workspace dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Check
+        id: check
+        if: matrix.check
+        run: pnpm exec nx run "$PROJECT:check" --outputStyle=static
+      - name: Build
+        id: build
+        if: matrix.build
+        run: pnpm exec nx run "$PROJECT:build" --outputStyle=static
+      - name: Package build
+        if: matrix.build && steps.build.outcome == 'success'
+        env:
+          BUILD_PATH: ${{ matrix.artifact }}
+        run: tar -czf "$RUNNER_TEMP/build-$PROJECT.tar.gz" "$BUILD_PATH"
+      - name: Upload build
+        id: artifact
+        if: matrix.build && steps.build.outcome == 'success'
+        uses: actions/upload-artifact@v7
+        with:
+          name: build-${{ matrix.project }}
+          path: ${{ runner.temp }}/build-${{ matrix.project }}.tar.gz
+          if-no-files-found: error
+          retention-days: 14
+      - name: Component summary
+        if: always()
+        env:
+          CHECK_OUTCOME: ${{ steps.check.outcome }}
+          BUILD_OUTCOME: ${{ steps.build.outcome }}
+          HAS_BUILD: ${{ matrix.build }}
+          JOB_STATUS: ${{ job.status }}
+          ARTIFACT_URL: ${{ steps.artifact.outputs.artifact-url }}
+          UPLOAD_OUTCOME: ${{ steps.artifact.outcome }}
+        run: node .github/scripts/ci.mjs report
+      - name: Upload component result
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: result-${{ matrix.project }}
+          path: .ci-results/*.json
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 7
+
+  results:
+    name: CI results
+    needs: [plan, component]
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22.22.2'
+      - name: Download component results
+        if: needs.plan.outputs.has-work == 'true'
+        continue-on-error: true
+        uses: actions/download-artifact@v8
+        with:
+          pattern: result-*
+          path: .ci-results
+          merge-multiple: true
+      - name: Summarize and check overall result
+        if: always()
+        env:
+          CI_PLAN: ${{ needs.plan.outputs.plan }}
+          PLAN_RESULT: ${{ needs.plan.result }}
+          COMPONENTS_RESULT: ${{ needs.component.result }}
+        run: node .github/scripts/ci.mjs summary
