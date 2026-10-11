@@ -2,349 +2,388 @@ syntax = "proto3";
 
 package sparkly.backend.v1;
 
+import "google/protobuf/timestamp.proto";
+
 option go_package = "sparkly/backend/proto/v1;backendv1";
 
-import "google/protobuf/timestamp.proto";
-import "google/protobuf/empty.proto";
-
-// 1. Domain Entities
+// ============================================================================
+// 1. DOMAIN ENTITIES
+// ============================================================================
 
 message PaginationRequest {
-    int32 page = 1;
-    int32 page_size = 2;
+  int32 page = 1;
+  int32 page_size = 2;
 }
 
 message PaginationResponse {
-    int32 total_items = 1;
-    int32 total_pages = 2;
-    int32 current_page = 3;
+  int32 total_items = 1;
+  int32 total_pages = 2;
+  int32 current_page = 3;
 }
 
 message User {
-    string id = 1;
-    string email = 2;
-    google.protobuf.Timestamp created_at = 3;
-    google.protobuf.Timestamp updated_at = 4;
+  string id = 1;
+  string email = 2;
+  google.protobuf.Timestamp created_at = 3;
+  google.protobuf.Timestamp updated_at = 4;
 }
 
 message Park {
-    string id = 1;
-    string name = 2;
-    string description = 3;
-    int32 device_count = 4;
-    google.protobuf.Timestamp created_at = 5;
-    google.protobuf.Timestamp updated_at = 6;
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  int32 device_count = 4;
+  google.protobuf.Timestamp created_at = 5;
+  google.protobuf.Timestamp updated_at = 6;
 }
 
 message DeviceGroup {
-    string id = 1;
-    string park_id = 2;
-    string name = 3;
-    string description = 4;
-    int32 device_count = 5;
-    google.protobuf.Timestamp created_at = 6;
-    google.protobuf.Timestamp updated_at = 7;
+  string id = 1;
+  string park_id = 2;
+  string name = 3;
+  string description = 4;
+  int32 device_count = 5;
+  google.protobuf.Timestamp created_at = 6;
+  google.protobuf.Timestamp updated_at = 7;
 }
 
 message Device {
-    string id = 1;
-    string name = 2;
-    string park_id = 3;
-    repeated string group_ids = 4;
-    string ip_address = 5;
-    google.protobuf.Timestamp joined_at = 6;
-    google.protobuf.Timestamp last_seen_at = 7;
-    google.protobuf.Timestamp created_at = 8;
-    google.protobuf.Timestamp updated_at = 9;
+  string id = 1;
+  string name = 2;
+  string park_id = 3;
+  repeated string group_ids = 4;
+  string ip_address = 5;
+  google.protobuf.Timestamp joined_at = 6;
+  google.protobuf.Timestamp last_seen_at = 7;
+  google.protobuf.Timestamp created_at = 8;
+  google.protobuf.Timestamp updated_at = 9;
 }
 
 enum IssueSeverity {
-    ISSUE_SEVERITY_UNSPECIFIED = 0;
-    ISSUE_SEVERITY_INFO = 1;
-    ISSUE_SEVERITY_WARNING = 2;
-    ISSUE_SEVERITY_ERROR = 3;
-    ISSUE_SEVERITY_CRITICAL = 4;
+  ISSUE_SEVERITY_UNSPECIFIED = 0;
+  ISSUE_SEVERITY_INFO = 1;
+  ISSUE_SEVERITY_WARNING = 2;
+  ISSUE_SEVERITY_ERROR = 3;
+  ISSUE_SEVERITY_CRITICAL = 4;
 }
 
 message Issue {
-    string id = 1;
-    string park_id = 2;
-    string title = 3;
-    string description = 4;
-    optional google.protobuf.Timestamp resolved_at = 5;
-    IssueSeverity severity = 6;
-    google.protobuf.Timestamp first_at = 7;
-    google.protobuf.Timestamp last_at = 8;
+  string id = 1;
+  string park_id = 2;
+  string title = 3;
+  string description = 4;
+  optional google.protobuf.Timestamp resolved_at = 5;
+  IssueSeverity severity = 6;
+  google.protobuf.Timestamp first_at = 7;
+  google.protobuf.Timestamp last_at = 8;
 }
 
 message Release {
-    string id = 1;
-    string park_id = 2;
-    string version = 3;
-    string commit = 4;
-    string binary_url = 5;
-    string checksum_sha256 = 6;
-    string elf_object_key = 7;
-    string dwarf_object_key = 8;
-    string description = 9;
-    int64 file_size = 10;
-    google.protobuf.Timestamp created_at = 11;
+  string id = 1;
+  string park_id = 2;
+  string version = 3;
+  string commit = 4;
+  string binary_url = 5;
+  string checksum_sha256 = 6;
+  string elf_object_key = 7;
+  string dwarf_object_key = 8;
+  string description = 9;
+  int64 file_size = 10;
+  google.protobuf.Timestamp created_at = 11;
 }
 
+// ============================================================================
 // 2. USER SERVICE MESSAGES
+// ============================================================================
 
-message RegisterRequest {
-    string email = 1;
-    string password = 2;
+message RegRequest {
+  string email = 1;
+  string password = 2;
 }
 
-message TokenRequest {
-    string email = 1;
-    string password = 2;
+message RegResponse {
+  string token = 1;
+  string refresh_token = 2;
+  int64 expires_in = 3;
 }
 
-message TokenResponse {
-    string token = 1;
-    string refresh_token = 2;
-    int64 expires_in = 3;
+message GetTokenRequest {
+  string email = 1;
+  string password = 2;
 }
+
+message GetTokenResponse {
+  string token = 1;
+  string refresh_token = 2;
+  int64 expires_in = 3;
+}
+
+message CheckAuthRequest {}
 
 message CheckAuthResponse {
-    bool auth = 1;
+  bool auth = 1;
 }
 
 message UpdateUserRequest {
-    string id = 1;
-    optional string email = 2;
-    optional string password = 3;
+  string id = 1;
+  optional string email = 2;
+  optional string password = 3;
+}
+
+message UpdateUserResponse {
+  User user = 1;
 }
 
 message DeleteUserRequest {
-    string id = 1;
-}
-
-message UserResponse {
-    User user = 1;
+  string id = 1;
 }
 
 message DeleteUserResponse {
-    bool success = 1;
+  bool success = 1;
 }
 
+// ============================================================================
 // 3. PARK SERVICE MESSAGES
+// ============================================================================
 
 message CreateParkRequest {
-    string name = 1;
-    string description = 2;
+  string name = 1;
+  string description = 2;
+}
+
+message CreateParkResponse {
+  Park park = 1;
 }
 
 message GetParkRequest {
-    string id = 1;
+  string id = 1;
+}
+
+message GetParkResponse {
+  Park park = 1;
 }
 
 message GetAllParksRequest {
-    PaginationRequest pagination = 1;
+  PaginationRequest pagination = 1;
 }
 
 message GetAllParksResponse {
-    repeated Park parks = 1;
-    PaginationResponse pagination = 2;
+  repeated Park parks = 1;
+  PaginationResponse pagination = 2;
 }
 
 message GetParksByFiltersRequest {
-    string name = 1;
-    PaginationRequest pagination = 2;
+  string name = 1;
+  PaginationRequest pagination = 2;
 }
 
 message GetParksByFiltersResponse {
-    repeated Park parks = 1;
-    PaginationResponse pagination = 2;
+  repeated Park parks = 1;
+  PaginationResponse pagination = 2;
 }
 
 message UpdateParkRequest {
-    string id = 1;
-    optional string name = 2;
-    optional string description = 3;
+  string id = 1;
+  optional string name = 2;
+  optional string description = 3;
+}
+
+message UpdateParkResponse {
+  Park park = 1;
 }
 
 message DeleteParkRequest {
-    string id = 1;
-}
-
-message ParkResponse {
-    Park park = 1;
+  string id = 1;
 }
 
 message DeleteParkResponse {
-    bool success = 1;
+  bool success = 1;
 }
 
-// Device Groups
+// Device Groups Messages
 message CreateGroupRequest {
-    string park_id = 1;
-    string name = 2;
-    string description = 3;
+  string park_id = 1;
+  string name = 2;
+  string description = 3;
+}
+
+message CreateGroupResponse {
+  DeviceGroup group = 1;
 }
 
 message GetGroupRequest {
-    string id = 1;
+  string id = 1;
+}
+
+message GetGroupResponse {
+  DeviceGroup group = 1;
 }
 
 message GetGroupsRequest {
-    string park_id = 1;
-    PaginationRequest pagination = 2;
+  string park_id = 1;
+  PaginationRequest pagination = 2;
 }
 
 message GetGroupsResponse {
-    repeated DeviceGroup groups = 1;
-    PaginationResponse pagination = 2;
+  repeated DeviceGroup groups = 1;
+  PaginationResponse pagination = 2;
 }
 
 message UpdateGroupRequest {
-    string id = 1;
-    optional string name = 2;
-    optional string description = 3;
+  string id = 1;
+  optional string name = 2;
+  optional string description = 3;
+}
+
+message UpdateGroupResponse {
+  DeviceGroup group = 1;
 }
 
 message DeleteGroupRequest {
-    string id = 1;
-}
-
-message GroupResponse {
-    DeviceGroup group = 1;
+  string id = 1;
 }
 
 message DeleteGroupResponse {
-    bool success = 1;
+  bool success = 1;
 }
 
 message AddDeviceToGroupRequest {
-    string group_id = 1;
-    string device_id = 2;
+  string group_id = 1;
+  string device_id = 2;
 }
 
 message AddDeviceToGroupResponse {
-    bool success = 1;
+  bool success = 1;
 }
 
 message RemoveDeviceFromGroupRequest {
-    string group_id = 1;
-    string device_id = 2;
+  string group_id = 1;
+  string device_id = 2;
 }
 
 message RemoveDeviceFromGroupResponse {
-    bool success = 1;
+  bool success = 1;
 }
 
+// ============================================================================
 // 4. DEVICE SERVICE MESSAGES
+// ============================================================================
 
 message GetDeviceRequest {
-    string id = 1;
+  string id = 1;
+}
+
+message GetDeviceResponse {
+  Device device = 1;
 }
 
 message GetAllDevicesRequest {
-    string park_id = 1;
-    PaginationRequest pagination = 2;
+  string park_id = 1;
+  PaginationRequest pagination = 2;
 }
 
 message GetAllDevicesResponse {
-    repeated Device devices = 1;
-    PaginationResponse pagination = 2;
+  repeated Device devices = 1;
+  PaginationResponse pagination = 2;
 }
 
 message GetDevicesByFiltersRequest {
-    string park_id = 1;
-    repeated string device_ids = 2;
-    repeated string group_ids = 3;
-    optional string name = 4;
-    repeated string build_ids = 5;
-    PaginationRequest pagination = 6;
+  string park_id = 1;
+  repeated string device_ids = 2;
+  repeated string group_ids = 3;
+  optional string name = 4;
+  repeated string build_ids = 5;
+  PaginationRequest pagination = 6;
 }
 
 message GetDevicesByFiltersResponse {
-    repeated Device devices = 1;
-    PaginationResponse pagination = 2;
+  repeated Device devices = 1;
+  PaginationResponse pagination = 2;
 }
 
-message DeviceResponse {
-    Device device = 1;
-}
-
-// 5. ISSUE SERVICE MESSAGES (Замена Incidents)
+// ============================================================================
+// 5. ISSUE SERVICE MESSAGES
+// ============================================================================
 
 message GetIssueRequest {
-    string id = 1;
+  string id = 1;
+}
+
+message GetIssueResponse {
+  Issue issue = 1;
 }
 
 message GetAllIssuesRequest {
-    string park_id = 1;
-    PaginationRequest pagination = 2;
+  string park_id = 1;
+  PaginationRequest pagination = 2;
 }
 
 message GetAllIssuesResponse {
-    repeated Issue issues = 1;
-    PaginationResponse pagination = 2;
+  repeated Issue issues = 1;
+  PaginationResponse pagination = 2;
 }
 
 message GetIssuesByFiltersRequest {
-    string park_id = 1;
-    optional IssueSeverity severity = 2;
-    optional bool is_resolved = 3;
-    optional google.protobuf.Timestamp from_time = 4;
-    optional google.protobuf.Timestamp to_time = 5;
-    PaginationRequest pagination = 6;
+  string park_id = 1;
+  optional IssueSeverity severity = 2;
+  optional bool is_resolved = 3;
+  optional google.protobuf.Timestamp from_time = 4;
+  optional google.protobuf.Timestamp to_time = 5;
+  PaginationRequest pagination = 6;
 }
 
 message GetIssuesByFiltersResponse {
-    repeated Issue issues = 1;
-    PaginationResponse pagination = 2;
+  repeated Issue issues = 1;
+  PaginationResponse pagination = 2;
 }
 
 message ResolveIssueRequest {
-    string id = 1;
+  string id = 1;
 }
 
-message IssueResponse {
-    Issue issue = 1;
+message ResolveIssueResponse {
+  Issue issue = 1;
 }
 
-// SERVICES DEFINITIONS
+// ============================================================================
+// 6. SERVICES DEFINITIONS
+// ============================================================================
 
 service UserService {
-    rpc Reg (RegisterRequest) returns (TokenResponse);
-    rpc GetToken (TokenRequest) returns (TokenResponse);
-    rpc CheckAuth (google.protobuf.Empty) returns (CheckAuthResponse);
-    
-    rpc UpdateUser (UpdateUserRequest) returns (UserResponse);
-    rpc DeleteUser (DeleteUserRequest) returns (DeleteUserResponse);
+  rpc Reg(RegRequest) returns (RegResponse);
+  rpc GetToken(GetTokenRequest) returns (GetTokenResponse);
+  rpc CheckAuth(CheckAuthRequest) returns (CheckAuthResponse);
+
+  rpc UpdateUser(UpdateUserRequest) returns (UpdateUserResponse);
+  rpc DeleteUser(DeleteUserRequest) returns (DeleteUserResponse);
 }
 
 service ParkService {
-    rpc CreatePark (CreateParkRequest) returns (ParkResponse);
-    rpc GetPark (GetParkRequest) returns (ParkResponse);
-    rpc GetAllParks (GetAllParksRequest) returns (GetAllParksResponse);
-    rpc GetParksByFilters (GetParksByFiltersRequest) returns (GetParksByFiltersResponse);
-    rpc UpdatePark (UpdateParkRequest) returns (ParkResponse);
-    rpc DeletePark (DeleteParkRequest) returns (DeleteParkResponse);
+  rpc CreatePark(CreateParkRequest) returns (CreateParkResponse);
+  rpc GetPark(GetParkRequest) returns (GetParkResponse);
+  rpc GetAllParks(GetAllParksRequest) returns (GetAllParksResponse);
+  rpc GetParksByFilters(GetParksByFiltersRequest) returns (GetParksByFiltersResponse);
+  rpc UpdatePark(UpdateParkRequest) returns (UpdateParkResponse);
+  rpc DeletePark(DeleteParkRequest) returns (DeleteParkResponse);
 
-    rpc CreateGroup (CreateGroupRequest) returns (GroupResponse);
-    rpc GetGroup (GetGroupRequest) returns (GroupResponse);
-    rpc GetGroups (GetGroupsRequest) returns (GetGroupsResponse);
-    rpc UpdateGroup (UpdateGroupRequest) returns (GroupResponse);
-    rpc DeleteGroup (DeleteGroupRequest) returns (DeleteGroupResponse);
-    rpc AddDeviceToGroup (AddDeviceToGroupRequest) returns (AddDeviceToGroupResponse);
-    rpc RemoveDeviceFromGroup (RemoveDeviceFromGroupRequest) returns (RemoveDeviceFromGroupResponse);
+  rpc CreateGroup(CreateGroupRequest) returns (CreateGroupResponse);
+  rpc GetGroup(GetGroupRequest) returns (GetGroupResponse);
+  rpc GetGroups(GetGroupsRequest) returns (GetGroupsResponse);
+  rpc UpdateGroup(UpdateGroupRequest) returns (UpdateGroupResponse);
+  rpc DeleteGroup(DeleteGroupRequest) returns (DeleteGroupResponse);
+  rpc AddDeviceToGroup(AddDeviceToGroupRequest) returns (AddDeviceToGroupResponse);
+  rpc RemoveDeviceFromGroup(RemoveDeviceFromGroupRequest) returns (RemoveDeviceFromGroupResponse);
 }
 
 service DeviceService {
-    rpc GetDevice (GetDeviceRequest) returns (DeviceResponse);
-    rpc GetAllDevices (GetAllDevicesRequest) returns (GetAllDevicesResponse);
-    rpc GetDevicesByFilters (GetDevicesByFiltersRequest) returns (GetDevicesByFiltersResponse);
+  rpc GetDevice(GetDeviceRequest) returns (GetDeviceResponse);
+  rpc GetAllDevices(GetAllDevicesRequest) returns (GetAllDevicesResponse);
+  rpc GetDevicesByFilters(GetDevicesByFiltersRequest) returns (GetDevicesByFiltersResponse);
 }
 
 service IssueService {
-    rpc GetIssue (GetIssueRequest) returns (IssueResponse);
-    rpc GetAllIssues (GetAllIssuesRequest) returns (GetAllIssuesResponse);
-    rpc GetIssuesByFilters (GetIssuesByFiltersRequest) returns (GetIssuesByFiltersResponse);
-    rpc ResolveIssue (ResolveIssueRequest) returns (IssueResponse);
+  rpc GetIssue(GetIssueRequest) returns (GetIssueResponse);
+  rpc GetAllIssues(GetAllIssuesRequest) returns (GetAllIssuesResponse);
+  rpc GetIssuesByFilters(GetIssuesByFiltersRequest) returns (GetIssuesByFiltersResponse);
+  rpc ResolveIssue(ResolveIssueRequest) returns (ResolveIssueResponse);
 }
