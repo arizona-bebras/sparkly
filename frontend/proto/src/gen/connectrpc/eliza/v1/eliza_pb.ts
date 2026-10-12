@@ -16,22 +16,25 @@
 // @generated from file connectrpc/eliza/v1/eliza.proto (package connectrpc.eliza.v1, syntax proto3)
 /* eslint-disable */
 
-import type { GenFile, GenMessage, GenService } from "@bufbuild/protobuf/codegenv2";
-import { fileDesc, messageDesc, serviceDesc } from "@bufbuild/protobuf/codegenv2";
-import type { Message } from "@bufbuild/protobuf";
+import type { GenFile, GenMessage, GenService } from '@bufbuild/protobuf/codegenv2';
+import { fileDesc, messageDesc, serviceDesc } from '@bufbuild/protobuf/codegenv2';
+import type { Message } from '@bufbuild/protobuf';
 
 /**
  * Describes the file connectrpc/eliza/v1/eliza.proto.
  */
-export const file_connectrpc_eliza_v1_eliza: GenFile = /*@__PURE__*/
-  fileDesc("Ch9jb25uZWN0cnBjL2VsaXphL3YxL2VsaXphLnByb3RvEhNjb25uZWN0cnBjLmVsaXphLnYxIh4KClNheVJlcXVlc3QSEAoIc2VudGVuY2UYASABKAkiHwoLU2F5UmVzcG9uc2USEAoIc2VudGVuY2UYASABKAkiIwoPQ29udmVyc2VSZXF1ZXN0EhAKCHNlbnRlbmNlGAEgASgJIiQKEENvbnZlcnNlUmVzcG9uc2USEAoIc2VudGVuY2UYASABKAkiIAoQSW50cm9kdWNlUmVxdWVzdBIMCgRuYW1lGAEgASgJIiUKEUludHJvZHVjZVJlc3BvbnNlEhAKCHNlbnRlbmNlGAEgASgJMpwCCgxFbGl6YVNlcnZpY2USTQoDU2F5Eh8uY29ubmVjdHJwYy5lbGl6YS52MS5TYXlSZXF1ZXN0GiAuY29ubmVjdHJwYy5lbGl6YS52MS5TYXlSZXNwb25zZSIDkAIBEl0KCENvbnZlcnNlEiQuY29ubmVjdHJwYy5lbGl6YS52MS5Db252ZXJzZVJlcXVlc3QaJS5jb25uZWN0cnBjLmVsaXphLnYxLkNvbnZlcnNlUmVzcG9uc2UiACgBMAESXgoJSW50cm9kdWNlEiUuY29ubmVjdHJwYy5lbGl6YS52MS5JbnRyb2R1Y2VSZXF1ZXN0GiYuY29ubmVjdHJwYy5lbGl6YS52MS5JbnRyb2R1Y2VSZXNwb25zZSIAMAFiBnByb3RvMw");
+export const file_connectrpc_eliza_v1_eliza: GenFile =
+  /*@__PURE__*/
+  fileDesc(
+    'Ch9jb25uZWN0cnBjL2VsaXphL3YxL2VsaXphLnByb3RvEhNjb25uZWN0cnBjLmVsaXphLnYxIh4KClNheVJlcXVlc3QSEAoIc2VudGVuY2UYASABKAkiHwoLU2F5UmVzcG9uc2USEAoIc2VudGVuY2UYASABKAkiIwoPQ29udmVyc2VSZXF1ZXN0EhAKCHNlbnRlbmNlGAEgASgJIiQKEENvbnZlcnNlUmVzcG9uc2USEAoIc2VudGVuY2UYASABKAkiIAoQSW50cm9kdWNlUmVxdWVzdBIMCgRuYW1lGAEgASgJIiUKEUludHJvZHVjZVJlc3BvbnNlEhAKCHNlbnRlbmNlGAEgASgJMpwCCgxFbGl6YVNlcnZpY2USTQoDU2F5Eh8uY29ubmVjdHJwYy5lbGl6YS52MS5TYXlSZXF1ZXN0GiAuY29ubmVjdHJwYy5lbGl6YS52MS5TYXlSZXNwb25zZSIDkAIBEl0KCENvbnZlcnNlEiQuY29ubmVjdHJwYy5lbGl6YS52MS5Db252ZXJzZVJlcXVlc3QaJS5jb25uZWN0cnBjLmVsaXphLnYxLkNvbnZlcnNlUmVzcG9uc2UiACgBMAESXgoJSW50cm9kdWNlEiUuY29ubmVjdHJwYy5lbGl6YS52MS5JbnRyb2R1Y2VSZXF1ZXN0GiYuY29ubmVjdHJwYy5lbGl6YS52MS5JbnRyb2R1Y2VSZXNwb25zZSIAMAFiBnByb3RvMw',
+  );
 
 /**
  * SayRequest is a single-sentence request.
  *
  * @generated from message connectrpc.eliza.v1.SayRequest
  */
-export type SayRequest = Message<"connectrpc.eliza.v1.SayRequest"> & {
+export type SayRequest = Message<'connectrpc.eliza.v1.SayRequest'> & {
   /**
    * @generated from field: string sentence = 1;
    */
@@ -42,7 +45,8 @@ export type SayRequest = Message<"connectrpc.eliza.v1.SayRequest"> & {
  * Describes the message connectrpc.eliza.v1.SayRequest.
  * Use `create(SayRequestSchema)` to create a new message.
  */
-export const SayRequestSchema: GenMessage<SayRequest> = /*@__PURE__*/
+export const SayRequestSchema: GenMessage<SayRequest> =
+  /*@__PURE__*/
   messageDesc(file_connectrpc_eliza_v1_eliza, 0);
 
 /**
@@ -50,7 +54,7 @@ export const SayRequestSchema: GenMessage<SayRequest> = /*@__PURE__*/
  *
  * @generated from message connectrpc.eliza.v1.SayResponse
  */
-export type SayResponse = Message<"connectrpc.eliza.v1.SayResponse"> & {
+export type SayResponse = Message<'connectrpc.eliza.v1.SayResponse'> & {
   /**
    * @generated from field: string sentence = 1;
    */
@@ -61,7 +65,8 @@ export type SayResponse = Message<"connectrpc.eliza.v1.SayResponse"> & {
  * Describes the message connectrpc.eliza.v1.SayResponse.
  * Use `create(SayResponseSchema)` to create a new message.
  */
-export const SayResponseSchema: GenMessage<SayResponse> = /*@__PURE__*/
+export const SayResponseSchema: GenMessage<SayResponse> =
+  /*@__PURE__*/
   messageDesc(file_connectrpc_eliza_v1_eliza, 1);
 
 /**
@@ -70,7 +75,7 @@ export const SayResponseSchema: GenMessage<SayResponse> = /*@__PURE__*/
  *
  * @generated from message connectrpc.eliza.v1.ConverseRequest
  */
-export type ConverseRequest = Message<"connectrpc.eliza.v1.ConverseRequest"> & {
+export type ConverseRequest = Message<'connectrpc.eliza.v1.ConverseRequest'> & {
   /**
    * @generated from field: string sentence = 1;
    */
@@ -81,7 +86,8 @@ export type ConverseRequest = Message<"connectrpc.eliza.v1.ConverseRequest"> & {
  * Describes the message connectrpc.eliza.v1.ConverseRequest.
  * Use `create(ConverseRequestSchema)` to create a new message.
  */
-export const ConverseRequestSchema: GenMessage<ConverseRequest> = /*@__PURE__*/
+export const ConverseRequestSchema: GenMessage<ConverseRequest> =
+  /*@__PURE__*/
   messageDesc(file_connectrpc_eliza_v1_eliza, 2);
 
 /**
@@ -90,7 +96,7 @@ export const ConverseRequestSchema: GenMessage<ConverseRequest> = /*@__PURE__*/
  *
  * @generated from message connectrpc.eliza.v1.ConverseResponse
  */
-export type ConverseResponse = Message<"connectrpc.eliza.v1.ConverseResponse"> & {
+export type ConverseResponse = Message<'connectrpc.eliza.v1.ConverseResponse'> & {
   /**
    * @generated from field: string sentence = 1;
    */
@@ -101,7 +107,8 @@ export type ConverseResponse = Message<"connectrpc.eliza.v1.ConverseResponse"> &
  * Describes the message connectrpc.eliza.v1.ConverseResponse.
  * Use `create(ConverseResponseSchema)` to create a new message.
  */
-export const ConverseResponseSchema: GenMessage<ConverseResponse> = /*@__PURE__*/
+export const ConverseResponseSchema: GenMessage<ConverseResponse> =
+  /*@__PURE__*/
   messageDesc(file_connectrpc_eliza_v1_eliza, 3);
 
 /**
@@ -109,7 +116,7 @@ export const ConverseResponseSchema: GenMessage<ConverseResponse> = /*@__PURE__*
  *
  * @generated from message connectrpc.eliza.v1.IntroduceRequest
  */
-export type IntroduceRequest = Message<"connectrpc.eliza.v1.IntroduceRequest"> & {
+export type IntroduceRequest = Message<'connectrpc.eliza.v1.IntroduceRequest'> & {
   /**
    * @generated from field: string name = 1;
    */
@@ -120,7 +127,8 @@ export type IntroduceRequest = Message<"connectrpc.eliza.v1.IntroduceRequest"> &
  * Describes the message connectrpc.eliza.v1.IntroduceRequest.
  * Use `create(IntroduceRequestSchema)` to create a new message.
  */
-export const IntroduceRequestSchema: GenMessage<IntroduceRequest> = /*@__PURE__*/
+export const IntroduceRequestSchema: GenMessage<IntroduceRequest> =
+  /*@__PURE__*/
   messageDesc(file_connectrpc_eliza_v1_eliza, 4);
 
 /**
@@ -128,7 +136,7 @@ export const IntroduceRequestSchema: GenMessage<IntroduceRequest> = /*@__PURE__*
  *
  * @generated from message connectrpc.eliza.v1.IntroduceResponse
  */
-export type IntroduceResponse = Message<"connectrpc.eliza.v1.IntroduceResponse"> & {
+export type IntroduceResponse = Message<'connectrpc.eliza.v1.IntroduceResponse'> & {
   /**
    * @generated from field: string sentence = 1;
    */
@@ -139,7 +147,8 @@ export type IntroduceResponse = Message<"connectrpc.eliza.v1.IntroduceResponse">
  * Describes the message connectrpc.eliza.v1.IntroduceResponse.
  * Use `create(IntroduceResponseSchema)` to create a new message.
  */
-export const IntroduceResponseSchema: GenMessage<IntroduceResponse> = /*@__PURE__*/
+export const IntroduceResponseSchema: GenMessage<IntroduceResponse> =
+  /*@__PURE__*/
   messageDesc(file_connectrpc_eliza_v1_eliza, 5);
 
 /**
@@ -159,10 +168,10 @@ export const ElizaService: GenService<{
    * @generated from rpc connectrpc.eliza.v1.ElizaService.Say
    */
   say: {
-    methodKind: "unary";
+    methodKind: 'unary';
     input: typeof SayRequestSchema;
     output: typeof SayResponseSchema;
-  },
+  };
   /**
    * Converse is a bidirectional RPC. The caller may exchange multiple
    * back-and-forth messages with Eliza over a long-lived connection. Eliza
@@ -171,10 +180,10 @@ export const ElizaService: GenService<{
    * @generated from rpc connectrpc.eliza.v1.ElizaService.Converse
    */
   converse: {
-    methodKind: "bidi_streaming";
+    methodKind: 'bidi_streaming';
     input: typeof ConverseRequestSchema;
     output: typeof ConverseResponseSchema;
-  },
+  };
   /**
    * Introduce is a server streaming RPC. Given the caller's name, Eliza
    * returns a stream of sentences to introduce itself.
@@ -182,10 +191,8 @@ export const ElizaService: GenService<{
    * @generated from rpc connectrpc.eliza.v1.ElizaService.Introduce
    */
   introduce: {
-    methodKind: "server_streaming";
+    methodKind: 'server_streaming';
     input: typeof IntroduceRequestSchema;
     output: typeof IntroduceResponseSchema;
-  },
-}> = /*@__PURE__*/
-  serviceDesc(file_connectrpc_eliza_v1_eliza, 0);
-
+  };
+}> = /*@__PURE__*/ serviceDesc(file_connectrpc_eliza_v1_eliza, 0);

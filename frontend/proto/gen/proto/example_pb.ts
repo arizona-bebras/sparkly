@@ -2,20 +2,23 @@
 // @generated from file proto/example.proto (syntax proto3)
 /* eslint-disable */
 
-import type { GenFile, GenMessage, GenService } from "@bufbuild/protobuf/codegenv2";
-import { fileDesc, messageDesc, serviceDesc } from "@bufbuild/protobuf/codegenv2";
-import type { Message } from "@bufbuild/protobuf";
+import type { GenFile, GenMessage, GenService } from '@bufbuild/protobuf/codegenv2';
+import { fileDesc, messageDesc, serviceDesc } from '@bufbuild/protobuf/codegenv2';
+import type { Message } from '@bufbuild/protobuf';
 
 /**
  * Describes the file proto/example.proto.
  */
-export const file_proto_example: GenFile = /*@__PURE__*/
-  fileDesc("ChNwcm90by9leGFtcGxlLnByb3RvIh4KClNheVJlcXVlc3QSEAoIc2VudGVuY2UYASABKAkiHwoLU2F5UmVzcG9uc2USEAoIc2VudGVuY2UYASABKAkiYQoEVXNlchIKCgJpZBgBIAEoCRIQCgh1c2VybmFtZRgCIAEoCRINCgVlbWFpbBgDIAEoCRIMCgRjaXR5GAQgASgJEgsKA2FnZRgFIAEoBRIRCglpc19hY3RpdmUYBiABKAgiHAoOR2V0VXNlclJlcXVlc3QSCgoCaWQYASABKAkiJgoPR2V0VXNlclJlc3BvbnNlEhMKBHVzZXIYASABKAsyBS5Vc2VyMmIKDEVsaXphU2VydmljZRIiCgNTYXkSCy5TYXlSZXF1ZXN0GgwuU2F5UmVzcG9uc2UiABIuCgdHZXRVc2VyEg8uR2V0VXNlclJlcXVlc3QaEC5HZXRVc2VyUmVzcG9uc2UiAGIGcHJvdG8z");
+export const file_proto_example: GenFile =
+  /*@__PURE__*/
+  fileDesc(
+    'ChNwcm90by9leGFtcGxlLnByb3RvIh4KClNheVJlcXVlc3QSEAoIc2VudGVuY2UYASABKAkiHwoLU2F5UmVzcG9uc2USEAoIc2VudGVuY2UYASABKAkiYQoEVXNlchIKCgJpZBgBIAEoCRIQCgh1c2VybmFtZRgCIAEoCRINCgVlbWFpbBgDIAEoCRIMCgRjaXR5GAQgASgJEgsKA2FnZRgFIAEoBRIRCglpc19hY3RpdmUYBiABKAgiHAoOR2V0VXNlclJlcXVlc3QSCgoCaWQYASABKAkiJgoPR2V0VXNlclJlc3BvbnNlEhMKBHVzZXIYASABKAsyBS5Vc2VyMmIKDEVsaXphU2VydmljZRIiCgNTYXkSCy5TYXlSZXF1ZXN0GgwuU2F5UmVzcG9uc2UiABIuCgdHZXRVc2VyEg8uR2V0VXNlclJlcXVlc3QaEC5HZXRVc2VyUmVzcG9uc2UiAGIGcHJvdG8z',
+  );
 
 /**
  * @generated from message SayRequest
  */
-export type SayRequest = Message<"SayRequest"> & {
+export type SayRequest = Message<'SayRequest'> & {
   /**
    * @generated from field: string sentence = 1;
    */
@@ -26,13 +29,14 @@ export type SayRequest = Message<"SayRequest"> & {
  * Describes the message SayRequest.
  * Use `create(SayRequestSchema)` to create a new message.
  */
-export const SayRequestSchema: GenMessage<SayRequest> = /*@__PURE__*/
+export const SayRequestSchema: GenMessage<SayRequest> =
+  /*@__PURE__*/
   messageDesc(file_proto_example, 0);
 
 /**
  * @generated from message SayResponse
  */
-export type SayResponse = Message<"SayResponse"> & {
+export type SayResponse = Message<'SayResponse'> & {
   /**
    * @generated from field: string sentence = 1;
    */
@@ -43,13 +47,14 @@ export type SayResponse = Message<"SayResponse"> & {
  * Describes the message SayResponse.
  * Use `create(SayResponseSchema)` to create a new message.
  */
-export const SayResponseSchema: GenMessage<SayResponse> = /*@__PURE__*/
+export const SayResponseSchema: GenMessage<SayResponse> =
+  /*@__PURE__*/
   messageDesc(file_proto_example, 1);
 
 /**
  * @generated from message User
  */
-export type User = Message<"User"> & {
+export type User = Message<'User'> & {
   /**
    * @generated from field: string id = 1;
    */
@@ -85,13 +90,12 @@ export type User = Message<"User"> & {
  * Describes the message User.
  * Use `create(UserSchema)` to create a new message.
  */
-export const UserSchema: GenMessage<User> = /*@__PURE__*/
-  messageDesc(file_proto_example, 2);
+export const UserSchema: GenMessage<User> = /*@__PURE__*/ messageDesc(file_proto_example, 2);
 
 /**
  * @generated from message GetUserRequest
  */
-export type GetUserRequest = Message<"GetUserRequest"> & {
+export type GetUserRequest = Message<'GetUserRequest'> & {
   /**
    * @generated from field: string id = 1;
    */
@@ -102,13 +106,14 @@ export type GetUserRequest = Message<"GetUserRequest"> & {
  * Describes the message GetUserRequest.
  * Use `create(GetUserRequestSchema)` to create a new message.
  */
-export const GetUserRequestSchema: GenMessage<GetUserRequest> = /*@__PURE__*/
+export const GetUserRequestSchema: GenMessage<GetUserRequest> =
+  /*@__PURE__*/
   messageDesc(file_proto_example, 3);
 
 /**
  * @generated from message GetUserResponse
  */
-export type GetUserResponse = Message<"GetUserResponse"> & {
+export type GetUserResponse = Message<'GetUserResponse'> & {
   /**
    * @generated from field: User user = 1;
    */
@@ -119,7 +124,8 @@ export type GetUserResponse = Message<"GetUserResponse"> & {
  * Describes the message GetUserResponse.
  * Use `create(GetUserResponseSchema)` to create a new message.
  */
-export const GetUserResponseSchema: GenMessage<GetUserResponse> = /*@__PURE__*/
+export const GetUserResponseSchema: GenMessage<GetUserResponse> =
+  /*@__PURE__*/
   messageDesc(file_proto_example, 4);
 
 /**
@@ -130,18 +136,16 @@ export const ElizaService: GenService<{
    * @generated from rpc ElizaService.Say
    */
   say: {
-    methodKind: "unary";
+    methodKind: 'unary';
     input: typeof SayRequestSchema;
     output: typeof SayResponseSchema;
-  },
+  };
   /**
    * @generated from rpc ElizaService.GetUser
    */
   getUser: {
-    methodKind: "unary";
+    methodKind: 'unary';
     input: typeof GetUserRequestSchema;
     output: typeof GetUserResponseSchema;
-  },
-}> = /*@__PURE__*/
-  serviceDesc(file_proto_example, 0);
-
+  };
+}> = /*@__PURE__*/ serviceDesc(file_proto_example, 0);
