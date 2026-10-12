@@ -94,6 +94,11 @@ jobs:
           python-version: '3.14'
       - name: Install workspace dependencies
         run: pnpm install --frozen-lockfile
+      - name: Prepare environment files
+        run: |
+          git ls-files -- '.env.example' '**/.env.example' | while IFS= read -r example; do
+            cp "$example" "${example%.example}"
+          done
       - name: Check
         id: check
         if: matrix.check
