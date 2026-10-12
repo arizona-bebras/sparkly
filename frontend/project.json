@@ -22,7 +22,7 @@
         "cwd": "frontend"
       }
     },
-    "fmt": {
+    "format": {
       "executor": "nx:run-commands",
       "cache": false,
       "options": {
@@ -30,7 +30,7 @@
         "cwd": "frontend"
       }
     },
-    "fmt:check": {
+    "format:check": {
       "executor": "nx:run-commands",
       "cache": true,
       "inputs": ["default", "jsTooling"],
@@ -54,7 +54,7 @@
     "check": {
       "executor": "nx:noop",
       "cache": false,
-      "dependsOn": ["lint", "fmt:check", "check:types"]
+      "dependsOn": ["lint", "format:check", "check:types"]
     },
     "check:types": {
       "executor": "nx:run-commands",

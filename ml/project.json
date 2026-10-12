@@ -4,21 +4,62 @@
   "projectType": "application",
   "sourceRoot": "ml/src",
   "targets": {
-    "check": {
-      "executor": "nx:run-commands",
-      "cache": false,
-      "options": {
-        "command": "python3 -m compileall -q src",
-        "cwd": "ml"
-      }
-    },
     "dev": {
       "executor": "nx:run-commands",
       "cache": false,
       "options": {
-        "command": "PYTHONPATH=src python3 -m sparkly_ml",
+        "command": "uv run --locked sparkly-ml",
         "cwd": "ml"
       }
+    },
+    "check:syntax": {
+      "executor": "nx:run-commands",
+      "cache": false,
+      "options": {
+        "command": "uv run --locked python -m compileall -q src",
+        "cwd": "ml"
+      }
+    },
+    "lint": {
+      "executor": "nx:run-commands",
+      "cache": false,
+      "options": {
+        "command": "uv run --locked ruff check .",
+        "cwd": "ml"
+      }
+    },
+    "lint:fix": {
+      "executor": "nx:run-commands",
+      "cache": false,
+      "options": {
+        "command": "uv run --locked ruff check --fix .",
+        "cwd": "ml"
+      }
+    },
+    "format": {
+      "executor": "nx:run-commands",
+      "cache": false,
+      "options": {
+        "command": "uv run --locked ruff format .",
+        "cwd": "ml"
+      }
+    },
+    "format:check": {
+      "executor": "nx:run-commands",
+      "cache": false,
+      "options": {
+        "command": "uv run --locked ruff format --check .",
+        "cwd": "ml"
+      }
+    },
+    "check": {
+      "executor": "nx:noop",
+      "cache": false,
+      "dependsOn": [
+        "lint",
+        "format:check",
+        "check:syntax"
+      ]
     }
   }
 }

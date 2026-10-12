@@ -12,14 +12,6 @@
         "cwd": "agent"
       }
     },
-    "check": {
-      "executor": "nx:run-commands",
-      "cache": false,
-      "options": {
-        "command": "cargo check",
-        "cwd": "agent"
-      }
-    },
     "dev": {
       "executor": "nx:run-commands",
       "cache": false,
@@ -27,6 +19,47 @@
         "command": "cargo run",
         "cwd": "agent"
       }
+    },
+    "check:types": {
+      "executor": "nx:run-commands",
+      "cache": false,
+      "options": {
+        "command": "cargo check",
+        "cwd": "agent"
+      }
+    },
+    "lint": {
+      "executor": "nx:run-commands",
+      "cache": false,
+      "options": {
+        "command": "cargo clippy --all-targets -- -D warnings",
+        "cwd": "agent"
+      }
+    },
+    "format": {
+      "executor": "nx:run-commands",
+      "cache": false,
+      "options": {
+        "command": "cargo fmt --all",
+        "cwd": "agent"
+      }
+    },
+    "format:check": {
+      "executor": "nx:run-commands",
+      "cache": false,
+      "options": {
+        "command": "cargo fmt --all -- --check",
+        "cwd": "agent"
+      }
+    },
+    "check": {
+      "executor": "nx:noop",
+      "cache": false,
+      "dependsOn": [
+        "lint",
+        "format:check",
+        "check:types"
+      ]
     }
   }
 }

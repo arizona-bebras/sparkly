@@ -33,14 +33,6 @@
         }
       ]
     },
-    "check": {
-      "executor": "nx:run-commands",
-      "cache": false,
-      "options": {
-        "command": "go vet ./...",
-        "cwd": "backend"
-      }
-    },
     "dev": {
       "executor": "nx:run-commands",
       "cache": false,
@@ -48,6 +40,38 @@
         "command": "go run .",
         "cwd": "backend"
       }
+    },
+    "lint": {
+      "executor": "nx:run-commands",
+      "cache": false,
+      "options": {
+        "command": "go vet ./...",
+        "cwd": "backend"
+      }
+    },
+    "format": {
+      "executor": "nx:run-commands",
+      "cache": false,
+      "options": {
+        "command": "gofmt -w .",
+        "cwd": "backend"
+      }
+    },
+    "format:check": {
+      "executor": "nx:run-commands",
+      "cache": false,
+      "options": {
+        "command": "node ../tools/check-go-format.mjs",
+        "cwd": "backend"
+      }
+    },
+    "check": {
+      "executor": "nx:noop",
+      "cache": false,
+      "dependsOn": [
+        "lint",
+        "format:check"
+      ]
     }
   }
 }
