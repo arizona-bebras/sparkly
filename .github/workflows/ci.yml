@@ -124,12 +124,18 @@ jobs:
       - name: Upload build
         id: artifact
         if: matrix.build && steps.build.outcome == 'success'
-        uses: actions/upload-artifact@v7
+        uses: LowderPlay/upload-s3-artifact@v0
         with:
           name: build-${{ matrix.project }}
           path: ${{ runner.temp }}/build-${{ matrix.project }}.tar.gz
           if-no-files-found: error
-          retention-days: 14
+          archive: false
+          s3-bucket: ${{ vars.S3_BUCKET }}
+          s3-region: ${{ vars.S3_REGION || 'us-east-1' }}
+          s3-endpoint: https://rustfs.komuk.ru
+          s3-access-key-id: ${{ vars.S3_ACCESS_KEY_ID }}
+          s3-secret-access-key: ${{ secrets.S3_SECRET_ACCESS_KEY }}
+          s3-force-path-style: true
       - name: Component summary
         if: always()
         env:
@@ -142,13 +148,22 @@ jobs:
         run: node .github/scripts/ci.mjs report
       - name: Upload component result
         if: always()
-        uses: actions/upload-artifact@v7
+        uses: LowderPlay/upload-s3-artifact@v0
         with:
           name: result-${{ matrix.project }}
-          path: .ci-results/*.json
+          path: .ci-results/${{ matrix.project }}.json
           include-hidden-files: true
           if-no-files-found: error
-          retention-days: 7
+          archive: false
+          s3-bucket: ${{ vars.S3_BUCKET }}
+          s3-region: ${{ vars.S3_REGION || 'us-east-1' }}
+          s3-endpoint: https://rustfs.komuk.ru
+          s3-access-key-id: ${{ vars.S3_ACCESS_KEY_ID }}
+          s3-secret-access-key: ${{ secrets.S3_SECRET_ACCESS_KEY }}
+          s3-force-path-style: true
+          s3-key-prefix: '{owner}/{repo}/{run_id}/{run_attempt}/results'
+          presigned-url: false
+          include-in-summary: false
 
   results:
     name: CI results
@@ -164,11 +179,17 @@ jobs:
       - name: Download component results
         if: needs.plan.outputs.has-work == 'true'
         continue-on-error: true
-        uses: actions/download-artifact@v8
-        with:
-          pattern: result-*
-          path: .ci-results
-          merge-multiple: true
+        env:
+          AWS_ACCESS_KEY_ID: ${{ vars.S3_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.S3_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: ${{ vars.S3_REGION || 'us-east-1' }}
+          AWS_CONFIG_FILE: ${{ runner.temp }}/rustfs-aws-config
+          S3_BUCKET: ${{ vars.S3_BUCKET }}
+        run: |
+          printf '[default]\ns3 =\n    addressing_style = path\n' > "$AWS_CONFIG_FILE"
+          aws --endpoint-url https://rustfs.komuk.ru s3 cp \
+            "s3://$S3_BUCKET/$GITHUB_REPOSITORY/$GITHUB_RUN_ID/$GITHUB_RUN_ATTEMPT/results/" \
+            .ci-results/ --recursive --exclude '*' --include '*.json' --only-show-errors
       - name: Summarize and check overall result
         if: always()
         env:
