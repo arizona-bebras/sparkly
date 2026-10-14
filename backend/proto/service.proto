@@ -102,9 +102,10 @@ message RegRequest {
 }
 
 message RegResponse {
-  string token = 1;
-  string refresh_token = 2;
-  int64 expires_in = 3;
+  string email = 1;
+  string token = 2;
+  string refresh_token = 3;
+  int64 expires_in = 4;
 }
 
 message GetTokenRequest {
@@ -113,9 +114,10 @@ message GetTokenRequest {
 }
 
 message GetTokenResponse {
-  string token = 1;
-  string refresh_token = 2;
-  int64 expires_in = 3;
+  string email = 1;
+  string token = 2;
+  string refresh_token = 3;
+  int64 expires_in = 4;
 }
 
 message CheckAuthRequest {}
