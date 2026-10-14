@@ -92,7 +92,7 @@ jobs:
         if: matrix.runtime == 'python'
         with:
           python-version: '3.14'
-      - uses: astral-sh/setup-uv@v10
+      - uses: astral-sh/setup-uv@v10.3.0
         if: matrix.runtime == 'python'
         with:
           version: '0.9.17'
