@@ -8,7 +8,7 @@
       "executor": "nx:run-commands",
       "cache": true,
       "options": {
-        "command": "go build -o bin/analytics .",
+        "command": "go build -o bin/analytics ./cmd/analytics",
         "cwd": "analytics"
       },
       "outputs": [
@@ -37,7 +37,7 @@
       "executor": "nx:run-commands",
       "cache": false,
       "options": {
-        "command": "go run .",
+        "command": "go run ./cmd/analytics",
         "cwd": "analytics"
       }
     },
