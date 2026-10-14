@@ -2,7 +2,10 @@ package db
 
 import (
 	"fmt"
+	"net"
+	"net/url"
 	"sparkly/backend/internal/db/models"
+	"strings"
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -18,19 +21,27 @@ type DSN struct {
 	TimeZone string
 }
 
-func NewPostgresConn(dsnParams DSN) (*gorm.DB, error) {
-	dsn := fmt.Sprintf(
-		"host=%s user=%s password=%s dbname=%s port=%s sslmode=%s TimeZone=%s",
-		dsnParams.Host,
-		dsnParams.User,
-		dsnParams.Password,
-		dsnParams.DBName,
-		dsnParams.Port,
-		dsnParams.SSLMode,
-		dsnParams.TimeZone,
-	)
+func (d DSN) FormatDSN() string {
+	u := &url.URL{
+		Scheme: "postgres",
+		User:   url.UserPassword(d.User, d.Password),
+		Host:   net.JoinHostPort(d.Host, d.Port),
+		Path:   d.DBName,
+	}
+	q := u.Query()
+	if d.SSLMode != "" {
+		q.Set("sslmode", d.SSLMode)
+	}
+	if d.TimeZone != "" {
+		q.Set("timezone", d.TimeZone)
+	}
 
-	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	u.RawQuery = strings.ReplaceAll(q.Encode(), "%2F", "/")
+	return u.String()
+}
+
+func NewPostgresConn(dsnParams DSN) (*gorm.DB, error) {
+	db, err := gorm.Open(postgres.Open(dsnParams.FormatDSN()), &gorm.Config{})
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to database: %w", err)
 	}
@@ -41,7 +52,7 @@ func NewPostgresConn(dsnParams DSN) (*gorm.DB, error) {
     	WHEN duplicate_object THEN null;
 	END $$;`)
 
-	db.AutoMigrate(
+	err = db.AutoMigrate(
 		&models.User{},
 		&models.Park{},
 		&models.Group{},
@@ -50,6 +61,9 @@ func NewPostgresConn(dsnParams DSN) (*gorm.DB, error) {
 		&models.Build{},
 		&models.Release{},
 	)
+	if err != nil {
+		return nil, fmt.Errorf("migration error: %w", err)
+	}
 
 	return db, nil
 }
