@@ -17,25 +17,20 @@ func main() {
 		POSTGRES_PORT     string
 	}{}
 
-	readEnv := func() error {
+	readEnv := func() {
 		err := godotenv.Load()
 		if err != nil {
-			return err
+			log.Printf("failed to load .env file: %v", err)
 		}
 		env.POSTGRES_DB, _ = os.LookupEnv("POSTGRES_DB")
 		env.POSTGRES_USER, _ = os.LookupEnv("POSTGRES_USER")
 		env.POSTGRES_PASSWORD, _ = os.LookupEnv("POSTGRES_PASSWORD")
 		env.POSTGRES_PORT, _ = os.LookupEnv("POSTGRES_PORT")
-
-		return nil
 	}
 
-	err := readEnv()
-	if err != nil {
-		log.Printf("failed to load env vars: %v", err)
-	}
+	readEnv()
 
-	_, err = db.NewPostgresConn(db.DSN{
+	_, err := db.NewPostgresConn(db.DSN{
 		Host:     "localhost",
 		User:     env.POSTGRES_USER,
 		Password: env.POSTGRES_PASSWORD,
