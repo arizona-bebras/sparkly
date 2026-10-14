@@ -24,7 +24,13 @@ test('runs affected projects and distinguishes check-only components', () => {
 });
 
 test('CI and shared tooling changes verify every component', () => {
-  for (const file of ['.github/workflows/ci.yml', 'nx.json', 'pnpm-lock.yaml', '.nxignore']) {
+  for (const file of [
+    '.github/workflows/ci.yml',
+    'tools/check-go-format.mjs',
+    'nx.json',
+    'pnpm-lock.yaml',
+    '.nxignore',
+  ]) {
     assert.ok(makePlan(projects, ['proto'], [file]).every((item) => item.affected));
   }
 });

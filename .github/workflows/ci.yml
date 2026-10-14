@@ -86,14 +86,28 @@ jobs:
       - name: Set up Rust
         if: matrix.runtime == 'rust'
         run: |
-          rustup toolchain install stable --profile minimal
+          rustup toolchain install stable --profile minimal --component clippy --component rustfmt
           rustup default stable
       - uses: actions/setup-python@v7
         if: matrix.runtime == 'python'
         with:
           python-version: '3.14'
+      - uses: astral-sh/setup-uv@v10
+        if: matrix.runtime == 'python'
+        with:
+          version: '0.9.17'
+          enable-cache: true
+          cache-dependency-glob: ml/uv.lock
+      - name: Sync Python dependencies
+        if: matrix.runtime == 'python'
+        run: uv sync --project ml --locked
       - name: Install workspace dependencies
         run: pnpm install --frozen-lockfile
+      - name: Prepare environment files
+        run: |
+          git ls-files -- '.env.example' '**/.env.example' | while IFS= read -r example; do
+            cp "$example" "${example%.example}"
+          done
       - name: Check
         id: check
         if: matrix.check

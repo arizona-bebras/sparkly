@@ -24,6 +24,7 @@ export function makePlan(projects, affected, changedFiles, forceAll = false) {
   const globalChange = changedFiles.some(
     (file) =>
       file.startsWith('.github/') ||
+      file.startsWith('tools/') ||
       ['nx.json', '.nxignore', 'package.json', 'pnpm-workspace.yaml', 'pnpm-lock.yaml'].includes(
         file,
       ),

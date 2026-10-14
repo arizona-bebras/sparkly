@@ -20,12 +20,17 @@
       }
     },
     "check": {
-      "inputs": ["protoContracts", "jsTooling"],
+      "executor": "nx:noop",
+      "cache": false,
+      "dependsOn": ["lint", "format:check"]
+    },
+    "format:check": {
       "executor": "nx:run-commands",
       "cache": false,
+      "inputs": ["protoContracts", "jsTooling"],
+      "outputs": [],
       "options": {
-        "commands": ["pnpm proto:lint", "pnpm proto:format:check"],
-        "parallel": false
+        "command": "pnpm proto:format:check"
       }
     }
   }

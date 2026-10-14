@@ -11,7 +11,10 @@
     "proto:format:check": "buf format --diff --exit-code",
     "proto:check": "nx run proto:check",
     "proto:deps": "buf dep update",
-    "graph": "nx graph"
+    "graph": "nx graph",
+    "lint": "nx run-many -t lint",
+    "format": "nx run-many -t format",
+    "format:check": "nx run-many -t format:check"
   },
   "devDependencies": {
     "@bufbuild/buf": "1.73.0",
