@@ -20,7 +20,7 @@ type User struct {
 	ID       uuid.UUID `gorm:"type:uuid;primaryKey"`
 	Email    string    `gorm:"not null"`
 	Password string    `gorm:"not null"`
-	Parks    []Park    `gorm:"many2many:user_parks;OnDelete:CASCADE;"`
+	Parks    []Park    `gorm:"many2many:user_parks;constraint:OnDelete:CASCADE;"`
 }
 
 func (User) TableName() string {
@@ -46,7 +46,7 @@ type Group struct {
 	ID      uuid.UUID `gorm:"type:uuid;primaryKey"`
 	Name    string    `gorm:"not null"`
 	ParkID  uuid.UUID `gorm:"type:uuid;not null;index"`
-	Devices []Device  `gorm:"many2many:group_devices;OnDelete:CASCADE;"`
+	Devices []Device  `gorm:"many2many:group_devices;constraint:OnDelete:CASCADE;"`
 }
 
 func (Group) TableName() string {
