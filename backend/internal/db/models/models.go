@@ -1,6 +1,7 @@
 package models
 
 import (
+	"sparkly/backend/internal/domain"
 	"time"
 
 	"github.com/google/uuid"
@@ -25,6 +26,20 @@ type User struct {
 
 func (User) TableName() string {
 	return "users"
+}
+
+func (u *User) ToDomain() domain.User {
+	return domain.User{
+		Email:    u.Email,
+		Password: u.Password,
+	}
+}
+
+func FromDomain(u *domain.User) User {
+	return User{
+		Email:    u.Email,
+		Password: u.Password,
+	}
 }
 
 type Park struct {

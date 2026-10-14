@@ -4,7 +4,7 @@ package sparkly.backend.v1;
 
 import "google/protobuf/timestamp.proto";
 
-option go_package = "sparkly/backend/proto/v1;backendv1";
+option go_package = "sparkly/backend/proto;backendv1";
 
 // ============================================================================
 // 1. DOMAIN ENTITIES
