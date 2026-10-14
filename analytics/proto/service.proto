@@ -1,3 +1,205 @@
 syntax = "proto3";
 
 package sparkly.analytics.v1;
+
+import "google/protobuf/timestamp.proto";
+
+enum IncidentSeverity {
+  INCIDENT_SEVERITY_UNSPECIFIED = 0;
+  INCIDENT_SEVERITY_INFO = 1;
+  INCIDENT_SEVERITY_LOW = 2;
+  INCIDENT_SEVERITY_MEDIUM = 3;
+  INCIDENT_SEVERITY_HIGH = 4;
+  INCIDENT_SEVERITY_CRITICAL = 5;
+}
+
+enum LogLevel {
+  LOG_LEVEL_UNSPECIFIED = 0;
+  LOG_LEVEL_TRACE = 1;
+  LOG_LEVEL_DEBUG = 2;
+  LOG_LEVEL_INFO = 3;
+  LOG_LEVEL_WARN = 4;
+  LOG_LEVEL_ERROR = 5;
+  LOG_LEVEL_FATAL = 6;
+}
+
+message TimeRange {
+  google.protobuf.Timestamp from_time = 1;
+  google.protobuf.Timestamp to_time = 2;
+}
+
+message Metric {
+  string metric_id = 1;
+  double avg_value = 2;
+  double min_value = 3;
+  double max_value = 4;
+
+  message MetricChartPoint {
+    double value = 1;
+    google.protobuf.Timestamp timestamp = 2;
+  }
+  repeated MetricChartPoint chart_points = 6;
+}
+
+message StackFrame {
+  string file = 1;
+  int32 line = 2;
+  int64 pc = 3;
+}
+
+message Log {
+  string id = 1;
+  string device_id = 2;
+  string park_id = 3;
+  repeated string group_ids = 4;
+  string build_id = 5;
+  LogLevel level = 6;
+  string message = 7;
+  google.protobuf.Timestamp timestamp = 8;
+  repeated StackFrame stack = 9;
+  map<string, string> attributes = 10;
+}
+
+message LogsCount {
+  int64 info = 1;
+  int64 warn = 2;
+  int64 error = 3;
+  int64 fatal = 4;
+  int64 trace = 5;
+  int64 debug = 6;
+  int64 total = 7;
+}
+
+message Incident {
+  string id = 1;
+  string issue_id = 2;
+  string park_id = 3;
+  string device_id = 4;
+  string build_id = 5;
+  repeated string group_ids = 6;
+  optional Log cause_log = 7;
+  repeated Metric cause_metrics = 8;
+  google.protobuf.Timestamp timestamp = 9;
+  repeated StackFrame stack = 10;
+  repeated Log breadcrumbs = 12;
+}
+
+message GetSummaryRequest {
+  message Groups {
+    repeated string group_ids = 1;
+  }
+
+  oneof object {
+    string park_id = 1;
+    Groups group_ids = 2;
+  }
+
+  optional TimeRange timerange = 3;
+}
+
+message GetSummaryResponse {
+  int64 total_devices = 1;
+  int64 online_devices = 2;
+  int64 error_devices = 3;
+  int64 total_incidents_count = 4;
+  google.protobuf.Timestamp timestamp = 5;
+}
+
+message GetDevicesSummaryRequest {
+  message Groups {
+    repeated string group_ids = 1;
+  }
+
+  message Builds {
+    repeated string build_ids = 1;
+  }
+
+  oneof object {
+    string park_id = 1;
+    Groups group_ids = 2;
+    Builds build_ids = 3;
+  }
+
+  optional TimeRange timerange = 4;
+}
+
+message GetDevicesSummaryResponse {
+  message DeviceSummary {
+    string device_id = 1;
+    string build_id = 2;
+    google.protobuf.Timestamp last_seen_at = 3;
+  }
+  repeated DeviceSummary devices = 1;
+  google.protobuf.Timestamp timestamp = 2;
+}
+
+message AnalyzeDeviceRequest {
+  string device_id = 1;
+  optional TimeRange timerange = 2;
+}
+
+message AnalyzeDeviceResponse {
+  string device_id = 1;
+  string park_id = 2;
+  string build_id = 3;
+  repeated Metric metrics = 4;
+  LogsCount logs_count = 5;
+  repeated Log logs = 6;
+  optional string message = 7;
+  google.protobuf.Timestamp timestamp = 8;
+  repeated Incident incidents = 9;
+  message MLInsights {}
+  optional MLInsights ml_insights = 10;
+}
+
+message AnalyzeParkRequest {
+  string park_id = 1;
+  optional TimeRange timerange = 2;
+}
+
+message AnalyzeParkResponse {
+  string park_id = 1;
+  int64 devices_count = 2;
+  int64 devices_up = 3;
+  int64 devices_down = 4;
+
+  LogsCount logs_count = 6;
+  repeated Log logs = 7;
+  string message = 8;
+  google.protobuf.Timestamp timestamp = 9;
+  int64 total_incidents_count = 10;
+  google.protobuf.Timestamp first_incident_at = 11;
+  google.protobuf.Timestamp last_incident_at = 12;
+  repeated Incident recent_incidents = 13;
+  message IncidentsChartPoint {
+    int64 count = 1;
+    google.protobuf.Timestamp timestamp = 2;
+  }
+  repeated IncidentsChartPoint chart_points = 14;
+}
+
+message GetIncidentsRequest {
+  string park_id = 1;
+  optional string group_id = 2;
+  optional string device_id = 3;
+  optional string issue_id = 4;
+  optional int32 limit = 5;
+  optional int32 offset = 6;
+  optional TimeRange timerange = 7;
+}
+
+message GetIncidentsResponse {
+  repeated Incident incidents = 1;
+  optional string message = 2;
+  int64 total_count = 3;
+}
+
+service AnalyticsService {
+  rpc GetSummary(GetSummaryRequest) returns (GetSummaryResponse);
+  rpc GetDevicesSummary(GetDevicesSummaryRequest) returns (GetDevicesSummaryResponse); // Для отображения в списке устройств парка
+
+  rpc AnalyzePark(AnalyzeParkRequest) returns (AnalyzeParkResponse);
+  rpc AnalyzeDevice(AnalyzeDeviceRequest) returns (AnalyzeDeviceResponse);
+
+  rpc GetIncidents(GetIncidentsRequest) returns (GetIncidentsResponse);
+}
