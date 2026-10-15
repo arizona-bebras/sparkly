@@ -35,7 +35,7 @@ func (h *UserHandler) Reg(ctx context.Context, r *pb.RegRequest) (*pb.RegRespons
 		if errors.Is(err, domain.ErrDuplicatedUser) {
 			return nil, connect.NewError(connect.CodeAlreadyExists, "user with this email already registered")
 		}
-		log.Printf("UserService/Reg error: %v: %v", err)
+		log.Printf("UserService/Reg error: %v", err)
 		return nil, connect.NewError(connect.CodeInternal, "internal error")
 	}
 
@@ -70,7 +70,7 @@ func (h *UserHandler) Reg(ctx context.Context, r *pb.RegRequest) (*pb.RegRespons
 		Email:        user.Email,
 		Token:        token.Access,
 		RefreshToken: token.Refresh,
-		ExpiresIn:    time.Now().Add(time.Duration(accessCookie.MaxAge)).Unix(),
+		ExpiresIn:    time.Now().Add(time.Duration(accessCookie.MaxAge * int(time.Second))).Unix(),
 	}, nil
 }
 
@@ -120,6 +120,6 @@ func (h *UserHandler) GetToken(ctx context.Context, r *pb.GetTokenRequest) (*pb.
 		Email:        user.Email,
 		Token:        token.Access,
 		RefreshToken: token.Refresh,
-		ExpiresIn:    time.Now().Add(time.Duration(accessCookie.MaxAge)).Unix(),
+		ExpiresIn:    time.Now().Add(time.Duration(accessCookie.MaxAge * int(time.Second))).Unix(),
 	}, nil
 }

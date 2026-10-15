@@ -30,6 +30,7 @@ func (User) TableName() string {
 
 func (u *User) ToDomain() domain.User {
 	return domain.User{
+		ID:       u.ID,
 		Email:    u.Email,
 		Password: u.Password,
 	}
@@ -37,6 +38,7 @@ func (u *User) ToDomain() domain.User {
 
 func FromDomain(u *domain.User) User {
 	return User{
+		ID:       u.ID,
 		Email:    u.Email,
 		Password: u.Password,
 	}
