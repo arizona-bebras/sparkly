@@ -15,7 +15,8 @@ import (
 
 type UserRepo interface {
 	WriteNewUser(ctx context.Context, email, hashedPassword string) (domain.User, error)
-	// GetUser(email string) (domain.User, error)
+	CheckUser(ctx context.Context, email string) (bool, error)
+	GetUser(ctx context.Context, email string) (domain.User, error)
 }
 
 type UserService struct {
@@ -31,25 +32,6 @@ func NewUserService(userRepo UserRepo) *UserService {
 type AuthToken struct {
 	Access  string
 	Refresh string
-}
-
-func (s *UserService) Reg(ctx context.Context, email string, password string) (domain.User, AuthToken, error) {
-	hashed, err := argon2id.CreateHash(password, argon2id.DefaultParams)
-	if err != nil {
-		return domain.User{}, AuthToken{}, fmt.Errorf("failed to secure password: %w", err)
-	}
-
-	user, err := s.repo.WriteNewUser(ctx, email, hashed)
-	if err != nil {
-		return domain.User{}, AuthToken{}, fmt.Errorf("registration failed: %w", err)
-	}
-
-	tokens, err := generateTokens(user.ID, user.Email)
-	if err != nil {
-		return domain.User{}, AuthToken{}, fmt.Errorf("failed to generate tokens: %w", err)
-	}
-
-	return user, tokens, nil
 }
 
 func generateTokens(id uuid.UUID, email string) (AuthToken, error) {
@@ -91,4 +73,51 @@ func generateTokens(id uuid.UUID, email string) (AuthToken, error) {
 		Access:  accessString,
 		Refresh: refreshString,
 	}, nil
+}
+
+func (s *UserService) Reg(ctx context.Context, email string, password string) (domain.User, AuthToken, error) {
+	hashed, err := argon2id.CreateHash(password, argon2id.DefaultParams)
+	if err != nil {
+		return domain.User{}, AuthToken{}, fmt.Errorf("failed to secure password: %w", err)
+	}
+
+	isUserExists, err := s.repo.CheckUser(ctx, email)
+	if err != nil {
+		return domain.User{}, AuthToken{}, fmt.Errorf("registration failed: %w", err)
+	}
+
+	if isUserExists {
+		return domain.User{}, AuthToken{}, fmt.Errorf("registration failed: %w", domain.ErrDuplicatedUser)
+	}
+
+	user, err := s.repo.WriteNewUser(ctx, email, hashed)
+	if err != nil {
+		return domain.User{}, AuthToken{}, fmt.Errorf("registration failed: %w", err)
+	}
+
+	tokens, err := generateTokens(user.ID, user.Email)
+	if err != nil {
+		return domain.User{}, AuthToken{}, fmt.Errorf("failed to generate tokens: %w", err)
+	}
+
+	return user, tokens, nil
+}
+
+func (s *UserService) GetTokens(ctx context.Context, email string, password string) (domain.User, AuthToken, error) {
+	user, err := s.repo.GetUser(ctx, email)
+	if err != nil {
+		return domain.User{}, AuthToken{}, fmt.Errorf("auth failed: %w", err)
+	}
+
+	isPasswordMatch, err := argon2id.ComparePasswordAndHash(password, user.Password)
+	if !isPasswordMatch {
+		return domain.User{}, AuthToken{}, fmt.Errorf("auth failed: %w", domain.ErrWrongPassword)
+	}
+
+	tokens, err := generateTokens(user.ID, user.Email)
+	if err != nil {
+		return domain.User{}, AuthToken{}, fmt.Errorf("failed to generate tokens: %w", err)
+	}
+
+	return user, tokens, nil
 }

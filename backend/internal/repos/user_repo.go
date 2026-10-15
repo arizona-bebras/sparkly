@@ -2,6 +2,7 @@ package repos
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"sparkly/backend/internal/db/models"
 	"sparkly/backend/internal/domain"
@@ -25,23 +26,40 @@ func (r *UserRepo) WriteNewUser(ctx context.Context, email, hashedPassword strin
 	if err != nil {
 		return domain.User{}, fmt.Errorf("failed to generate new id: %w", err)
 	}
-	
+
 	user := models.User{
-		ID: id,
-		Email: email,
+		ID:       id,
+		Email:    email,
 		Password: hashedPassword,
 	}
 
-	checkQ := r.db.WithContext(ctx).Find(&models.User{Email: email})
-	if checkQ.Error != nil {
-		return domain.User{}, fmt.Errorf("failed to write new user: %w", checkQ.Error)
-	}
-	if checkQ.RowsAffected > 0 {
-		return domain.User{}, domain.ErrDuplicatedUser
-	}
-	
 	if err := r.db.WithContext(ctx).Create(&user).Error; err != nil {
 		return domain.User{}, fmt.Errorf("failed to write new user: %w", err)
+	}
+
+	return user.ToDomain(), nil
+}
+
+func (r *UserRepo) CheckUser(ctx context.Context, email string) (bool, error) {
+	exists := &models.User{}
+
+	if err := r.db.WithContext(ctx).First(&exists, "email = ?", email).Error; err == nil {
+		return true, nil
+	} else if !errors.Is(err, gorm.ErrRecordNotFound) {
+		return false, fmt.Errorf("failed to check user: %w", err)
+	}
+
+	return false, nil
+}
+
+func (r *UserRepo) GetUser(ctx context.Context, email string) (domain.User, error) {
+	user := &models.User{}
+
+	if err := r.db.First(&user, "email = ?", email).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return domain.User{}, domain.ErrUserNotFound
+		}
+		return domain.User{}, fmt.Errorf("failed to find user: %w", err)
 	}
 
 	return user.ToDomain(), nil
