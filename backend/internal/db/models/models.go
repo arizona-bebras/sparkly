@@ -61,7 +61,7 @@ func (Park) TableName() string {
 
 func (p Park) ToDomain() domain.Park {
 	return domain.Park{
-		ID: p.ID,
+		ID:   p.ID,
 		Name: p.Name,
 		Desc: p.Description,
 	}
@@ -69,8 +69,8 @@ func (p Park) ToDomain() domain.Park {
 
 func (_ Park) FromDomain(p domain.Park) Park {
 	return Park{
-		ID: p.ID,
-		Name: p.Name,
+		ID:          p.ID,
+		Name:        p.Name,
 		Description: p.Desc,
 	}
 }

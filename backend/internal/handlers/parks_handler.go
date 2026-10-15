@@ -2,8 +2,8 @@ package handlers
 
 import (
 	"context"
-	"log"
 	"errors"
+	"log"
 
 	"sparkly/backend/internal/domain"
 	"sparkly/backend/internal/services"
@@ -34,8 +34,8 @@ func (h *ParkHandler) CreatePark(ctx context.Context, r *pb.CreateParkRequest) (
 
 	return &pb.CreateParkResponse{
 		Park: &pb.Park{
-			Id: park.ID.String(),
-			Name: park.Name,
+			Id:          park.ID.String(),
+			Name:        park.Name,
 			Description: park.Desc,
 		},
 	}, nil
@@ -43,7 +43,7 @@ func (h *ParkHandler) CreatePark(ctx context.Context, r *pb.CreateParkRequest) (
 
 func (h *ParkHandler) GetPark(ctx context.Context, r *pb.GetParkRequest) (*pb.GetParkResponse, error) {
 	id := r.GetId()
-	
+
 	park, err := h.service.GetParkByID(ctx, id)
 	if err != nil {
 		if errors.Is(err, domain.ErrParkNotFound) {
@@ -55,8 +55,8 @@ func (h *ParkHandler) GetPark(ctx context.Context, r *pb.GetParkRequest) (*pb.Ge
 
 	return &pb.GetParkResponse{
 		Park: &pb.Park{
-			Id: park.ID.String(),
-			Name: park.Name,
+			Id:          park.ID.String(),
+			Name:        park.Name,
 			Description: park.Desc,
 		},
 	}, nil
@@ -75,8 +75,8 @@ func (h *ParkHandler) GetAllParks(ctx context.Context, r *pb.GetAllParksRequest)
 	parksResponse := make([]*pb.Park, len(parks))
 	for i, domainPark := range parks {
 		parksResponse[i] = &pb.Park{
-			Id: domainPark.ID.String(),
-			Name: domainPark.Name,
+			Id:          domainPark.ID.String(),
+			Name:        domainPark.Name,
 			Description: domainPark.Desc,
 		}
 	}
@@ -91,10 +91,10 @@ func (h *ParkHandler) UpdatePark(ctx context.Context, r *pb.UpdateParkRequest) (
 	newDesc := r.GetDescription()
 
 	park, err := h.service.UpdatePark(ctx, id, domain.UpdateParkParams{
-		Name: newName,
+		Name:        newName,
 		Description: newDesc,
 	})
-	
+
 	if err != nil {
 		if errors.Is(err, domain.ErrParkNotFound) {
 			return nil, connect.NewError(connect.CodeNotFound, "park with this id doesnt exists")
@@ -105,8 +105,8 @@ func (h *ParkHandler) UpdatePark(ctx context.Context, r *pb.UpdateParkRequest) (
 
 	return &pb.UpdateParkResponse{
 		Park: &pb.Park{
-			Id: park.ID.String(),
-			Name: park.Name,
+			Id:          park.ID.String(),
+			Name:        park.Name,
 			Description: park.Desc,
 		},
 	}, nil
@@ -116,7 +116,7 @@ func (h *ParkHandler) DeletePark(ctx context.Context, r *pb.DeleteParkRequest) (
 	id := r.GetId()
 
 	err := h.service.DeletePark(ctx, id)
-	
+
 	if err != nil {
 		if errors.Is(err, domain.ErrParkNotFound) {
 			return nil, connect.NewError(connect.CodeNotFound, "park with this id doesnt exists")

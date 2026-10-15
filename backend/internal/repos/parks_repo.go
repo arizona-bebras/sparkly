@@ -98,7 +98,7 @@ func (r *ParkRepo) UpdatePark(ctx context.Context, userID uuid.UUID, parkID uuid
 	return park.ToDomain(), nil
 }
 
-func (r *ParkRepo) DeletePark(ctx context.Context, userID, parkID uuid.UUID) error { 
+func (r *ParkRepo) DeletePark(ctx context.Context, userID, parkID uuid.UUID) error {
 	if del := r.db.Scopes(scope.UserParkScope(userID)).Delete(&models.Park{ID: parkID}); del.Error != nil {
 		return fmt.Errorf("delete parks db error: %w", del.Error)
 	} else if del.RowsAffected == 0 {
