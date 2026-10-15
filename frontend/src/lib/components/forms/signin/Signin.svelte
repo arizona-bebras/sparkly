@@ -1,46 +1,58 @@
 <script lang="ts">
-  import * as Card from "$lib/components/ui/card/index.js";
-  import { Button } from "$lib/components/ui/button/index.js";
-  import {
-    FieldGroup,
-    Field,
-    FieldLabel,
-    FieldDescription,
-    FieldSeparator,
-  } from "$lib/components/ui/field/index.js";
-  import { Input } from "$lib/components/ui/input/index.js";
-  import { cn } from "$lib/utils.js";
-  import type { HTMLAttributes } from "svelte/elements";
-  let { class: className, ...restProps }: HTMLAttributes<HTMLDivElement> = $props();
-  const id = $props.id();
+import type { HTMLAttributes } from "svelte/elements";
+import { formSchema } from "$lib/components/forms/signin/schema.js";
+import { Button } from "$lib/components/ui/button/index.js";
+import * as Card from "$lib/components/ui/card/index.js";
+import {
+	Field,
+	FieldDescription,
+	FieldGroup,
+	FieldLabel,
+	FieldSeparator,
+} from "$lib/components/ui/field/index.js";
+import * as Form from "$lib/components/ui/form/index.js";
+import { Input } from "$lib/components/ui/input/index.js";
+import { spaForm } from "$lib/form-spa-util.svelte";
+import { cn } from "$lib/utils.js";
+
+let { class: className, ...restProps }: HTMLAttributes<HTMLDivElement> =
+	$props();
+const id = $props.id();
+
+const { form, formData, enhance } = spaForm(formSchema);
 </script>
 
 <div class={cn("flex flex-col gap-6", className)} {...restProps}>
   <Card.Root class="animate-in fade-in zoom-in-95 duration-500 ease-out overflow-hidden p-0 shadow-lg">
     <Card.Content class="grid overflow-hidden p-0 md:grid-cols-2">
-      <form class="relative z-10 bg-card animate-in fade-in slide-in-from-bottom-4 md:slide-in-from-bottom-0 md:slide-in-from-right-[50%] duration-700 ease-out p-6 md:p-8">
+      <form method="POST" use:enhance class="relative z-10 bg-card animate-in fade-in slide-in-from-bottom-4 md:slide-in-from-bottom-0 md:slide-in-from-right-[50%] duration-700 ease-out p-6 md:p-8">
         <FieldGroup>
           <div class="flex flex-col items-center gap-2 text-center">
-            <h1 class="text-2xl font-bold">Welcome back</h1>
-            <p class="text-balance text-muted-foreground">Login to your Acme Inc account</p>
+            <h1 class="text-2xl font-bold">Добро пожаловать</h1>
+            <p class="text-balance text-muted-foreground">Войдите в свой аккаунт Sparkly</p>
           </div>
+					<Form.Field {form} name="email">
+						<Form.Control>
+						{#snippet children({ props })}
+							<Input type="magic" magicProps={{type: "email", label: "Email", "placeholder": "Enter your email"}} {...props} bind:value={$formData.email} />
+						{/snippet}
+						</Form.Control>
+						<Form.Description>Это ваша электронная почта.</Form.Description>
+						<Form.FieldErrors />
+					</Form.Field>
+					<Form.Field {form} name="password">
+						<Form.Control>
+						{#snippet children({ props })}
+							<Input type="magic" magicProps={{type: "password", label: "Password", "placeholder": "Create a password"}} {...props} bind:value={$formData.password} />
+						{/snippet}
+						</Form.Control>
+						<Form.Description>Должен содержать не менее 6 символов.</Form.Description>
+						<Form.FieldErrors />
+					</Form.Field>
           <Field>
-            <FieldLabel for="email-{id}">Email</FieldLabel>
-            <Input id="email-{id}" type="email" placeholder="m@example.com" required />
+            <Button type="submit">Войти</Button>
           </Field>
-          <Field>
-            <div class="flex items-center">
-              <FieldLabel for="password-{id}">Password</FieldLabel>
-              <a href="##" class="ms-auto text-sm underline-offset-2 hover:underline">
-                Forgot your password?
-              </a>
-            </div>
-            <Input id="password-{id}" type="password" required />
-          </Field>
-          <Field>
-            <Button type="submit">Login</Button>
-          </Field>
-          <FieldSeparator class="*:data-[slot=field-separator-content]:bg-card">
+          <!-- <FieldSeparator class="*:data-[slot=field-separator-content]:bg-card">
             Or continue with
           </FieldSeparator>
           <Field class="grid grid-cols-3 gap-4">
@@ -71,9 +83,9 @@
               </svg>
               <span class="sr-only">Login with Meta</span>
             </Button>
-          </Field>
+          </Field> -->
           <FieldDescription class="text-center">
-            Don't have an account? <a href="/auth/signup">Sign up</a>
+            Ешё нет аккаунта? <a href="/auth/signup">Загерестрироваться</a>
           </FieldDescription>
         </FieldGroup>
       </form>
@@ -86,8 +98,8 @@
       </div>
     </Card.Content>
   </Card.Root>
-  <FieldDescription class="px-6 text-center">
+  <!-- <FieldDescription class="px-6 text-center">
     By clicking continue, you agree to our <a href="##">Terms of Service</a> and
     <a href="##">Privacy Policy</a>.
-  </FieldDescription> 
+  </FieldDescription>  -->
 </div>
