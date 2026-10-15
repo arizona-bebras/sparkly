@@ -19,7 +19,7 @@ const (
 
 type User struct {
 	ID       uuid.UUID `gorm:"type:uuid;primaryKey"`
-	Email    string    `gorm:"not null"`
+	Email    string    `gorm:"uniqueIndex;not null"`
 	Password string    `gorm:"not null"`
 	Parks    []Park    `gorm:"many2many:user_parks;constraint:OnDelete:CASCADE;"`
 }

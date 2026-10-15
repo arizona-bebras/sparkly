@@ -41,7 +41,9 @@ func (d DSN) FormatDSN() string {
 }
 
 func NewPostgresConn(dsnParams DSN) (*gorm.DB, error) {
-	db, err := gorm.Open(postgres.Open(dsnParams.FormatDSN()), &gorm.Config{})
+	db, err := gorm.Open(postgres.Open(dsnParams.FormatDSN()), &gorm.Config{
+		TranslateError: true,
+	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to database: %w", err)
 	}

@@ -8,6 +8,7 @@ import (
 	"sparkly/backend/internal/domain"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgconn"
 	"gorm.io/gorm"
 )
 
@@ -34,22 +35,14 @@ func (r *UserRepo) WriteNewUser(ctx context.Context, email, hashedPassword strin
 	}
 
 	if err := r.db.WithContext(ctx).Create(&user).Error; err != nil {
+		var pgErr *pgconn.PgError
+		if errors.Is(err, gorm.ErrDuplicatedKey) || (errors.As(err, &pgErr) && pgErr.Code == "23505") {
+			return domain.User{}, domain.ErrDuplicatedUser
+		}
 		return domain.User{}, fmt.Errorf("failed to write new user: %w", err)
 	}
 
 	return user.ToDomain(), nil
-}
-
-func (r *UserRepo) CheckUser(ctx context.Context, email string) (bool, error) {
-	exists := &models.User{}
-
-	if err := r.db.WithContext(ctx).First(&exists, "email = ?", email).Error; err == nil {
-		return true, nil
-	} else if !errors.Is(err, gorm.ErrRecordNotFound) {
-		return false, fmt.Errorf("failed to check user: %w", err)
-	}
-
-	return false, nil
 }
 
 func (r *UserRepo) GetUser(ctx context.Context, email string) (domain.User, error) {

@@ -15,7 +15,6 @@ import (
 
 type UserRepo interface {
 	WriteNewUser(ctx context.Context, email, hashedPassword string) (domain.User, error)
-	CheckUser(ctx context.Context, email string) (bool, error)
 	GetUser(ctx context.Context, email string) (domain.User, error)
 }
 
@@ -79,15 +78,6 @@ func (s *UserService) Reg(ctx context.Context, email string, password string) (d
 	hashed, err := argon2id.CreateHash(password, argon2id.DefaultParams)
 	if err != nil {
 		return domain.User{}, AuthToken{}, fmt.Errorf("failed to secure password: %w", err)
-	}
-
-	isUserExists, err := s.repo.CheckUser(ctx, email)
-	if err != nil {
-		return domain.User{}, AuthToken{}, fmt.Errorf("registration failed: %w", err)
-	}
-
-	if isUserExists {
-		return domain.User{}, AuthToken{}, fmt.Errorf("registration failed: %w", domain.ErrDuplicatedUser)
 	}
 
 	user, err := s.repo.WriteNewUser(ctx, email, hashed)

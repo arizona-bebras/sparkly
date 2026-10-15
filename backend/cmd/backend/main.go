@@ -41,6 +41,11 @@ func main() {
 	}
 	readEnv()
 
+	_, ok := os.LookupEnv("JWT_SECRET")
+	if !ok {
+		log.Fatalf("jwt secret not found")
+	}
+
 	db, err := db.NewPostgresConn(db.DSN{
 		Host:     "localhost",
 		User:     env.POSTGRES_USER,
