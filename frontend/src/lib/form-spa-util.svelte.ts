@@ -23,6 +23,7 @@ export function spaForm<
 	T extends Record<string, unknown> = Record<string, unknown>,
 	M = any,
 >(formSchema: z.ZodType<T>, options?: FormOptions<T, M>): SpaFormReturn<T, M> {
+	let isValid = $state({ valid: false });
 	const form = superForm<T, M>(defaults(zod4(formSchema) as any), {
 		SPA: true,
 		validators: zod4(formSchema) as any,
