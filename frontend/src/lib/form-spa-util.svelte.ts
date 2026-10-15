@@ -17,7 +17,7 @@ export type SpaFormReturn<T extends Record<string, unknown>, M = any> = Omit<
 	isValid: () => boolean;
 };
 
-export const isValid = $state({ valid: false });
+export let isValid = $state({ valid: false });
 
 export function spaForm<
 	T extends Record<string, unknown> = Record<string, unknown>,
@@ -28,6 +28,9 @@ export function spaForm<
 		validators: zod4(formSchema) as any,
 		onUpdated({ form }) {
 			console.log("Форма отправлена!. Её данные:", form.data);
+		},
+		onSubmit() {
+			isValid.valid = false;
 		},
 		async onChange() {
 			const validate = await form.validateForm();

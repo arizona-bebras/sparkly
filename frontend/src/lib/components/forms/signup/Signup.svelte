@@ -1,6 +1,7 @@
 <script lang="ts">
 import { createMutation } from "@tanstack/svelte-query";
 import type { HTMLAttributes } from "svelte/elements";
+import { goto } from "$app/navigation";
 import { formSchema } from "$lib/components/forms/signup/schema";
 import { Button } from "$lib/components/ui/button/index.js";
 import * as Card from "$lib/components/ui/card/index.js";
@@ -10,13 +11,13 @@ import { Input } from "$lib/components/ui/input/index.js";
 import { spaForm } from "$lib/form-spa-util.svelte";
 import { cn } from "$lib/utils.js";
 import { client } from "$proto";
+import SubmitBtn from "../SubmitBtn.svelte";
 
 let { class: className, ...restProps }: HTMLAttributes<HTMLDivElement> =
 	$props();
 
 const { form, formData, isValid, enhance } = spaForm(formSchema, {
 	async onUpdated({ form }) {
-		console.log("Form updated:", form);
 		await authMutation.mutateAsync({
 			email: form.data.email,
 			password: form.data.password,
@@ -31,8 +32,10 @@ const authMutation = createMutation(() => ({
 			email: form.email,
 			password: form.password,
 		}),
+	onSuccess: () => {
+		goto("/");
+	},
 }));
-
 </script>
 
 <div class={cn("flex flex-col gap-6", className)} {...restProps}>
@@ -63,7 +66,7 @@ const authMutation = createMutation(() => ({
 						<Form.FieldErrors />
 					</Form.Field>
 					<Field.Field>
-						<Button type="submit" disabled={!isValid()}>Создать аккаунт</Button>
+						<SubmitBtn className="-mt-2.5" {isValid} isAuthError={authMutation.isError} isLoading={authMutation.isPending}  />
 						<Field.Description class="text-center">
 							Уже есть аккаунт? <a href="/auth/signin">Войти</a>
 						</Field.Description>
