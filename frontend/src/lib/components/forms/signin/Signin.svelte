@@ -19,7 +19,7 @@ let { class: className, ...restProps }: HTMLAttributes<HTMLDivElement> =
 	$props();
 const id = $props.id();
 
-const { form, formData, enhance } = spaForm(formSchema);
+const { form, formData, isValid, enhance } = spaForm(formSchema);
 </script>
 
 <div class={cn("flex flex-col gap-6", className)} {...restProps}>
@@ -50,7 +50,7 @@ const { form, formData, enhance } = spaForm(formSchema);
 						<Form.FieldErrors />
 					</Form.Field>
           <Field>
-            <Button type="submit">Войти</Button>
+            <Button type="submit" disabled={!isValid()}>Войти</Button>
           </Field>
           <!-- <FieldSeparator class="*:data-[slot=field-separator-content]:bg-card">
             Or continue with
