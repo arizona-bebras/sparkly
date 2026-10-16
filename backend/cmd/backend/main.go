@@ -11,6 +11,7 @@ import (
 
 	"sparkly/backend/internal/db"
 	"sparkly/backend/internal/handlers"
+	"sparkly/backend/internal/metadata"
 	"sparkly/backend/internal/repos"
 	"sparkly/backend/internal/services"
 	"sparkly/backend/proto/v1/backendv1connect"
@@ -59,12 +60,19 @@ func main() {
 		log.Fatalf("db init failed: %v", err)
 	}
 
-	server := connect.NewServer()
+	server := connect.NewServer(
+		metadata.NewAuthInterceptor(),
+	)
 
 	userRepo := repos.NewUserRepo(db)
 	userService := services.NewUserService(userRepo)
 	userHandler := handlers.NewUserHandler(userService)
 	backendv1connect.RegisterUserServiceHandler(server, userHandler)
+
+	parkRepo := repos.NewParkRepo(db)
+	parkService := services.NewParkService(parkRepo)
+	parkHandler := handlers.NewParkHandler(parkService)
+	backendv1connect.RegisterParkServiceHandler(server, parkHandler)
 
 	mux := http.NewServeMux()
 	connecthttp.Mount(mux, server)
