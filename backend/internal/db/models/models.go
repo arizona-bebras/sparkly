@@ -1,6 +1,7 @@
 package models
 
 import (
+	"sparkly/backend/internal/domain"
 	"time"
 
 	"github.com/google/uuid"
@@ -18,13 +19,29 @@ const (
 
 type User struct {
 	ID       uuid.UUID `gorm:"type:uuid;primaryKey"`
-	Email    string    `gorm:"not null"`
+	Email    string    `gorm:"uniqueIndex;not null"`
 	Password string    `gorm:"not null"`
 	Parks    []Park    `gorm:"many2many:user_parks;constraint:OnDelete:CASCADE;"`
 }
 
 func (User) TableName() string {
 	return "users"
+}
+
+func (u *User) ToDomain() domain.User {
+	return domain.User{
+		ID:       u.ID,
+		Email:    u.Email,
+		Password: u.Password,
+	}
+}
+
+func FromDomain(u *domain.User) User {
+	return User{
+		ID:       u.ID,
+		Email:    u.Email,
+		Password: u.Password,
+	}
 }
 
 type Park struct {
