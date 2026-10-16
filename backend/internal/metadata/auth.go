@@ -6,7 +6,6 @@ import (
 	"sparkly/backend/internal/domain"
 
 	"connectrpc.com/connect/v2"
-	"github.com/google/uuid"
 )
 
 type contextKey string
@@ -29,15 +28,10 @@ func NewAuthInterceptor() connect.ServerInterceptor {
 	}
 }
 
-func UserIDFromContext(ctx context.Context) (uuid.UUID, error) {
-	val, ok := ctx.Value(userIDContextKey).(string)
+func UserIDFromContext(ctx context.Context) (string, error) {
+	id, ok := ctx.Value(userIDContextKey).(string)
 	if !ok {
-		return uuid.UUID{}, domain.ErrUnknownUser
+		return "", domain.ErrUnknownUser
 	}
-	id, err := uuid.Parse(val)
-	if err != nil {
-		return uuid.UUID{}, err
-	}
-	
 	return id, nil
 }

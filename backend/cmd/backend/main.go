@@ -66,6 +66,11 @@ func main() {
 	userHandler := handlers.NewUserHandler(userService)
 	backendv1connect.RegisterUserServiceHandler(server, userHandler)
 
+	parkRepo := repos.NewParkRepo(db)
+	parkService := services.NewParkService(parkRepo)
+	parkHandler := handlers.NewParkHandler(parkService)
+	backendv1connect.RegisterParkServiceHandler(server, parkHandler)
+
 	mux := http.NewServeMux()
 	connecthttp.Mount(mux, server)
 
