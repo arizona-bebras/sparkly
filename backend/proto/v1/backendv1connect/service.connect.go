@@ -7,7 +7,7 @@ package backendv1connect
 import (
 	connect "connectrpc.com/connect/v2"
 	context "context"
-	proto "sparkly/backend/proto"
+	v1 "sparkly/backend/proto/v1"
 	sync "sync"
 )
 
@@ -92,35 +92,35 @@ var (
 	userServiceRegSpec = sync.OnceValue(func() connect.Spec {
 		return connect.Spec{
 			StreamType: connect.StreamTypeUnary,
-			Schema:     proto.File_backend_proto_service_proto.Services().ByName("UserService").Methods().ByName("Reg"),
+			Schema:     v1.File_backend_proto_service_proto.Services().ByName("UserService").Methods().ByName("Reg"),
 			Procedure:  UserServiceRegProcedure,
 		}
 	})
 	userServiceGetTokenSpec = sync.OnceValue(func() connect.Spec {
 		return connect.Spec{
 			StreamType: connect.StreamTypeUnary,
-			Schema:     proto.File_backend_proto_service_proto.Services().ByName("UserService").Methods().ByName("GetToken"),
+			Schema:     v1.File_backend_proto_service_proto.Services().ByName("UserService").Methods().ByName("GetToken"),
 			Procedure:  UserServiceGetTokenProcedure,
 		}
 	})
 	userServiceCheckAuthSpec = sync.OnceValue(func() connect.Spec {
 		return connect.Spec{
 			StreamType: connect.StreamTypeUnary,
-			Schema:     proto.File_backend_proto_service_proto.Services().ByName("UserService").Methods().ByName("CheckAuth"),
+			Schema:     v1.File_backend_proto_service_proto.Services().ByName("UserService").Methods().ByName("CheckAuth"),
 			Procedure:  UserServiceCheckAuthProcedure,
 		}
 	})
 	userServiceUpdateUserSpec = sync.OnceValue(func() connect.Spec {
 		return connect.Spec{
 			StreamType: connect.StreamTypeUnary,
-			Schema:     proto.File_backend_proto_service_proto.Services().ByName("UserService").Methods().ByName("UpdateUser"),
+			Schema:     v1.File_backend_proto_service_proto.Services().ByName("UserService").Methods().ByName("UpdateUser"),
 			Procedure:  UserServiceUpdateUserProcedure,
 		}
 	})
 	userServiceDeleteUserSpec = sync.OnceValue(func() connect.Spec {
 		return connect.Spec{
 			StreamType: connect.StreamTypeUnary,
-			Schema:     proto.File_backend_proto_service_proto.Services().ByName("UserService").Methods().ByName("DeleteUser"),
+			Schema:     v1.File_backend_proto_service_proto.Services().ByName("UserService").Methods().ByName("DeleteUser"),
 			Procedure:  UserServiceDeleteUserProcedure,
 		}
 	})
@@ -128,11 +128,11 @@ var (
 
 // UserServiceClient is a client for the sparkly.backend.v1.UserService service.
 type UserServiceClient interface {
-	Reg(context.Context, *proto.RegRequest) (*proto.RegResponse, error)
-	GetToken(context.Context, *proto.GetTokenRequest) (*proto.GetTokenResponse, error)
-	CheckAuth(context.Context, *proto.CheckAuthRequest) (*proto.CheckAuthResponse, error)
-	UpdateUser(context.Context, *proto.UpdateUserRequest) (*proto.UpdateUserResponse, error)
-	DeleteUser(context.Context, *proto.DeleteUserRequest) (*proto.DeleteUserResponse, error)
+	Reg(context.Context, *v1.RegRequest) (*v1.RegResponse, error)
+	GetToken(context.Context, *v1.GetTokenRequest) (*v1.GetTokenResponse, error)
+	CheckAuth(context.Context, *v1.CheckAuthRequest) (*v1.CheckAuthResponse, error)
+	UpdateUser(context.Context, *v1.UpdateUserRequest) (*v1.UpdateUserResponse, error)
+	DeleteUser(context.Context, *v1.DeleteUserRequest) (*v1.DeleteUserResponse, error)
 }
 
 // NewUserServiceClient constructs a client for the sparkly.backend.v1.UserService service. Multiple
@@ -143,11 +143,11 @@ func NewUserServiceClient(client *connect.Client) UserServiceClient {
 
 // UserServiceHandler is an implementation of the sparkly.backend.v1.UserService service.
 type UserServiceHandler interface {
-	Reg(context.Context, *proto.RegRequest) (*proto.RegResponse, error)
-	GetToken(context.Context, *proto.GetTokenRequest) (*proto.GetTokenResponse, error)
-	CheckAuth(context.Context, *proto.CheckAuthRequest) (*proto.CheckAuthResponse, error)
-	UpdateUser(context.Context, *proto.UpdateUserRequest) (*proto.UpdateUserResponse, error)
-	DeleteUser(context.Context, *proto.DeleteUserRequest) (*proto.DeleteUserResponse, error)
+	Reg(context.Context, *v1.RegRequest) (*v1.RegResponse, error)
+	GetToken(context.Context, *v1.GetTokenRequest) (*v1.GetTokenResponse, error)
+	CheckAuth(context.Context, *v1.CheckAuthRequest) (*v1.CheckAuthResponse, error)
+	UpdateUser(context.Context, *v1.UpdateUserRequest) (*v1.UpdateUserResponse, error)
+	DeleteUser(context.Context, *v1.DeleteUserRequest) (*v1.DeleteUserResponse, error)
 }
 
 // RegisterUserServiceHandler registers svc as the sparkly.backend.v1.UserService implementation on
@@ -166,23 +166,23 @@ func RegisterUserServiceHandler(server *connect.Server, svc UserServiceHandler) 
 // UnimplementedUserServiceHandler returns CodeUnimplemented from all methods.
 type UnimplementedUserServiceHandler struct{}
 
-func (UnimplementedUserServiceHandler) Reg(context.Context, *proto.RegRequest) (*proto.RegResponse, error) {
+func (UnimplementedUserServiceHandler) Reg(context.Context, *v1.RegRequest) (*v1.RegResponse, error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, "sparkly.backend.v1.UserService.Reg is not implemented")
 }
 
-func (UnimplementedUserServiceHandler) GetToken(context.Context, *proto.GetTokenRequest) (*proto.GetTokenResponse, error) {
+func (UnimplementedUserServiceHandler) GetToken(context.Context, *v1.GetTokenRequest) (*v1.GetTokenResponse, error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, "sparkly.backend.v1.UserService.GetToken is not implemented")
 }
 
-func (UnimplementedUserServiceHandler) CheckAuth(context.Context, *proto.CheckAuthRequest) (*proto.CheckAuthResponse, error) {
+func (UnimplementedUserServiceHandler) CheckAuth(context.Context, *v1.CheckAuthRequest) (*v1.CheckAuthResponse, error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, "sparkly.backend.v1.UserService.CheckAuth is not implemented")
 }
 
-func (UnimplementedUserServiceHandler) UpdateUser(context.Context, *proto.UpdateUserRequest) (*proto.UpdateUserResponse, error) {
+func (UnimplementedUserServiceHandler) UpdateUser(context.Context, *v1.UpdateUserRequest) (*v1.UpdateUserResponse, error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, "sparkly.backend.v1.UserService.UpdateUser is not implemented")
 }
 
-func (UnimplementedUserServiceHandler) DeleteUser(context.Context, *proto.DeleteUserRequest) (*proto.DeleteUserResponse, error) {
+func (UnimplementedUserServiceHandler) DeleteUser(context.Context, *v1.DeleteUserRequest) (*v1.DeleteUserResponse, error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, "sparkly.backend.v1.UserService.DeleteUser is not implemented")
 }
 
@@ -190,40 +190,40 @@ type userServiceClient struct {
 	client *connect.Client
 }
 
-func (c *userServiceClient) Reg(ctx context.Context, req *proto.RegRequest) (*proto.RegResponse, error) {
-	var res proto.RegResponse
+func (c *userServiceClient) Reg(ctx context.Context, req *v1.RegRequest) (*v1.RegResponse, error) {
+	var res v1.RegResponse
 	if err := c.client.CallUnary(ctx, userServiceRegSpec(), req, &res); err != nil {
 		return nil, err
 	}
 	return &res, nil
 }
 
-func (c *userServiceClient) GetToken(ctx context.Context, req *proto.GetTokenRequest) (*proto.GetTokenResponse, error) {
-	var res proto.GetTokenResponse
+func (c *userServiceClient) GetToken(ctx context.Context, req *v1.GetTokenRequest) (*v1.GetTokenResponse, error) {
+	var res v1.GetTokenResponse
 	if err := c.client.CallUnary(ctx, userServiceGetTokenSpec(), req, &res); err != nil {
 		return nil, err
 	}
 	return &res, nil
 }
 
-func (c *userServiceClient) CheckAuth(ctx context.Context, req *proto.CheckAuthRequest) (*proto.CheckAuthResponse, error) {
-	var res proto.CheckAuthResponse
+func (c *userServiceClient) CheckAuth(ctx context.Context, req *v1.CheckAuthRequest) (*v1.CheckAuthResponse, error) {
+	var res v1.CheckAuthResponse
 	if err := c.client.CallUnary(ctx, userServiceCheckAuthSpec(), req, &res); err != nil {
 		return nil, err
 	}
 	return &res, nil
 }
 
-func (c *userServiceClient) UpdateUser(ctx context.Context, req *proto.UpdateUserRequest) (*proto.UpdateUserResponse, error) {
-	var res proto.UpdateUserResponse
+func (c *userServiceClient) UpdateUser(ctx context.Context, req *v1.UpdateUserRequest) (*v1.UpdateUserResponse, error) {
+	var res v1.UpdateUserResponse
 	if err := c.client.CallUnary(ctx, userServiceUpdateUserSpec(), req, &res); err != nil {
 		return nil, err
 	}
 	return &res, nil
 }
 
-func (c *userServiceClient) DeleteUser(ctx context.Context, req *proto.DeleteUserRequest) (*proto.DeleteUserResponse, error) {
-	var res proto.DeleteUserResponse
+func (c *userServiceClient) DeleteUser(ctx context.Context, req *v1.DeleteUserRequest) (*v1.DeleteUserResponse, error) {
+	var res v1.DeleteUserResponse
 	if err := c.client.CallUnary(ctx, userServiceDeleteUserSpec(), req, &res); err != nil {
 		return nil, err
 	}
@@ -233,7 +233,7 @@ func (c *userServiceClient) DeleteUser(ctx context.Context, req *proto.DeleteUse
 type userServiceHandler struct{ svc UserServiceHandler }
 
 func (h userServiceHandler) reg(ctx context.Context, _ connect.Spec, stream connect.ServerStream) error {
-	var req proto.RegRequest
+	var req v1.RegRequest
 	if err := stream.Receive(&req); err != nil {
 		return err
 	}
@@ -245,7 +245,7 @@ func (h userServiceHandler) reg(ctx context.Context, _ connect.Spec, stream conn
 }
 
 func (h userServiceHandler) getToken(ctx context.Context, _ connect.Spec, stream connect.ServerStream) error {
-	var req proto.GetTokenRequest
+	var req v1.GetTokenRequest
 	if err := stream.Receive(&req); err != nil {
 		return err
 	}
@@ -257,7 +257,7 @@ func (h userServiceHandler) getToken(ctx context.Context, _ connect.Spec, stream
 }
 
 func (h userServiceHandler) checkAuth(ctx context.Context, _ connect.Spec, stream connect.ServerStream) error {
-	var req proto.CheckAuthRequest
+	var req v1.CheckAuthRequest
 	if err := stream.Receive(&req); err != nil {
 		return err
 	}
@@ -269,7 +269,7 @@ func (h userServiceHandler) checkAuth(ctx context.Context, _ connect.Spec, strea
 }
 
 func (h userServiceHandler) updateUser(ctx context.Context, _ connect.Spec, stream connect.ServerStream) error {
-	var req proto.UpdateUserRequest
+	var req v1.UpdateUserRequest
 	if err := stream.Receive(&req); err != nil {
 		return err
 	}
@@ -281,7 +281,7 @@ func (h userServiceHandler) updateUser(ctx context.Context, _ connect.Spec, stre
 }
 
 func (h userServiceHandler) deleteUser(ctx context.Context, _ connect.Spec, stream connect.ServerStream) error {
-	var req proto.DeleteUserRequest
+	var req v1.DeleteUserRequest
 	if err := stream.Receive(&req); err != nil {
 		return err
 	}
@@ -296,91 +296,91 @@ var (
 	parkServiceCreateParkSpec = sync.OnceValue(func() connect.Spec {
 		return connect.Spec{
 			StreamType: connect.StreamTypeUnary,
-			Schema:     proto.File_backend_proto_service_proto.Services().ByName("ParkService").Methods().ByName("CreatePark"),
+			Schema:     v1.File_backend_proto_service_proto.Services().ByName("ParkService").Methods().ByName("CreatePark"),
 			Procedure:  ParkServiceCreateParkProcedure,
 		}
 	})
 	parkServiceGetParkSpec = sync.OnceValue(func() connect.Spec {
 		return connect.Spec{
 			StreamType: connect.StreamTypeUnary,
-			Schema:     proto.File_backend_proto_service_proto.Services().ByName("ParkService").Methods().ByName("GetPark"),
+			Schema:     v1.File_backend_proto_service_proto.Services().ByName("ParkService").Methods().ByName("GetPark"),
 			Procedure:  ParkServiceGetParkProcedure,
 		}
 	})
 	parkServiceGetAllParksSpec = sync.OnceValue(func() connect.Spec {
 		return connect.Spec{
 			StreamType: connect.StreamTypeUnary,
-			Schema:     proto.File_backend_proto_service_proto.Services().ByName("ParkService").Methods().ByName("GetAllParks"),
+			Schema:     v1.File_backend_proto_service_proto.Services().ByName("ParkService").Methods().ByName("GetAllParks"),
 			Procedure:  ParkServiceGetAllParksProcedure,
 		}
 	})
 	parkServiceGetParksByFiltersSpec = sync.OnceValue(func() connect.Spec {
 		return connect.Spec{
 			StreamType: connect.StreamTypeUnary,
-			Schema:     proto.File_backend_proto_service_proto.Services().ByName("ParkService").Methods().ByName("GetParksByFilters"),
+			Schema:     v1.File_backend_proto_service_proto.Services().ByName("ParkService").Methods().ByName("GetParksByFilters"),
 			Procedure:  ParkServiceGetParksByFiltersProcedure,
 		}
 	})
 	parkServiceUpdateParkSpec = sync.OnceValue(func() connect.Spec {
 		return connect.Spec{
 			StreamType: connect.StreamTypeUnary,
-			Schema:     proto.File_backend_proto_service_proto.Services().ByName("ParkService").Methods().ByName("UpdatePark"),
+			Schema:     v1.File_backend_proto_service_proto.Services().ByName("ParkService").Methods().ByName("UpdatePark"),
 			Procedure:  ParkServiceUpdateParkProcedure,
 		}
 	})
 	parkServiceDeleteParkSpec = sync.OnceValue(func() connect.Spec {
 		return connect.Spec{
 			StreamType: connect.StreamTypeUnary,
-			Schema:     proto.File_backend_proto_service_proto.Services().ByName("ParkService").Methods().ByName("DeletePark"),
+			Schema:     v1.File_backend_proto_service_proto.Services().ByName("ParkService").Methods().ByName("DeletePark"),
 			Procedure:  ParkServiceDeleteParkProcedure,
 		}
 	})
 	parkServiceCreateGroupSpec = sync.OnceValue(func() connect.Spec {
 		return connect.Spec{
 			StreamType: connect.StreamTypeUnary,
-			Schema:     proto.File_backend_proto_service_proto.Services().ByName("ParkService").Methods().ByName("CreateGroup"),
+			Schema:     v1.File_backend_proto_service_proto.Services().ByName("ParkService").Methods().ByName("CreateGroup"),
 			Procedure:  ParkServiceCreateGroupProcedure,
 		}
 	})
 	parkServiceGetGroupSpec = sync.OnceValue(func() connect.Spec {
 		return connect.Spec{
 			StreamType: connect.StreamTypeUnary,
-			Schema:     proto.File_backend_proto_service_proto.Services().ByName("ParkService").Methods().ByName("GetGroup"),
+			Schema:     v1.File_backend_proto_service_proto.Services().ByName("ParkService").Methods().ByName("GetGroup"),
 			Procedure:  ParkServiceGetGroupProcedure,
 		}
 	})
 	parkServiceGetGroupsSpec = sync.OnceValue(func() connect.Spec {
 		return connect.Spec{
 			StreamType: connect.StreamTypeUnary,
-			Schema:     proto.File_backend_proto_service_proto.Services().ByName("ParkService").Methods().ByName("GetGroups"),
+			Schema:     v1.File_backend_proto_service_proto.Services().ByName("ParkService").Methods().ByName("GetGroups"),
 			Procedure:  ParkServiceGetGroupsProcedure,
 		}
 	})
 	parkServiceUpdateGroupSpec = sync.OnceValue(func() connect.Spec {
 		return connect.Spec{
 			StreamType: connect.StreamTypeUnary,
-			Schema:     proto.File_backend_proto_service_proto.Services().ByName("ParkService").Methods().ByName("UpdateGroup"),
+			Schema:     v1.File_backend_proto_service_proto.Services().ByName("ParkService").Methods().ByName("UpdateGroup"),
 			Procedure:  ParkServiceUpdateGroupProcedure,
 		}
 	})
 	parkServiceDeleteGroupSpec = sync.OnceValue(func() connect.Spec {
 		return connect.Spec{
 			StreamType: connect.StreamTypeUnary,
-			Schema:     proto.File_backend_proto_service_proto.Services().ByName("ParkService").Methods().ByName("DeleteGroup"),
+			Schema:     v1.File_backend_proto_service_proto.Services().ByName("ParkService").Methods().ByName("DeleteGroup"),
 			Procedure:  ParkServiceDeleteGroupProcedure,
 		}
 	})
 	parkServiceAddDeviceToGroupSpec = sync.OnceValue(func() connect.Spec {
 		return connect.Spec{
 			StreamType: connect.StreamTypeUnary,
-			Schema:     proto.File_backend_proto_service_proto.Services().ByName("ParkService").Methods().ByName("AddDeviceToGroup"),
+			Schema:     v1.File_backend_proto_service_proto.Services().ByName("ParkService").Methods().ByName("AddDeviceToGroup"),
 			Procedure:  ParkServiceAddDeviceToGroupProcedure,
 		}
 	})
 	parkServiceRemoveDeviceFromGroupSpec = sync.OnceValue(func() connect.Spec {
 		return connect.Spec{
 			StreamType: connect.StreamTypeUnary,
-			Schema:     proto.File_backend_proto_service_proto.Services().ByName("ParkService").Methods().ByName("RemoveDeviceFromGroup"),
+			Schema:     v1.File_backend_proto_service_proto.Services().ByName("ParkService").Methods().ByName("RemoveDeviceFromGroup"),
 			Procedure:  ParkServiceRemoveDeviceFromGroupProcedure,
 		}
 	})
@@ -388,19 +388,19 @@ var (
 
 // ParkServiceClient is a client for the sparkly.backend.v1.ParkService service.
 type ParkServiceClient interface {
-	CreatePark(context.Context, *proto.CreateParkRequest) (*proto.CreateParkResponse, error)
-	GetPark(context.Context, *proto.GetParkRequest) (*proto.GetParkResponse, error)
-	GetAllParks(context.Context, *proto.GetAllParksRequest) (*proto.GetAllParksResponse, error)
-	GetParksByFilters(context.Context, *proto.GetParksByFiltersRequest) (*proto.GetParksByFiltersResponse, error)
-	UpdatePark(context.Context, *proto.UpdateParkRequest) (*proto.UpdateParkResponse, error)
-	DeletePark(context.Context, *proto.DeleteParkRequest) (*proto.DeleteParkResponse, error)
-	CreateGroup(context.Context, *proto.CreateGroupRequest) (*proto.CreateGroupResponse, error)
-	GetGroup(context.Context, *proto.GetGroupRequest) (*proto.GetGroupResponse, error)
-	GetGroups(context.Context, *proto.GetGroupsRequest) (*proto.GetGroupsResponse, error)
-	UpdateGroup(context.Context, *proto.UpdateGroupRequest) (*proto.UpdateGroupResponse, error)
-	DeleteGroup(context.Context, *proto.DeleteGroupRequest) (*proto.DeleteGroupResponse, error)
-	AddDeviceToGroup(context.Context, *proto.AddDeviceToGroupRequest) (*proto.AddDeviceToGroupResponse, error)
-	RemoveDeviceFromGroup(context.Context, *proto.RemoveDeviceFromGroupRequest) (*proto.RemoveDeviceFromGroupResponse, error)
+	CreatePark(context.Context, *v1.CreateParkRequest) (*v1.CreateParkResponse, error)
+	GetPark(context.Context, *v1.GetParkRequest) (*v1.GetParkResponse, error)
+	GetAllParks(context.Context, *v1.GetAllParksRequest) (*v1.GetAllParksResponse, error)
+	GetParksByFilters(context.Context, *v1.GetParksByFiltersRequest) (*v1.GetParksByFiltersResponse, error)
+	UpdatePark(context.Context, *v1.UpdateParkRequest) (*v1.UpdateParkResponse, error)
+	DeletePark(context.Context, *v1.DeleteParkRequest) (*v1.DeleteParkResponse, error)
+	CreateGroup(context.Context, *v1.CreateGroupRequest) (*v1.CreateGroupResponse, error)
+	GetGroup(context.Context, *v1.GetGroupRequest) (*v1.GetGroupResponse, error)
+	GetGroups(context.Context, *v1.GetGroupsRequest) (*v1.GetGroupsResponse, error)
+	UpdateGroup(context.Context, *v1.UpdateGroupRequest) (*v1.UpdateGroupResponse, error)
+	DeleteGroup(context.Context, *v1.DeleteGroupRequest) (*v1.DeleteGroupResponse, error)
+	AddDeviceToGroup(context.Context, *v1.AddDeviceToGroupRequest) (*v1.AddDeviceToGroupResponse, error)
+	RemoveDeviceFromGroup(context.Context, *v1.RemoveDeviceFromGroupRequest) (*v1.RemoveDeviceFromGroupResponse, error)
 }
 
 // NewParkServiceClient constructs a client for the sparkly.backend.v1.ParkService service. Multiple
@@ -411,19 +411,19 @@ func NewParkServiceClient(client *connect.Client) ParkServiceClient {
 
 // ParkServiceHandler is an implementation of the sparkly.backend.v1.ParkService service.
 type ParkServiceHandler interface {
-	CreatePark(context.Context, *proto.CreateParkRequest) (*proto.CreateParkResponse, error)
-	GetPark(context.Context, *proto.GetParkRequest) (*proto.GetParkResponse, error)
-	GetAllParks(context.Context, *proto.GetAllParksRequest) (*proto.GetAllParksResponse, error)
-	GetParksByFilters(context.Context, *proto.GetParksByFiltersRequest) (*proto.GetParksByFiltersResponse, error)
-	UpdatePark(context.Context, *proto.UpdateParkRequest) (*proto.UpdateParkResponse, error)
-	DeletePark(context.Context, *proto.DeleteParkRequest) (*proto.DeleteParkResponse, error)
-	CreateGroup(context.Context, *proto.CreateGroupRequest) (*proto.CreateGroupResponse, error)
-	GetGroup(context.Context, *proto.GetGroupRequest) (*proto.GetGroupResponse, error)
-	GetGroups(context.Context, *proto.GetGroupsRequest) (*proto.GetGroupsResponse, error)
-	UpdateGroup(context.Context, *proto.UpdateGroupRequest) (*proto.UpdateGroupResponse, error)
-	DeleteGroup(context.Context, *proto.DeleteGroupRequest) (*proto.DeleteGroupResponse, error)
-	AddDeviceToGroup(context.Context, *proto.AddDeviceToGroupRequest) (*proto.AddDeviceToGroupResponse, error)
-	RemoveDeviceFromGroup(context.Context, *proto.RemoveDeviceFromGroupRequest) (*proto.RemoveDeviceFromGroupResponse, error)
+	CreatePark(context.Context, *v1.CreateParkRequest) (*v1.CreateParkResponse, error)
+	GetPark(context.Context, *v1.GetParkRequest) (*v1.GetParkResponse, error)
+	GetAllParks(context.Context, *v1.GetAllParksRequest) (*v1.GetAllParksResponse, error)
+	GetParksByFilters(context.Context, *v1.GetParksByFiltersRequest) (*v1.GetParksByFiltersResponse, error)
+	UpdatePark(context.Context, *v1.UpdateParkRequest) (*v1.UpdateParkResponse, error)
+	DeletePark(context.Context, *v1.DeleteParkRequest) (*v1.DeleteParkResponse, error)
+	CreateGroup(context.Context, *v1.CreateGroupRequest) (*v1.CreateGroupResponse, error)
+	GetGroup(context.Context, *v1.GetGroupRequest) (*v1.GetGroupResponse, error)
+	GetGroups(context.Context, *v1.GetGroupsRequest) (*v1.GetGroupsResponse, error)
+	UpdateGroup(context.Context, *v1.UpdateGroupRequest) (*v1.UpdateGroupResponse, error)
+	DeleteGroup(context.Context, *v1.DeleteGroupRequest) (*v1.DeleteGroupResponse, error)
+	AddDeviceToGroup(context.Context, *v1.AddDeviceToGroupRequest) (*v1.AddDeviceToGroupResponse, error)
+	RemoveDeviceFromGroup(context.Context, *v1.RemoveDeviceFromGroupRequest) (*v1.RemoveDeviceFromGroupResponse, error)
 }
 
 // RegisterParkServiceHandler registers svc as the sparkly.backend.v1.ParkService implementation on
@@ -450,55 +450,55 @@ func RegisterParkServiceHandler(server *connect.Server, svc ParkServiceHandler) 
 // UnimplementedParkServiceHandler returns CodeUnimplemented from all methods.
 type UnimplementedParkServiceHandler struct{}
 
-func (UnimplementedParkServiceHandler) CreatePark(context.Context, *proto.CreateParkRequest) (*proto.CreateParkResponse, error) {
+func (UnimplementedParkServiceHandler) CreatePark(context.Context, *v1.CreateParkRequest) (*v1.CreateParkResponse, error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, "sparkly.backend.v1.ParkService.CreatePark is not implemented")
 }
 
-func (UnimplementedParkServiceHandler) GetPark(context.Context, *proto.GetParkRequest) (*proto.GetParkResponse, error) {
+func (UnimplementedParkServiceHandler) GetPark(context.Context, *v1.GetParkRequest) (*v1.GetParkResponse, error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, "sparkly.backend.v1.ParkService.GetPark is not implemented")
 }
 
-func (UnimplementedParkServiceHandler) GetAllParks(context.Context, *proto.GetAllParksRequest) (*proto.GetAllParksResponse, error) {
+func (UnimplementedParkServiceHandler) GetAllParks(context.Context, *v1.GetAllParksRequest) (*v1.GetAllParksResponse, error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, "sparkly.backend.v1.ParkService.GetAllParks is not implemented")
 }
 
-func (UnimplementedParkServiceHandler) GetParksByFilters(context.Context, *proto.GetParksByFiltersRequest) (*proto.GetParksByFiltersResponse, error) {
+func (UnimplementedParkServiceHandler) GetParksByFilters(context.Context, *v1.GetParksByFiltersRequest) (*v1.GetParksByFiltersResponse, error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, "sparkly.backend.v1.ParkService.GetParksByFilters is not implemented")
 }
 
-func (UnimplementedParkServiceHandler) UpdatePark(context.Context, *proto.UpdateParkRequest) (*proto.UpdateParkResponse, error) {
+func (UnimplementedParkServiceHandler) UpdatePark(context.Context, *v1.UpdateParkRequest) (*v1.UpdateParkResponse, error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, "sparkly.backend.v1.ParkService.UpdatePark is not implemented")
 }
 
-func (UnimplementedParkServiceHandler) DeletePark(context.Context, *proto.DeleteParkRequest) (*proto.DeleteParkResponse, error) {
+func (UnimplementedParkServiceHandler) DeletePark(context.Context, *v1.DeleteParkRequest) (*v1.DeleteParkResponse, error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, "sparkly.backend.v1.ParkService.DeletePark is not implemented")
 }
 
-func (UnimplementedParkServiceHandler) CreateGroup(context.Context, *proto.CreateGroupRequest) (*proto.CreateGroupResponse, error) {
+func (UnimplementedParkServiceHandler) CreateGroup(context.Context, *v1.CreateGroupRequest) (*v1.CreateGroupResponse, error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, "sparkly.backend.v1.ParkService.CreateGroup is not implemented")
 }
 
-func (UnimplementedParkServiceHandler) GetGroup(context.Context, *proto.GetGroupRequest) (*proto.GetGroupResponse, error) {
+func (UnimplementedParkServiceHandler) GetGroup(context.Context, *v1.GetGroupRequest) (*v1.GetGroupResponse, error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, "sparkly.backend.v1.ParkService.GetGroup is not implemented")
 }
 
-func (UnimplementedParkServiceHandler) GetGroups(context.Context, *proto.GetGroupsRequest) (*proto.GetGroupsResponse, error) {
+func (UnimplementedParkServiceHandler) GetGroups(context.Context, *v1.GetGroupsRequest) (*v1.GetGroupsResponse, error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, "sparkly.backend.v1.ParkService.GetGroups is not implemented")
 }
 
-func (UnimplementedParkServiceHandler) UpdateGroup(context.Context, *proto.UpdateGroupRequest) (*proto.UpdateGroupResponse, error) {
+func (UnimplementedParkServiceHandler) UpdateGroup(context.Context, *v1.UpdateGroupRequest) (*v1.UpdateGroupResponse, error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, "sparkly.backend.v1.ParkService.UpdateGroup is not implemented")
 }
 
-func (UnimplementedParkServiceHandler) DeleteGroup(context.Context, *proto.DeleteGroupRequest) (*proto.DeleteGroupResponse, error) {
+func (UnimplementedParkServiceHandler) DeleteGroup(context.Context, *v1.DeleteGroupRequest) (*v1.DeleteGroupResponse, error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, "sparkly.backend.v1.ParkService.DeleteGroup is not implemented")
 }
 
-func (UnimplementedParkServiceHandler) AddDeviceToGroup(context.Context, *proto.AddDeviceToGroupRequest) (*proto.AddDeviceToGroupResponse, error) {
+func (UnimplementedParkServiceHandler) AddDeviceToGroup(context.Context, *v1.AddDeviceToGroupRequest) (*v1.AddDeviceToGroupResponse, error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, "sparkly.backend.v1.ParkService.AddDeviceToGroup is not implemented")
 }
 
-func (UnimplementedParkServiceHandler) RemoveDeviceFromGroup(context.Context, *proto.RemoveDeviceFromGroupRequest) (*proto.RemoveDeviceFromGroupResponse, error) {
+func (UnimplementedParkServiceHandler) RemoveDeviceFromGroup(context.Context, *v1.RemoveDeviceFromGroupRequest) (*v1.RemoveDeviceFromGroupResponse, error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, "sparkly.backend.v1.ParkService.RemoveDeviceFromGroup is not implemented")
 }
 
@@ -506,104 +506,104 @@ type parkServiceClient struct {
 	client *connect.Client
 }
 
-func (c *parkServiceClient) CreatePark(ctx context.Context, req *proto.CreateParkRequest) (*proto.CreateParkResponse, error) {
-	var res proto.CreateParkResponse
+func (c *parkServiceClient) CreatePark(ctx context.Context, req *v1.CreateParkRequest) (*v1.CreateParkResponse, error) {
+	var res v1.CreateParkResponse
 	if err := c.client.CallUnary(ctx, parkServiceCreateParkSpec(), req, &res); err != nil {
 		return nil, err
 	}
 	return &res, nil
 }
 
-func (c *parkServiceClient) GetPark(ctx context.Context, req *proto.GetParkRequest) (*proto.GetParkResponse, error) {
-	var res proto.GetParkResponse
+func (c *parkServiceClient) GetPark(ctx context.Context, req *v1.GetParkRequest) (*v1.GetParkResponse, error) {
+	var res v1.GetParkResponse
 	if err := c.client.CallUnary(ctx, parkServiceGetParkSpec(), req, &res); err != nil {
 		return nil, err
 	}
 	return &res, nil
 }
 
-func (c *parkServiceClient) GetAllParks(ctx context.Context, req *proto.GetAllParksRequest) (*proto.GetAllParksResponse, error) {
-	var res proto.GetAllParksResponse
+func (c *parkServiceClient) GetAllParks(ctx context.Context, req *v1.GetAllParksRequest) (*v1.GetAllParksResponse, error) {
+	var res v1.GetAllParksResponse
 	if err := c.client.CallUnary(ctx, parkServiceGetAllParksSpec(), req, &res); err != nil {
 		return nil, err
 	}
 	return &res, nil
 }
 
-func (c *parkServiceClient) GetParksByFilters(ctx context.Context, req *proto.GetParksByFiltersRequest) (*proto.GetParksByFiltersResponse, error) {
-	var res proto.GetParksByFiltersResponse
+func (c *parkServiceClient) GetParksByFilters(ctx context.Context, req *v1.GetParksByFiltersRequest) (*v1.GetParksByFiltersResponse, error) {
+	var res v1.GetParksByFiltersResponse
 	if err := c.client.CallUnary(ctx, parkServiceGetParksByFiltersSpec(), req, &res); err != nil {
 		return nil, err
 	}
 	return &res, nil
 }
 
-func (c *parkServiceClient) UpdatePark(ctx context.Context, req *proto.UpdateParkRequest) (*proto.UpdateParkResponse, error) {
-	var res proto.UpdateParkResponse
+func (c *parkServiceClient) UpdatePark(ctx context.Context, req *v1.UpdateParkRequest) (*v1.UpdateParkResponse, error) {
+	var res v1.UpdateParkResponse
 	if err := c.client.CallUnary(ctx, parkServiceUpdateParkSpec(), req, &res); err != nil {
 		return nil, err
 	}
 	return &res, nil
 }
 
-func (c *parkServiceClient) DeletePark(ctx context.Context, req *proto.DeleteParkRequest) (*proto.DeleteParkResponse, error) {
-	var res proto.DeleteParkResponse
+func (c *parkServiceClient) DeletePark(ctx context.Context, req *v1.DeleteParkRequest) (*v1.DeleteParkResponse, error) {
+	var res v1.DeleteParkResponse
 	if err := c.client.CallUnary(ctx, parkServiceDeleteParkSpec(), req, &res); err != nil {
 		return nil, err
 	}
 	return &res, nil
 }
 
-func (c *parkServiceClient) CreateGroup(ctx context.Context, req *proto.CreateGroupRequest) (*proto.CreateGroupResponse, error) {
-	var res proto.CreateGroupResponse
+func (c *parkServiceClient) CreateGroup(ctx context.Context, req *v1.CreateGroupRequest) (*v1.CreateGroupResponse, error) {
+	var res v1.CreateGroupResponse
 	if err := c.client.CallUnary(ctx, parkServiceCreateGroupSpec(), req, &res); err != nil {
 		return nil, err
 	}
 	return &res, nil
 }
 
-func (c *parkServiceClient) GetGroup(ctx context.Context, req *proto.GetGroupRequest) (*proto.GetGroupResponse, error) {
-	var res proto.GetGroupResponse
+func (c *parkServiceClient) GetGroup(ctx context.Context, req *v1.GetGroupRequest) (*v1.GetGroupResponse, error) {
+	var res v1.GetGroupResponse
 	if err := c.client.CallUnary(ctx, parkServiceGetGroupSpec(), req, &res); err != nil {
 		return nil, err
 	}
 	return &res, nil
 }
 
-func (c *parkServiceClient) GetGroups(ctx context.Context, req *proto.GetGroupsRequest) (*proto.GetGroupsResponse, error) {
-	var res proto.GetGroupsResponse
+func (c *parkServiceClient) GetGroups(ctx context.Context, req *v1.GetGroupsRequest) (*v1.GetGroupsResponse, error) {
+	var res v1.GetGroupsResponse
 	if err := c.client.CallUnary(ctx, parkServiceGetGroupsSpec(), req, &res); err != nil {
 		return nil, err
 	}
 	return &res, nil
 }
 
-func (c *parkServiceClient) UpdateGroup(ctx context.Context, req *proto.UpdateGroupRequest) (*proto.UpdateGroupResponse, error) {
-	var res proto.UpdateGroupResponse
+func (c *parkServiceClient) UpdateGroup(ctx context.Context, req *v1.UpdateGroupRequest) (*v1.UpdateGroupResponse, error) {
+	var res v1.UpdateGroupResponse
 	if err := c.client.CallUnary(ctx, parkServiceUpdateGroupSpec(), req, &res); err != nil {
 		return nil, err
 	}
 	return &res, nil
 }
 
-func (c *parkServiceClient) DeleteGroup(ctx context.Context, req *proto.DeleteGroupRequest) (*proto.DeleteGroupResponse, error) {
-	var res proto.DeleteGroupResponse
+func (c *parkServiceClient) DeleteGroup(ctx context.Context, req *v1.DeleteGroupRequest) (*v1.DeleteGroupResponse, error) {
+	var res v1.DeleteGroupResponse
 	if err := c.client.CallUnary(ctx, parkServiceDeleteGroupSpec(), req, &res); err != nil {
 		return nil, err
 	}
 	return &res, nil
 }
 
-func (c *parkServiceClient) AddDeviceToGroup(ctx context.Context, req *proto.AddDeviceToGroupRequest) (*proto.AddDeviceToGroupResponse, error) {
-	var res proto.AddDeviceToGroupResponse
+func (c *parkServiceClient) AddDeviceToGroup(ctx context.Context, req *v1.AddDeviceToGroupRequest) (*v1.AddDeviceToGroupResponse, error) {
+	var res v1.AddDeviceToGroupResponse
 	if err := c.client.CallUnary(ctx, parkServiceAddDeviceToGroupSpec(), req, &res); err != nil {
 		return nil, err
 	}
 	return &res, nil
 }
 
-func (c *parkServiceClient) RemoveDeviceFromGroup(ctx context.Context, req *proto.RemoveDeviceFromGroupRequest) (*proto.RemoveDeviceFromGroupResponse, error) {
-	var res proto.RemoveDeviceFromGroupResponse
+func (c *parkServiceClient) RemoveDeviceFromGroup(ctx context.Context, req *v1.RemoveDeviceFromGroupRequest) (*v1.RemoveDeviceFromGroupResponse, error) {
+	var res v1.RemoveDeviceFromGroupResponse
 	if err := c.client.CallUnary(ctx, parkServiceRemoveDeviceFromGroupSpec(), req, &res); err != nil {
 		return nil, err
 	}
@@ -613,7 +613,7 @@ func (c *parkServiceClient) RemoveDeviceFromGroup(ctx context.Context, req *prot
 type parkServiceHandler struct{ svc ParkServiceHandler }
 
 func (h parkServiceHandler) createPark(ctx context.Context, _ connect.Spec, stream connect.ServerStream) error {
-	var req proto.CreateParkRequest
+	var req v1.CreateParkRequest
 	if err := stream.Receive(&req); err != nil {
 		return err
 	}
@@ -625,7 +625,7 @@ func (h parkServiceHandler) createPark(ctx context.Context, _ connect.Spec, stre
 }
 
 func (h parkServiceHandler) getPark(ctx context.Context, _ connect.Spec, stream connect.ServerStream) error {
-	var req proto.GetParkRequest
+	var req v1.GetParkRequest
 	if err := stream.Receive(&req); err != nil {
 		return err
 	}
@@ -637,7 +637,7 @@ func (h parkServiceHandler) getPark(ctx context.Context, _ connect.Spec, stream 
 }
 
 func (h parkServiceHandler) getAllParks(ctx context.Context, _ connect.Spec, stream connect.ServerStream) error {
-	var req proto.GetAllParksRequest
+	var req v1.GetAllParksRequest
 	if err := stream.Receive(&req); err != nil {
 		return err
 	}
@@ -649,7 +649,7 @@ func (h parkServiceHandler) getAllParks(ctx context.Context, _ connect.Spec, str
 }
 
 func (h parkServiceHandler) getParksByFilters(ctx context.Context, _ connect.Spec, stream connect.ServerStream) error {
-	var req proto.GetParksByFiltersRequest
+	var req v1.GetParksByFiltersRequest
 	if err := stream.Receive(&req); err != nil {
 		return err
 	}
@@ -661,7 +661,7 @@ func (h parkServiceHandler) getParksByFilters(ctx context.Context, _ connect.Spe
 }
 
 func (h parkServiceHandler) updatePark(ctx context.Context, _ connect.Spec, stream connect.ServerStream) error {
-	var req proto.UpdateParkRequest
+	var req v1.UpdateParkRequest
 	if err := stream.Receive(&req); err != nil {
 		return err
 	}
@@ -673,7 +673,7 @@ func (h parkServiceHandler) updatePark(ctx context.Context, _ connect.Spec, stre
 }
 
 func (h parkServiceHandler) deletePark(ctx context.Context, _ connect.Spec, stream connect.ServerStream) error {
-	var req proto.DeleteParkRequest
+	var req v1.DeleteParkRequest
 	if err := stream.Receive(&req); err != nil {
 		return err
 	}
@@ -685,7 +685,7 @@ func (h parkServiceHandler) deletePark(ctx context.Context, _ connect.Spec, stre
 }
 
 func (h parkServiceHandler) createGroup(ctx context.Context, _ connect.Spec, stream connect.ServerStream) error {
-	var req proto.CreateGroupRequest
+	var req v1.CreateGroupRequest
 	if err := stream.Receive(&req); err != nil {
 		return err
 	}
@@ -697,7 +697,7 @@ func (h parkServiceHandler) createGroup(ctx context.Context, _ connect.Spec, str
 }
 
 func (h parkServiceHandler) getGroup(ctx context.Context, _ connect.Spec, stream connect.ServerStream) error {
-	var req proto.GetGroupRequest
+	var req v1.GetGroupRequest
 	if err := stream.Receive(&req); err != nil {
 		return err
 	}
@@ -709,7 +709,7 @@ func (h parkServiceHandler) getGroup(ctx context.Context, _ connect.Spec, stream
 }
 
 func (h parkServiceHandler) getGroups(ctx context.Context, _ connect.Spec, stream connect.ServerStream) error {
-	var req proto.GetGroupsRequest
+	var req v1.GetGroupsRequest
 	if err := stream.Receive(&req); err != nil {
 		return err
 	}
@@ -721,7 +721,7 @@ func (h parkServiceHandler) getGroups(ctx context.Context, _ connect.Spec, strea
 }
 
 func (h parkServiceHandler) updateGroup(ctx context.Context, _ connect.Spec, stream connect.ServerStream) error {
-	var req proto.UpdateGroupRequest
+	var req v1.UpdateGroupRequest
 	if err := stream.Receive(&req); err != nil {
 		return err
 	}
@@ -733,7 +733,7 @@ func (h parkServiceHandler) updateGroup(ctx context.Context, _ connect.Spec, str
 }
 
 func (h parkServiceHandler) deleteGroup(ctx context.Context, _ connect.Spec, stream connect.ServerStream) error {
-	var req proto.DeleteGroupRequest
+	var req v1.DeleteGroupRequest
 	if err := stream.Receive(&req); err != nil {
 		return err
 	}
@@ -745,7 +745,7 @@ func (h parkServiceHandler) deleteGroup(ctx context.Context, _ connect.Spec, str
 }
 
 func (h parkServiceHandler) addDeviceToGroup(ctx context.Context, _ connect.Spec, stream connect.ServerStream) error {
-	var req proto.AddDeviceToGroupRequest
+	var req v1.AddDeviceToGroupRequest
 	if err := stream.Receive(&req); err != nil {
 		return err
 	}
@@ -757,7 +757,7 @@ func (h parkServiceHandler) addDeviceToGroup(ctx context.Context, _ connect.Spec
 }
 
 func (h parkServiceHandler) removeDeviceFromGroup(ctx context.Context, _ connect.Spec, stream connect.ServerStream) error {
-	var req proto.RemoveDeviceFromGroupRequest
+	var req v1.RemoveDeviceFromGroupRequest
 	if err := stream.Receive(&req); err != nil {
 		return err
 	}
@@ -772,21 +772,21 @@ var (
 	deviceServiceGetDeviceSpec = sync.OnceValue(func() connect.Spec {
 		return connect.Spec{
 			StreamType: connect.StreamTypeUnary,
-			Schema:     proto.File_backend_proto_service_proto.Services().ByName("DeviceService").Methods().ByName("GetDevice"),
+			Schema:     v1.File_backend_proto_service_proto.Services().ByName("DeviceService").Methods().ByName("GetDevice"),
 			Procedure:  DeviceServiceGetDeviceProcedure,
 		}
 	})
 	deviceServiceGetAllDevicesSpec = sync.OnceValue(func() connect.Spec {
 		return connect.Spec{
 			StreamType: connect.StreamTypeUnary,
-			Schema:     proto.File_backend_proto_service_proto.Services().ByName("DeviceService").Methods().ByName("GetAllDevices"),
+			Schema:     v1.File_backend_proto_service_proto.Services().ByName("DeviceService").Methods().ByName("GetAllDevices"),
 			Procedure:  DeviceServiceGetAllDevicesProcedure,
 		}
 	})
 	deviceServiceGetDevicesByFiltersSpec = sync.OnceValue(func() connect.Spec {
 		return connect.Spec{
 			StreamType: connect.StreamTypeUnary,
-			Schema:     proto.File_backend_proto_service_proto.Services().ByName("DeviceService").Methods().ByName("GetDevicesByFilters"),
+			Schema:     v1.File_backend_proto_service_proto.Services().ByName("DeviceService").Methods().ByName("GetDevicesByFilters"),
 			Procedure:  DeviceServiceGetDevicesByFiltersProcedure,
 		}
 	})
@@ -794,9 +794,9 @@ var (
 
 // DeviceServiceClient is a client for the sparkly.backend.v1.DeviceService service.
 type DeviceServiceClient interface {
-	GetDevice(context.Context, *proto.GetDeviceRequest) (*proto.GetDeviceResponse, error)
-	GetAllDevices(context.Context, *proto.GetAllDevicesRequest) (*proto.GetAllDevicesResponse, error)
-	GetDevicesByFilters(context.Context, *proto.GetDevicesByFiltersRequest) (*proto.GetDevicesByFiltersResponse, error)
+	GetDevice(context.Context, *v1.GetDeviceRequest) (*v1.GetDeviceResponse, error)
+	GetAllDevices(context.Context, *v1.GetAllDevicesRequest) (*v1.GetAllDevicesResponse, error)
+	GetDevicesByFilters(context.Context, *v1.GetDevicesByFiltersRequest) (*v1.GetDevicesByFiltersResponse, error)
 }
 
 // NewDeviceServiceClient constructs a client for the sparkly.backend.v1.DeviceService service.
@@ -807,9 +807,9 @@ func NewDeviceServiceClient(client *connect.Client) DeviceServiceClient {
 
 // DeviceServiceHandler is an implementation of the sparkly.backend.v1.DeviceService service.
 type DeviceServiceHandler interface {
-	GetDevice(context.Context, *proto.GetDeviceRequest) (*proto.GetDeviceResponse, error)
-	GetAllDevices(context.Context, *proto.GetAllDevicesRequest) (*proto.GetAllDevicesResponse, error)
-	GetDevicesByFilters(context.Context, *proto.GetDevicesByFiltersRequest) (*proto.GetDevicesByFiltersResponse, error)
+	GetDevice(context.Context, *v1.GetDeviceRequest) (*v1.GetDeviceResponse, error)
+	GetAllDevices(context.Context, *v1.GetAllDevicesRequest) (*v1.GetAllDevicesResponse, error)
+	GetDevicesByFilters(context.Context, *v1.GetDevicesByFiltersRequest) (*v1.GetDevicesByFiltersResponse, error)
 }
 
 // RegisterDeviceServiceHandler registers svc as the sparkly.backend.v1.DeviceService implementation
@@ -826,15 +826,15 @@ func RegisterDeviceServiceHandler(server *connect.Server, svc DeviceServiceHandl
 // UnimplementedDeviceServiceHandler returns CodeUnimplemented from all methods.
 type UnimplementedDeviceServiceHandler struct{}
 
-func (UnimplementedDeviceServiceHandler) GetDevice(context.Context, *proto.GetDeviceRequest) (*proto.GetDeviceResponse, error) {
+func (UnimplementedDeviceServiceHandler) GetDevice(context.Context, *v1.GetDeviceRequest) (*v1.GetDeviceResponse, error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, "sparkly.backend.v1.DeviceService.GetDevice is not implemented")
 }
 
-func (UnimplementedDeviceServiceHandler) GetAllDevices(context.Context, *proto.GetAllDevicesRequest) (*proto.GetAllDevicesResponse, error) {
+func (UnimplementedDeviceServiceHandler) GetAllDevices(context.Context, *v1.GetAllDevicesRequest) (*v1.GetAllDevicesResponse, error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, "sparkly.backend.v1.DeviceService.GetAllDevices is not implemented")
 }
 
-func (UnimplementedDeviceServiceHandler) GetDevicesByFilters(context.Context, *proto.GetDevicesByFiltersRequest) (*proto.GetDevicesByFiltersResponse, error) {
+func (UnimplementedDeviceServiceHandler) GetDevicesByFilters(context.Context, *v1.GetDevicesByFiltersRequest) (*v1.GetDevicesByFiltersResponse, error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, "sparkly.backend.v1.DeviceService.GetDevicesByFilters is not implemented")
 }
 
@@ -842,24 +842,24 @@ type deviceServiceClient struct {
 	client *connect.Client
 }
 
-func (c *deviceServiceClient) GetDevice(ctx context.Context, req *proto.GetDeviceRequest) (*proto.GetDeviceResponse, error) {
-	var res proto.GetDeviceResponse
+func (c *deviceServiceClient) GetDevice(ctx context.Context, req *v1.GetDeviceRequest) (*v1.GetDeviceResponse, error) {
+	var res v1.GetDeviceResponse
 	if err := c.client.CallUnary(ctx, deviceServiceGetDeviceSpec(), req, &res); err != nil {
 		return nil, err
 	}
 	return &res, nil
 }
 
-func (c *deviceServiceClient) GetAllDevices(ctx context.Context, req *proto.GetAllDevicesRequest) (*proto.GetAllDevicesResponse, error) {
-	var res proto.GetAllDevicesResponse
+func (c *deviceServiceClient) GetAllDevices(ctx context.Context, req *v1.GetAllDevicesRequest) (*v1.GetAllDevicesResponse, error) {
+	var res v1.GetAllDevicesResponse
 	if err := c.client.CallUnary(ctx, deviceServiceGetAllDevicesSpec(), req, &res); err != nil {
 		return nil, err
 	}
 	return &res, nil
 }
 
-func (c *deviceServiceClient) GetDevicesByFilters(ctx context.Context, req *proto.GetDevicesByFiltersRequest) (*proto.GetDevicesByFiltersResponse, error) {
-	var res proto.GetDevicesByFiltersResponse
+func (c *deviceServiceClient) GetDevicesByFilters(ctx context.Context, req *v1.GetDevicesByFiltersRequest) (*v1.GetDevicesByFiltersResponse, error) {
+	var res v1.GetDevicesByFiltersResponse
 	if err := c.client.CallUnary(ctx, deviceServiceGetDevicesByFiltersSpec(), req, &res); err != nil {
 		return nil, err
 	}
@@ -869,7 +869,7 @@ func (c *deviceServiceClient) GetDevicesByFilters(ctx context.Context, req *prot
 type deviceServiceHandler struct{ svc DeviceServiceHandler }
 
 func (h deviceServiceHandler) getDevice(ctx context.Context, _ connect.Spec, stream connect.ServerStream) error {
-	var req proto.GetDeviceRequest
+	var req v1.GetDeviceRequest
 	if err := stream.Receive(&req); err != nil {
 		return err
 	}
@@ -881,7 +881,7 @@ func (h deviceServiceHandler) getDevice(ctx context.Context, _ connect.Spec, str
 }
 
 func (h deviceServiceHandler) getAllDevices(ctx context.Context, _ connect.Spec, stream connect.ServerStream) error {
-	var req proto.GetAllDevicesRequest
+	var req v1.GetAllDevicesRequest
 	if err := stream.Receive(&req); err != nil {
 		return err
 	}
@@ -893,7 +893,7 @@ func (h deviceServiceHandler) getAllDevices(ctx context.Context, _ connect.Spec,
 }
 
 func (h deviceServiceHandler) getDevicesByFilters(ctx context.Context, _ connect.Spec, stream connect.ServerStream) error {
-	var req proto.GetDevicesByFiltersRequest
+	var req v1.GetDevicesByFiltersRequest
 	if err := stream.Receive(&req); err != nil {
 		return err
 	}
@@ -908,28 +908,28 @@ var (
 	issueServiceGetIssueSpec = sync.OnceValue(func() connect.Spec {
 		return connect.Spec{
 			StreamType: connect.StreamTypeUnary,
-			Schema:     proto.File_backend_proto_service_proto.Services().ByName("IssueService").Methods().ByName("GetIssue"),
+			Schema:     v1.File_backend_proto_service_proto.Services().ByName("IssueService").Methods().ByName("GetIssue"),
 			Procedure:  IssueServiceGetIssueProcedure,
 		}
 	})
 	issueServiceGetAllIssuesSpec = sync.OnceValue(func() connect.Spec {
 		return connect.Spec{
 			StreamType: connect.StreamTypeUnary,
-			Schema:     proto.File_backend_proto_service_proto.Services().ByName("IssueService").Methods().ByName("GetAllIssues"),
+			Schema:     v1.File_backend_proto_service_proto.Services().ByName("IssueService").Methods().ByName("GetAllIssues"),
 			Procedure:  IssueServiceGetAllIssuesProcedure,
 		}
 	})
 	issueServiceGetIssuesByFiltersSpec = sync.OnceValue(func() connect.Spec {
 		return connect.Spec{
 			StreamType: connect.StreamTypeUnary,
-			Schema:     proto.File_backend_proto_service_proto.Services().ByName("IssueService").Methods().ByName("GetIssuesByFilters"),
+			Schema:     v1.File_backend_proto_service_proto.Services().ByName("IssueService").Methods().ByName("GetIssuesByFilters"),
 			Procedure:  IssueServiceGetIssuesByFiltersProcedure,
 		}
 	})
 	issueServiceResolveIssueSpec = sync.OnceValue(func() connect.Spec {
 		return connect.Spec{
 			StreamType: connect.StreamTypeUnary,
-			Schema:     proto.File_backend_proto_service_proto.Services().ByName("IssueService").Methods().ByName("ResolveIssue"),
+			Schema:     v1.File_backend_proto_service_proto.Services().ByName("IssueService").Methods().ByName("ResolveIssue"),
 			Procedure:  IssueServiceResolveIssueProcedure,
 		}
 	})
@@ -937,10 +937,10 @@ var (
 
 // IssueServiceClient is a client for the sparkly.backend.v1.IssueService service.
 type IssueServiceClient interface {
-	GetIssue(context.Context, *proto.GetIssueRequest) (*proto.GetIssueResponse, error)
-	GetAllIssues(context.Context, *proto.GetAllIssuesRequest) (*proto.GetAllIssuesResponse, error)
-	GetIssuesByFilters(context.Context, *proto.GetIssuesByFiltersRequest) (*proto.GetIssuesByFiltersResponse, error)
-	ResolveIssue(context.Context, *proto.ResolveIssueRequest) (*proto.ResolveIssueResponse, error)
+	GetIssue(context.Context, *v1.GetIssueRequest) (*v1.GetIssueResponse, error)
+	GetAllIssues(context.Context, *v1.GetAllIssuesRequest) (*v1.GetAllIssuesResponse, error)
+	GetIssuesByFilters(context.Context, *v1.GetIssuesByFiltersRequest) (*v1.GetIssuesByFiltersResponse, error)
+	ResolveIssue(context.Context, *v1.ResolveIssueRequest) (*v1.ResolveIssueResponse, error)
 }
 
 // NewIssueServiceClient constructs a client for the sparkly.backend.v1.IssueService service.
@@ -951,10 +951,10 @@ func NewIssueServiceClient(client *connect.Client) IssueServiceClient {
 
 // IssueServiceHandler is an implementation of the sparkly.backend.v1.IssueService service.
 type IssueServiceHandler interface {
-	GetIssue(context.Context, *proto.GetIssueRequest) (*proto.GetIssueResponse, error)
-	GetAllIssues(context.Context, *proto.GetAllIssuesRequest) (*proto.GetAllIssuesResponse, error)
-	GetIssuesByFilters(context.Context, *proto.GetIssuesByFiltersRequest) (*proto.GetIssuesByFiltersResponse, error)
-	ResolveIssue(context.Context, *proto.ResolveIssueRequest) (*proto.ResolveIssueResponse, error)
+	GetIssue(context.Context, *v1.GetIssueRequest) (*v1.GetIssueResponse, error)
+	GetAllIssues(context.Context, *v1.GetAllIssuesRequest) (*v1.GetAllIssuesResponse, error)
+	GetIssuesByFilters(context.Context, *v1.GetIssuesByFiltersRequest) (*v1.GetIssuesByFiltersResponse, error)
+	ResolveIssue(context.Context, *v1.ResolveIssueRequest) (*v1.ResolveIssueResponse, error)
 }
 
 // RegisterIssueServiceHandler registers svc as the sparkly.backend.v1.IssueService implementation
@@ -972,19 +972,19 @@ func RegisterIssueServiceHandler(server *connect.Server, svc IssueServiceHandler
 // UnimplementedIssueServiceHandler returns CodeUnimplemented from all methods.
 type UnimplementedIssueServiceHandler struct{}
 
-func (UnimplementedIssueServiceHandler) GetIssue(context.Context, *proto.GetIssueRequest) (*proto.GetIssueResponse, error) {
+func (UnimplementedIssueServiceHandler) GetIssue(context.Context, *v1.GetIssueRequest) (*v1.GetIssueResponse, error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, "sparkly.backend.v1.IssueService.GetIssue is not implemented")
 }
 
-func (UnimplementedIssueServiceHandler) GetAllIssues(context.Context, *proto.GetAllIssuesRequest) (*proto.GetAllIssuesResponse, error) {
+func (UnimplementedIssueServiceHandler) GetAllIssues(context.Context, *v1.GetAllIssuesRequest) (*v1.GetAllIssuesResponse, error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, "sparkly.backend.v1.IssueService.GetAllIssues is not implemented")
 }
 
-func (UnimplementedIssueServiceHandler) GetIssuesByFilters(context.Context, *proto.GetIssuesByFiltersRequest) (*proto.GetIssuesByFiltersResponse, error) {
+func (UnimplementedIssueServiceHandler) GetIssuesByFilters(context.Context, *v1.GetIssuesByFiltersRequest) (*v1.GetIssuesByFiltersResponse, error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, "sparkly.backend.v1.IssueService.GetIssuesByFilters is not implemented")
 }
 
-func (UnimplementedIssueServiceHandler) ResolveIssue(context.Context, *proto.ResolveIssueRequest) (*proto.ResolveIssueResponse, error) {
+func (UnimplementedIssueServiceHandler) ResolveIssue(context.Context, *v1.ResolveIssueRequest) (*v1.ResolveIssueResponse, error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, "sparkly.backend.v1.IssueService.ResolveIssue is not implemented")
 }
 
@@ -992,32 +992,32 @@ type issueServiceClient struct {
 	client *connect.Client
 }
 
-func (c *issueServiceClient) GetIssue(ctx context.Context, req *proto.GetIssueRequest) (*proto.GetIssueResponse, error) {
-	var res proto.GetIssueResponse
+func (c *issueServiceClient) GetIssue(ctx context.Context, req *v1.GetIssueRequest) (*v1.GetIssueResponse, error) {
+	var res v1.GetIssueResponse
 	if err := c.client.CallUnary(ctx, issueServiceGetIssueSpec(), req, &res); err != nil {
 		return nil, err
 	}
 	return &res, nil
 }
 
-func (c *issueServiceClient) GetAllIssues(ctx context.Context, req *proto.GetAllIssuesRequest) (*proto.GetAllIssuesResponse, error) {
-	var res proto.GetAllIssuesResponse
+func (c *issueServiceClient) GetAllIssues(ctx context.Context, req *v1.GetAllIssuesRequest) (*v1.GetAllIssuesResponse, error) {
+	var res v1.GetAllIssuesResponse
 	if err := c.client.CallUnary(ctx, issueServiceGetAllIssuesSpec(), req, &res); err != nil {
 		return nil, err
 	}
 	return &res, nil
 }
 
-func (c *issueServiceClient) GetIssuesByFilters(ctx context.Context, req *proto.GetIssuesByFiltersRequest) (*proto.GetIssuesByFiltersResponse, error) {
-	var res proto.GetIssuesByFiltersResponse
+func (c *issueServiceClient) GetIssuesByFilters(ctx context.Context, req *v1.GetIssuesByFiltersRequest) (*v1.GetIssuesByFiltersResponse, error) {
+	var res v1.GetIssuesByFiltersResponse
 	if err := c.client.CallUnary(ctx, issueServiceGetIssuesByFiltersSpec(), req, &res); err != nil {
 		return nil, err
 	}
 	return &res, nil
 }
 
-func (c *issueServiceClient) ResolveIssue(ctx context.Context, req *proto.ResolveIssueRequest) (*proto.ResolveIssueResponse, error) {
-	var res proto.ResolveIssueResponse
+func (c *issueServiceClient) ResolveIssue(ctx context.Context, req *v1.ResolveIssueRequest) (*v1.ResolveIssueResponse, error) {
+	var res v1.ResolveIssueResponse
 	if err := c.client.CallUnary(ctx, issueServiceResolveIssueSpec(), req, &res); err != nil {
 		return nil, err
 	}
@@ -1027,7 +1027,7 @@ func (c *issueServiceClient) ResolveIssue(ctx context.Context, req *proto.Resolv
 type issueServiceHandler struct{ svc IssueServiceHandler }
 
 func (h issueServiceHandler) getIssue(ctx context.Context, _ connect.Spec, stream connect.ServerStream) error {
-	var req proto.GetIssueRequest
+	var req v1.GetIssueRequest
 	if err := stream.Receive(&req); err != nil {
 		return err
 	}
@@ -1039,7 +1039,7 @@ func (h issueServiceHandler) getIssue(ctx context.Context, _ connect.Spec, strea
 }
 
 func (h issueServiceHandler) getAllIssues(ctx context.Context, _ connect.Spec, stream connect.ServerStream) error {
-	var req proto.GetAllIssuesRequest
+	var req v1.GetAllIssuesRequest
 	if err := stream.Receive(&req); err != nil {
 		return err
 	}
@@ -1051,7 +1051,7 @@ func (h issueServiceHandler) getAllIssues(ctx context.Context, _ connect.Spec, s
 }
 
 func (h issueServiceHandler) getIssuesByFilters(ctx context.Context, _ connect.Spec, stream connect.ServerStream) error {
-	var req proto.GetIssuesByFiltersRequest
+	var req v1.GetIssuesByFiltersRequest
 	if err := stream.Receive(&req); err != nil {
 		return err
 	}
@@ -1063,7 +1063,7 @@ func (h issueServiceHandler) getIssuesByFilters(ctx context.Context, _ connect.S
 }
 
 func (h issueServiceHandler) resolveIssue(ctx context.Context, _ connect.Spec, stream connect.ServerStream) error {
-	var req proto.ResolveIssueRequest
+	var req v1.ResolveIssueRequest
 	if err := stream.Receive(&req); err != nil {
 		return err
 	}

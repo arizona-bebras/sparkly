@@ -11,8 +11,8 @@ import (
 
 	"sparkly/backend/internal/domain"
 	"sparkly/backend/internal/services"
-	pb "sparkly/backend/proto"
-	"sparkly/backend/proto/backendv1connect"
+	pb "sparkly/backend/proto/v1"
+	"sparkly/backend/proto/v1/backendv1connect"
 )
 
 type UserHandler struct {

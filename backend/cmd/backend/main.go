@@ -13,7 +13,7 @@ import (
 	"sparkly/backend/internal/handlers"
 	"sparkly/backend/internal/repos"
 	"sparkly/backend/internal/services"
-	"sparkly/backend/proto/backendv1connect"
+	"sparkly/backend/proto/v1/backendv1connect"
 )
 
 func main() {

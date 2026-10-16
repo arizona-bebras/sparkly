@@ -3583,7 +3583,7 @@ const file_backend_proto_service_proto_rawDesc = "" +
 	"\bGetIssue\x12#.sparkly.backend.v1.GetIssueRequest\x1a$.sparkly.backend.v1.GetIssueResponse\x12a\n" +
 	"\fGetAllIssues\x12'.sparkly.backend.v1.GetAllIssuesRequest\x1a(.sparkly.backend.v1.GetAllIssuesResponse\x12s\n" +
 	"\x12GetIssuesByFilters\x12-.sparkly.backend.v1.GetIssuesByFiltersRequest\x1a..sparkly.backend.v1.GetIssuesByFiltersResponse\x12a\n" +
-	"\fResolveIssue\x12'.sparkly.backend.v1.ResolveIssueRequest\x1a(.sparkly.backend.v1.ResolveIssueResponseB!Z\x1fsparkly/backend/proto;backendv1b\x06proto3"
+	"\fResolveIssue\x12'.sparkly.backend.v1.ResolveIssueRequest\x1a(.sparkly.backend.v1.ResolveIssueResponseB$Z\"sparkly/backend/proto/v1;backendv1b\x06proto3"
 
 var (
 	file_backend_proto_service_proto_rawDescOnce sync.Once
