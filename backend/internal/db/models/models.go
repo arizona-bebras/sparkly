@@ -59,6 +59,22 @@ func (Park) TableName() string {
 	return "parks"
 }
 
+func (p Park) ToDomain() domain.Park {
+	return domain.Park{
+		ID: p.ID,
+		Name: p.Name,
+		Desc: p.Description,
+	}
+}
+
+func (_ Park) FromDomain(p domain.Park) Park {
+	return Park{
+		ID: p.ID,
+		Name: p.Name,
+		Description: p.Desc,
+	}
+}
+
 type Group struct {
 	ID      uuid.UUID `gorm:"type:uuid;primaryKey"`
 	Name    string    `gorm:"not null"`
