@@ -1,2 +1,2 @@
-import LabelInput from "./label-input.svelte";
+import LabelInput from './label-input.svelte';
 export { LabelInput };
