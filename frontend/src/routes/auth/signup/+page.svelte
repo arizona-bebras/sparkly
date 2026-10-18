@@ -4,13 +4,14 @@ import { createQuery } from "@tanstack/svelte-query";
 import SignupForm from "$lib/components/forms/signup/Signup.svelte";
 import { client } from "$proto";
 
-const query = createQuery(() => ({
-	queryKey: ["say"],
-	queryFn: async () =>
-		await client.say({
-			sentence: "I feel happy. Tell me about yourself",
-		}),
-}));
+// const query = createQuery(() => ({
+// 	queryKey: ["say"],
+// 	queryFn: async () =>
+// 		await client.say({
+// 			sentence: "I feel happy. Tell me about yourself",
+// 		}),
+// })); 
+let a =25  
 </script>  
 
 

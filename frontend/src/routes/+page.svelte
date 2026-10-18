@@ -1,21 +1,23 @@
-<script>
-import { createQuery } from "@tanstack/svelte-query";
-import { client } from "$proto";
+<script lang="ts">
+	import CreateParkDialog from "@/components/entities/park/ParkDialog.svelte";
+	import ParkList from "@/components/entities/park/ParkList.svelte";
+	import { Button } from "$lib/components/ui/button/index.js";
 
-const query = createQuery(() => ({
-	queryKey: ["say"],
-	queryFn: async () =>
-		await client.say({
-			sentence: "I feel happy. Tell me about yourself",
-		}),
-}));
-</script>  
-
+	let isCreateParkOpen = $state(false);
+</script>
 
 <svelte:head>
-    <title>Sparkly</title>
+	<title>Sparkly</title>
 </svelte:head>
 
-<main>
-    <h1>Sparkly</h1>
+<main
+	class="container mx-auto flex min-h-screen flex-col items-center justify-center gap-6 p-4"
+>
+	<h1 class="text-3xl font-bold tracking-tight">Sparkly</h1>
+
+	<CreateParkDialog bind:open={isCreateParkOpen}>
+		<p>Создать парк</p>
+	</CreateParkDialog>
+
+	<ParkList />
 </main>

@@ -10,6 +10,7 @@ let {
 	errorMessage = "Ошибка авторизации! Проверьте введённые данные",
 	onSubmitAction,
 	className,
+	label = "Войти",
 }: {
 	isValid: () => boolean;
 	isAuthError: boolean;
@@ -17,6 +18,7 @@ let {
 	errorMessage?: string;
 	onSubmitAction?: () => void;
 	className?: string;
+	label?: string;
 } = $props();
 </script>
 
@@ -26,7 +28,7 @@ let {
 	class="w-full flex items-center justify-center gap-2"
 	onclick={onSubmitAction}
 >
-	<span>Войти</span>
+	<span>{label}</span>
 	{#if isLoading}
 		<LoaderCircle class="size-4 animate-spin" />
 	{/if}

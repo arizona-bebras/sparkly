@@ -34,7 +34,7 @@ const { form, formData, isValid, enhance } = spaForm(formSchema, {
 const loginMutation = createMutation(() => ({
 	mutationKey: ["auth"],
 	mutationFn: async (form: { email: string; password: string }) =>
-		await client.getToken({
+		await client.user.getToken({
 			email: form.email,
 			password: form.password,
 		}),
