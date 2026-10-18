@@ -3,7 +3,7 @@
 version: v2
 plugins:
   # This will invoke protoc-gen-es and write output to src/gen
-  - local: protoc-gen-es
+  - remote: buf.build/bufbuild/es:v2.16.0
     out: proto/gen
     # Also generate any imported dependencies
     include_imports: true
