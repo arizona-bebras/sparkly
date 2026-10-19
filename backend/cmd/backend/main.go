@@ -7,6 +7,7 @@ import (
 
 	"connectrpc.com/connect/v2"
 	"connectrpc.com/connect/v2/connecthttp"
+	"connectrpc.com/validate"
 	"github.com/joho/godotenv"
 
 	"sparkly/backend/internal/db"
@@ -61,6 +62,7 @@ func main() {
 	}
 
 	server := connect.NewServer(
+		validate.NewServerInterceptor(),
 		metadata.NewAuthInterceptor(),
 	)
 
@@ -78,7 +80,5 @@ func main() {
 	connecthttp.Mount(mux, server)
 
 	log.Printf("Connect server listening on :%s", env.PORT)
-	if err := http.ListenAndServe(":"+env.PORT, mux); err != nil {
-		log.Fatalf("server failed: %v", err)
-	}
+	log.Fatalf("server failed: %v", http.ListenAndServe(":"+env.PORT, mux))
 }

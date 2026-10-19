@@ -131,23 +131,6 @@ const mockTransport = createRouterTransport(({ service }) => {
       };
     },
 
-    // READ (filtered)
-    async getParksByFilters(req) {
-      console.log('⚡ [MOCK] getParksByFilters:', req.name);
-      const filtered = mockParks.filter((p) =>
-        p.name.toLowerCase().includes((req.name || '').toLowerCase()),
-      );
-
-      return {
-        parks: filtered,
-        pagination: {
-          totalItems: filtered.length,
-          totalPages: 1,
-          currentPage: 1,
-        },
-      };
-    },
-
     // UPDATE
     async updatePark(req) {
       console.log('⚡ [MOCK] updatePark:', req.id);

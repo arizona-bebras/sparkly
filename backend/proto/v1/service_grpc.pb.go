@@ -19,11 +19,12 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	UserService_Reg_FullMethodName        = "/sparkly.backend.v1.UserService/Reg"
-	UserService_GetToken_FullMethodName   = "/sparkly.backend.v1.UserService/GetToken"
-	UserService_CheckAuth_FullMethodName  = "/sparkly.backend.v1.UserService/CheckAuth"
-	UserService_UpdateUser_FullMethodName = "/sparkly.backend.v1.UserService/UpdateUser"
-	UserService_DeleteUser_FullMethodName = "/sparkly.backend.v1.UserService/DeleteUser"
+	UserService_Reg_FullMethodName           = "/sparkly.backend.v1.UserService/Reg"
+	UserService_GetToken_FullMethodName      = "/sparkly.backend.v1.UserService/GetToken"
+	UserService_CheckAuth_FullMethodName     = "/sparkly.backend.v1.UserService/CheckAuth"
+	UserService_RevokeSession_FullMethodName = "/sparkly.backend.v1.UserService/RevokeSession"
+	UserService_UpdateUser_FullMethodName    = "/sparkly.backend.v1.UserService/UpdateUser"
+	UserService_DeleteUser_FullMethodName    = "/sparkly.backend.v1.UserService/DeleteUser"
 )
 
 // UserServiceClient is the client API for UserService service.
@@ -33,6 +34,7 @@ type UserServiceClient interface {
 	Reg(ctx context.Context, in *RegRequest, opts ...grpc.CallOption) (*RegResponse, error)
 	GetToken(ctx context.Context, in *GetTokenRequest, opts ...grpc.CallOption) (*GetTokenResponse, error)
 	CheckAuth(ctx context.Context, in *CheckAuthRequest, opts ...grpc.CallOption) (*CheckAuthResponse, error)
+	RevokeSession(ctx context.Context, in *RevokeSessionRequest, opts ...grpc.CallOption) (*RevokeSessionResponse, error)
 	UpdateUser(ctx context.Context, in *UpdateUserRequest, opts ...grpc.CallOption) (*UpdateUserResponse, error)
 	DeleteUser(ctx context.Context, in *DeleteUserRequest, opts ...grpc.CallOption) (*DeleteUserResponse, error)
 }
@@ -75,6 +77,16 @@ func (c *userServiceClient) CheckAuth(ctx context.Context, in *CheckAuthRequest,
 	return out, nil
 }
 
+func (c *userServiceClient) RevokeSession(ctx context.Context, in *RevokeSessionRequest, opts ...grpc.CallOption) (*RevokeSessionResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(RevokeSessionResponse)
+	err := c.cc.Invoke(ctx, UserService_RevokeSession_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *userServiceClient) UpdateUser(ctx context.Context, in *UpdateUserRequest, opts ...grpc.CallOption) (*UpdateUserResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(UpdateUserResponse)
@@ -102,6 +114,7 @@ type UserServiceServer interface {
 	Reg(context.Context, *RegRequest) (*RegResponse, error)
 	GetToken(context.Context, *GetTokenRequest) (*GetTokenResponse, error)
 	CheckAuth(context.Context, *CheckAuthRequest) (*CheckAuthResponse, error)
+	RevokeSession(context.Context, *RevokeSessionRequest) (*RevokeSessionResponse, error)
 	UpdateUser(context.Context, *UpdateUserRequest) (*UpdateUserResponse, error)
 	DeleteUser(context.Context, *DeleteUserRequest) (*DeleteUserResponse, error)
 	mustEmbedUnimplementedUserServiceServer()
@@ -122,6 +135,9 @@ func (UnimplementedUserServiceServer) GetToken(context.Context, *GetTokenRequest
 }
 func (UnimplementedUserServiceServer) CheckAuth(context.Context, *CheckAuthRequest) (*CheckAuthResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method CheckAuth not implemented")
+}
+func (UnimplementedUserServiceServer) RevokeSession(context.Context, *RevokeSessionRequest) (*RevokeSessionResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method RevokeSession not implemented")
 }
 func (UnimplementedUserServiceServer) UpdateUser(context.Context, *UpdateUserRequest) (*UpdateUserResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method UpdateUser not implemented")
@@ -204,6 +220,24 @@ func _UserService_CheckAuth_Handler(srv interface{}, ctx context.Context, dec fu
 	return interceptor(ctx, in, info, handler)
 }
 
+func _UserService_RevokeSession_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RevokeSessionRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).RevokeSession(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserService_RevokeSession_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).RevokeSession(ctx, req.(*RevokeSessionRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _UserService_UpdateUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(UpdateUserRequest)
 	if err := dec(in); err != nil {
@@ -260,6 +294,10 @@ var UserService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _UserService_CheckAuth_Handler,
 		},
 		{
+			MethodName: "RevokeSession",
+			Handler:    _UserService_RevokeSession_Handler,
+		},
+		{
 			MethodName: "UpdateUser",
 			Handler:    _UserService_UpdateUser_Handler,
 		},
@@ -276,7 +314,6 @@ const (
 	ParkService_CreatePark_FullMethodName            = "/sparkly.backend.v1.ParkService/CreatePark"
 	ParkService_GetPark_FullMethodName               = "/sparkly.backend.v1.ParkService/GetPark"
 	ParkService_GetAllParks_FullMethodName           = "/sparkly.backend.v1.ParkService/GetAllParks"
-	ParkService_GetParksByFilters_FullMethodName     = "/sparkly.backend.v1.ParkService/GetParksByFilters"
 	ParkService_UpdatePark_FullMethodName            = "/sparkly.backend.v1.ParkService/UpdatePark"
 	ParkService_DeletePark_FullMethodName            = "/sparkly.backend.v1.ParkService/DeletePark"
 	ParkService_CreateGroup_FullMethodName           = "/sparkly.backend.v1.ParkService/CreateGroup"
@@ -295,7 +332,6 @@ type ParkServiceClient interface {
 	CreatePark(ctx context.Context, in *CreateParkRequest, opts ...grpc.CallOption) (*CreateParkResponse, error)
 	GetPark(ctx context.Context, in *GetParkRequest, opts ...grpc.CallOption) (*GetParkResponse, error)
 	GetAllParks(ctx context.Context, in *GetAllParksRequest, opts ...grpc.CallOption) (*GetAllParksResponse, error)
-	GetParksByFilters(ctx context.Context, in *GetParksByFiltersRequest, opts ...grpc.CallOption) (*GetParksByFiltersResponse, error)
 	UpdatePark(ctx context.Context, in *UpdateParkRequest, opts ...grpc.CallOption) (*UpdateParkResponse, error)
 	DeletePark(ctx context.Context, in *DeleteParkRequest, opts ...grpc.CallOption) (*DeleteParkResponse, error)
 	CreateGroup(ctx context.Context, in *CreateGroupRequest, opts ...grpc.CallOption) (*CreateGroupResponse, error)
@@ -339,16 +375,6 @@ func (c *parkServiceClient) GetAllParks(ctx context.Context, in *GetAllParksRequ
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(GetAllParksResponse)
 	err := c.cc.Invoke(ctx, ParkService_GetAllParks_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *parkServiceClient) GetParksByFilters(ctx context.Context, in *GetParksByFiltersRequest, opts ...grpc.CallOption) (*GetParksByFiltersResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(GetParksByFiltersResponse)
-	err := c.cc.Invoke(ctx, ParkService_GetParksByFilters_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -452,7 +478,6 @@ type ParkServiceServer interface {
 	CreatePark(context.Context, *CreateParkRequest) (*CreateParkResponse, error)
 	GetPark(context.Context, *GetParkRequest) (*GetParkResponse, error)
 	GetAllParks(context.Context, *GetAllParksRequest) (*GetAllParksResponse, error)
-	GetParksByFilters(context.Context, *GetParksByFiltersRequest) (*GetParksByFiltersResponse, error)
 	UpdatePark(context.Context, *UpdateParkRequest) (*UpdateParkResponse, error)
 	DeletePark(context.Context, *DeleteParkRequest) (*DeleteParkResponse, error)
 	CreateGroup(context.Context, *CreateGroupRequest) (*CreateGroupResponse, error)
@@ -480,9 +505,6 @@ func (UnimplementedParkServiceServer) GetPark(context.Context, *GetParkRequest) 
 }
 func (UnimplementedParkServiceServer) GetAllParks(context.Context, *GetAllParksRequest) (*GetAllParksResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetAllParks not implemented")
-}
-func (UnimplementedParkServiceServer) GetParksByFilters(context.Context, *GetParksByFiltersRequest) (*GetParksByFiltersResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method GetParksByFilters not implemented")
 }
 func (UnimplementedParkServiceServer) UpdatePark(context.Context, *UpdateParkRequest) (*UpdateParkResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method UpdatePark not implemented")
@@ -582,24 +604,6 @@ func _ParkService_GetAllParks_Handler(srv interface{}, ctx context.Context, dec 
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ParkServiceServer).GetAllParks(ctx, req.(*GetAllParksRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _ParkService_GetParksByFilters_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetParksByFiltersRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(ParkServiceServer).GetParksByFilters(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: ParkService_GetParksByFilters_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ParkServiceServer).GetParksByFilters(ctx, req.(*GetParksByFiltersRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -784,10 +788,6 @@ var ParkService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetAllParks",
 			Handler:    _ParkService_GetAllParks_Handler,
-		},
-		{
-			MethodName: "GetParksByFilters",
-			Handler:    _ParkService_GetParksByFilters_Handler,
 		},
 		{
 			MethodName: "UpdatePark",

@@ -36,6 +36,8 @@ const (
 	UserServiceGetTokenProcedure = "/sparkly.backend.v1.UserService/GetToken"
 	// UserServiceCheckAuthProcedure is the procedure name of the UserService's CheckAuth RPC.
 	UserServiceCheckAuthProcedure = "/sparkly.backend.v1.UserService/CheckAuth"
+	// UserServiceRevokeSessionProcedure is the procedure name of the UserService's RevokeSession RPC.
+	UserServiceRevokeSessionProcedure = "/sparkly.backend.v1.UserService/RevokeSession"
 	// UserServiceUpdateUserProcedure is the procedure name of the UserService's UpdateUser RPC.
 	UserServiceUpdateUserProcedure = "/sparkly.backend.v1.UserService/UpdateUser"
 	// UserServiceDeleteUserProcedure is the procedure name of the UserService's DeleteUser RPC.
@@ -46,9 +48,6 @@ const (
 	ParkServiceGetParkProcedure = "/sparkly.backend.v1.ParkService/GetPark"
 	// ParkServiceGetAllParksProcedure is the procedure name of the ParkService's GetAllParks RPC.
 	ParkServiceGetAllParksProcedure = "/sparkly.backend.v1.ParkService/GetAllParks"
-	// ParkServiceGetParksByFiltersProcedure is the procedure name of the ParkService's
-	// GetParksByFilters RPC.
-	ParkServiceGetParksByFiltersProcedure = "/sparkly.backend.v1.ParkService/GetParksByFilters"
 	// ParkServiceUpdateParkProcedure is the procedure name of the ParkService's UpdatePark RPC.
 	ParkServiceUpdateParkProcedure = "/sparkly.backend.v1.ParkService/UpdatePark"
 	// ParkServiceDeleteParkProcedure is the procedure name of the ParkService's DeletePark RPC.
@@ -110,6 +109,13 @@ var (
 			Procedure:  UserServiceCheckAuthProcedure,
 		}
 	})
+	userServiceRevokeSessionSpec = sync.OnceValue(func() connect.Spec {
+		return connect.Spec{
+			StreamType: connect.StreamTypeUnary,
+			Schema:     v1.File_backend_proto_service_proto.Services().ByName("UserService").Methods().ByName("RevokeSession"),
+			Procedure:  UserServiceRevokeSessionProcedure,
+		}
+	})
 	userServiceUpdateUserSpec = sync.OnceValue(func() connect.Spec {
 		return connect.Spec{
 			StreamType: connect.StreamTypeUnary,
@@ -131,6 +137,7 @@ type UserServiceClient interface {
 	Reg(context.Context, *v1.RegRequest) (*v1.RegResponse, error)
 	GetToken(context.Context, *v1.GetTokenRequest) (*v1.GetTokenResponse, error)
 	CheckAuth(context.Context, *v1.CheckAuthRequest) (*v1.CheckAuthResponse, error)
+	RevokeSession(context.Context, *v1.RevokeSessionRequest) (*v1.RevokeSessionResponse, error)
 	UpdateUser(context.Context, *v1.UpdateUserRequest) (*v1.UpdateUserResponse, error)
 	DeleteUser(context.Context, *v1.DeleteUserRequest) (*v1.DeleteUserResponse, error)
 }
@@ -146,6 +153,7 @@ type UserServiceHandler interface {
 	Reg(context.Context, *v1.RegRequest) (*v1.RegResponse, error)
 	GetToken(context.Context, *v1.GetTokenRequest) (*v1.GetTokenResponse, error)
 	CheckAuth(context.Context, *v1.CheckAuthRequest) (*v1.CheckAuthResponse, error)
+	RevokeSession(context.Context, *v1.RevokeSessionRequest) (*v1.RevokeSessionResponse, error)
 	UpdateUser(context.Context, *v1.UpdateUserRequest) (*v1.UpdateUserResponse, error)
 	DeleteUser(context.Context, *v1.DeleteUserRequest) (*v1.DeleteUserResponse, error)
 }
@@ -158,6 +166,7 @@ func RegisterUserServiceHandler(server *connect.Server, svc UserServiceHandler) 
 		connect.Method{Spec: userServiceRegSpec(), Handler: adapter.reg},
 		connect.Method{Spec: userServiceGetTokenSpec(), Handler: adapter.getToken},
 		connect.Method{Spec: userServiceCheckAuthSpec(), Handler: adapter.checkAuth},
+		connect.Method{Spec: userServiceRevokeSessionSpec(), Handler: adapter.revokeSession},
 		connect.Method{Spec: userServiceUpdateUserSpec(), Handler: adapter.updateUser},
 		connect.Method{Spec: userServiceDeleteUserSpec(), Handler: adapter.deleteUser},
 	)
@@ -176,6 +185,10 @@ func (UnimplementedUserServiceHandler) GetToken(context.Context, *v1.GetTokenReq
 
 func (UnimplementedUserServiceHandler) CheckAuth(context.Context, *v1.CheckAuthRequest) (*v1.CheckAuthResponse, error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, "sparkly.backend.v1.UserService.CheckAuth is not implemented")
+}
+
+func (UnimplementedUserServiceHandler) RevokeSession(context.Context, *v1.RevokeSessionRequest) (*v1.RevokeSessionResponse, error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, "sparkly.backend.v1.UserService.RevokeSession is not implemented")
 }
 
 func (UnimplementedUserServiceHandler) UpdateUser(context.Context, *v1.UpdateUserRequest) (*v1.UpdateUserResponse, error) {
@@ -209,6 +222,14 @@ func (c *userServiceClient) GetToken(ctx context.Context, req *v1.GetTokenReques
 func (c *userServiceClient) CheckAuth(ctx context.Context, req *v1.CheckAuthRequest) (*v1.CheckAuthResponse, error) {
 	var res v1.CheckAuthResponse
 	if err := c.client.CallUnary(ctx, userServiceCheckAuthSpec(), req, &res); err != nil {
+		return nil, err
+	}
+	return &res, nil
+}
+
+func (c *userServiceClient) RevokeSession(ctx context.Context, req *v1.RevokeSessionRequest) (*v1.RevokeSessionResponse, error) {
+	var res v1.RevokeSessionResponse
+	if err := c.client.CallUnary(ctx, userServiceRevokeSessionSpec(), req, &res); err != nil {
 		return nil, err
 	}
 	return &res, nil
@@ -268,6 +289,18 @@ func (h userServiceHandler) checkAuth(ctx context.Context, _ connect.Spec, strea
 	return stream.Send(res)
 }
 
+func (h userServiceHandler) revokeSession(ctx context.Context, _ connect.Spec, stream connect.ServerStream) error {
+	var req v1.RevokeSessionRequest
+	if err := stream.Receive(&req); err != nil {
+		return err
+	}
+	res, err := h.svc.RevokeSession(ctx, &req)
+	if err != nil {
+		return err
+	}
+	return stream.Send(res)
+}
+
 func (h userServiceHandler) updateUser(ctx context.Context, _ connect.Spec, stream connect.ServerStream) error {
 	var req v1.UpdateUserRequest
 	if err := stream.Receive(&req); err != nil {
@@ -312,13 +345,6 @@ var (
 			StreamType: connect.StreamTypeUnary,
 			Schema:     v1.File_backend_proto_service_proto.Services().ByName("ParkService").Methods().ByName("GetAllParks"),
 			Procedure:  ParkServiceGetAllParksProcedure,
-		}
-	})
-	parkServiceGetParksByFiltersSpec = sync.OnceValue(func() connect.Spec {
-		return connect.Spec{
-			StreamType: connect.StreamTypeUnary,
-			Schema:     v1.File_backend_proto_service_proto.Services().ByName("ParkService").Methods().ByName("GetParksByFilters"),
-			Procedure:  ParkServiceGetParksByFiltersProcedure,
 		}
 	})
 	parkServiceUpdateParkSpec = sync.OnceValue(func() connect.Spec {
@@ -391,7 +417,6 @@ type ParkServiceClient interface {
 	CreatePark(context.Context, *v1.CreateParkRequest) (*v1.CreateParkResponse, error)
 	GetPark(context.Context, *v1.GetParkRequest) (*v1.GetParkResponse, error)
 	GetAllParks(context.Context, *v1.GetAllParksRequest) (*v1.GetAllParksResponse, error)
-	GetParksByFilters(context.Context, *v1.GetParksByFiltersRequest) (*v1.GetParksByFiltersResponse, error)
 	UpdatePark(context.Context, *v1.UpdateParkRequest) (*v1.UpdateParkResponse, error)
 	DeletePark(context.Context, *v1.DeleteParkRequest) (*v1.DeleteParkResponse, error)
 	CreateGroup(context.Context, *v1.CreateGroupRequest) (*v1.CreateGroupResponse, error)
@@ -414,7 +439,6 @@ type ParkServiceHandler interface {
 	CreatePark(context.Context, *v1.CreateParkRequest) (*v1.CreateParkResponse, error)
 	GetPark(context.Context, *v1.GetParkRequest) (*v1.GetParkResponse, error)
 	GetAllParks(context.Context, *v1.GetAllParksRequest) (*v1.GetAllParksResponse, error)
-	GetParksByFilters(context.Context, *v1.GetParksByFiltersRequest) (*v1.GetParksByFiltersResponse, error)
 	UpdatePark(context.Context, *v1.UpdateParkRequest) (*v1.UpdateParkResponse, error)
 	DeletePark(context.Context, *v1.DeleteParkRequest) (*v1.DeleteParkResponse, error)
 	CreateGroup(context.Context, *v1.CreateGroupRequest) (*v1.CreateGroupResponse, error)
@@ -434,7 +458,6 @@ func RegisterParkServiceHandler(server *connect.Server, svc ParkServiceHandler) 
 		connect.Method{Spec: parkServiceCreateParkSpec(), Handler: adapter.createPark},
 		connect.Method{Spec: parkServiceGetParkSpec(), Handler: adapter.getPark},
 		connect.Method{Spec: parkServiceGetAllParksSpec(), Handler: adapter.getAllParks},
-		connect.Method{Spec: parkServiceGetParksByFiltersSpec(), Handler: adapter.getParksByFilters},
 		connect.Method{Spec: parkServiceUpdateParkSpec(), Handler: adapter.updatePark},
 		connect.Method{Spec: parkServiceDeleteParkSpec(), Handler: adapter.deletePark},
 		connect.Method{Spec: parkServiceCreateGroupSpec(), Handler: adapter.createGroup},
@@ -460,10 +483,6 @@ func (UnimplementedParkServiceHandler) GetPark(context.Context, *v1.GetParkReque
 
 func (UnimplementedParkServiceHandler) GetAllParks(context.Context, *v1.GetAllParksRequest) (*v1.GetAllParksResponse, error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, "sparkly.backend.v1.ParkService.GetAllParks is not implemented")
-}
-
-func (UnimplementedParkServiceHandler) GetParksByFilters(context.Context, *v1.GetParksByFiltersRequest) (*v1.GetParksByFiltersResponse, error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, "sparkly.backend.v1.ParkService.GetParksByFilters is not implemented")
 }
 
 func (UnimplementedParkServiceHandler) UpdatePark(context.Context, *v1.UpdateParkRequest) (*v1.UpdateParkResponse, error) {
@@ -525,14 +544,6 @@ func (c *parkServiceClient) GetPark(ctx context.Context, req *v1.GetParkRequest)
 func (c *parkServiceClient) GetAllParks(ctx context.Context, req *v1.GetAllParksRequest) (*v1.GetAllParksResponse, error) {
 	var res v1.GetAllParksResponse
 	if err := c.client.CallUnary(ctx, parkServiceGetAllParksSpec(), req, &res); err != nil {
-		return nil, err
-	}
-	return &res, nil
-}
-
-func (c *parkServiceClient) GetParksByFilters(ctx context.Context, req *v1.GetParksByFiltersRequest) (*v1.GetParksByFiltersResponse, error) {
-	var res v1.GetParksByFiltersResponse
-	if err := c.client.CallUnary(ctx, parkServiceGetParksByFiltersSpec(), req, &res); err != nil {
 		return nil, err
 	}
 	return &res, nil
@@ -642,18 +653,6 @@ func (h parkServiceHandler) getAllParks(ctx context.Context, _ connect.Spec, str
 		return err
 	}
 	res, err := h.svc.GetAllParks(ctx, &req)
-	if err != nil {
-		return err
-	}
-	return stream.Send(res)
-}
-
-func (h parkServiceHandler) getParksByFilters(ctx context.Context, _ connect.Spec, stream connect.ServerStream) error {
-	var req v1.GetParksByFiltersRequest
-	if err := stream.Receive(&req); err != nil {
-		return err
-	}
-	res, err := h.svc.GetParksByFilters(ctx, &req)
 	if err != nil {
 		return err
 	}

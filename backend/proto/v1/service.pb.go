@@ -7,6 +7,7 @@
 package backendv1
 
 import (
+	_ "buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go/buf/validate"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
@@ -1043,7 +1044,8 @@ func (*CheckAuthRequest) Descriptor() ([]byte, []int) {
 
 type CheckAuthResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Auth          bool                   `protobuf:"varint,1,opt,name=auth,proto3" json:"auth,omitempty"`
+	Email         string                 `protobuf:"bytes,1,opt,name=email,proto3" json:"email,omitempty"`
+	Auth          bool                   `protobuf:"varint,2,opt,name=auth,proto3" json:"auth,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1078,9 +1080,96 @@ func (*CheckAuthResponse) Descriptor() ([]byte, []int) {
 	return file_backend_proto_service_proto_rawDescGZIP(), []int{13}
 }
 
+func (x *CheckAuthResponse) GetEmail() string {
+	if x != nil {
+		return x.Email
+	}
+	return ""
+}
+
 func (x *CheckAuthResponse) GetAuth() bool {
 	if x != nil {
 		return x.Auth
+	}
+	return false
+}
+
+type RevokeSessionRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RevokeSessionRequest) Reset() {
+	*x = RevokeSessionRequest{}
+	mi := &file_backend_proto_service_proto_msgTypes[14]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RevokeSessionRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RevokeSessionRequest) ProtoMessage() {}
+
+func (x *RevokeSessionRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_backend_proto_service_proto_msgTypes[14]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RevokeSessionRequest.ProtoReflect.Descriptor instead.
+func (*RevokeSessionRequest) Descriptor() ([]byte, []int) {
+	return file_backend_proto_service_proto_rawDescGZIP(), []int{14}
+}
+
+type RevokeSessionResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RevokeSessionResponse) Reset() {
+	*x = RevokeSessionResponse{}
+	mi := &file_backend_proto_service_proto_msgTypes[15]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RevokeSessionResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RevokeSessionResponse) ProtoMessage() {}
+
+func (x *RevokeSessionResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_backend_proto_service_proto_msgTypes[15]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RevokeSessionResponse.ProtoReflect.Descriptor instead.
+func (*RevokeSessionResponse) Descriptor() ([]byte, []int) {
+	return file_backend_proto_service_proto_rawDescGZIP(), []int{15}
+}
+
+func (x *RevokeSessionResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
 	}
 	return false
 }
@@ -1096,7 +1185,7 @@ type UpdateUserRequest struct {
 
 func (x *UpdateUserRequest) Reset() {
 	*x = UpdateUserRequest{}
-	mi := &file_backend_proto_service_proto_msgTypes[14]
+	mi := &file_backend_proto_service_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1108,7 +1197,7 @@ func (x *UpdateUserRequest) String() string {
 func (*UpdateUserRequest) ProtoMessage() {}
 
 func (x *UpdateUserRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_backend_proto_service_proto_msgTypes[14]
+	mi := &file_backend_proto_service_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1121,7 +1210,7 @@ func (x *UpdateUserRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateUserRequest.ProtoReflect.Descriptor instead.
 func (*UpdateUserRequest) Descriptor() ([]byte, []int) {
-	return file_backend_proto_service_proto_rawDescGZIP(), []int{14}
+	return file_backend_proto_service_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *UpdateUserRequest) GetId() string {
@@ -1154,7 +1243,7 @@ type UpdateUserResponse struct {
 
 func (x *UpdateUserResponse) Reset() {
 	*x = UpdateUserResponse{}
-	mi := &file_backend_proto_service_proto_msgTypes[15]
+	mi := &file_backend_proto_service_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1166,7 +1255,7 @@ func (x *UpdateUserResponse) String() string {
 func (*UpdateUserResponse) ProtoMessage() {}
 
 func (x *UpdateUserResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_backend_proto_service_proto_msgTypes[15]
+	mi := &file_backend_proto_service_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1179,7 +1268,7 @@ func (x *UpdateUserResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateUserResponse.ProtoReflect.Descriptor instead.
 func (*UpdateUserResponse) Descriptor() ([]byte, []int) {
-	return file_backend_proto_service_proto_rawDescGZIP(), []int{15}
+	return file_backend_proto_service_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *UpdateUserResponse) GetUser() *User {
@@ -1198,7 +1287,7 @@ type DeleteUserRequest struct {
 
 func (x *DeleteUserRequest) Reset() {
 	*x = DeleteUserRequest{}
-	mi := &file_backend_proto_service_proto_msgTypes[16]
+	mi := &file_backend_proto_service_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1210,7 +1299,7 @@ func (x *DeleteUserRequest) String() string {
 func (*DeleteUserRequest) ProtoMessage() {}
 
 func (x *DeleteUserRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_backend_proto_service_proto_msgTypes[16]
+	mi := &file_backend_proto_service_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1223,7 +1312,7 @@ func (x *DeleteUserRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteUserRequest.ProtoReflect.Descriptor instead.
 func (*DeleteUserRequest) Descriptor() ([]byte, []int) {
-	return file_backend_proto_service_proto_rawDescGZIP(), []int{16}
+	return file_backend_proto_service_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *DeleteUserRequest) GetId() string {
@@ -1242,7 +1331,7 @@ type DeleteUserResponse struct {
 
 func (x *DeleteUserResponse) Reset() {
 	*x = DeleteUserResponse{}
-	mi := &file_backend_proto_service_proto_msgTypes[17]
+	mi := &file_backend_proto_service_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1254,7 +1343,7 @@ func (x *DeleteUserResponse) String() string {
 func (*DeleteUserResponse) ProtoMessage() {}
 
 func (x *DeleteUserResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_backend_proto_service_proto_msgTypes[17]
+	mi := &file_backend_proto_service_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1267,7 +1356,7 @@ func (x *DeleteUserResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteUserResponse.ProtoReflect.Descriptor instead.
 func (*DeleteUserResponse) Descriptor() ([]byte, []int) {
-	return file_backend_proto_service_proto_rawDescGZIP(), []int{17}
+	return file_backend_proto_service_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *DeleteUserResponse) GetSuccess() bool {
@@ -1287,7 +1376,7 @@ type CreateParkRequest struct {
 
 func (x *CreateParkRequest) Reset() {
 	*x = CreateParkRequest{}
-	mi := &file_backend_proto_service_proto_msgTypes[18]
+	mi := &file_backend_proto_service_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1299,7 +1388,7 @@ func (x *CreateParkRequest) String() string {
 func (*CreateParkRequest) ProtoMessage() {}
 
 func (x *CreateParkRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_backend_proto_service_proto_msgTypes[18]
+	mi := &file_backend_proto_service_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1312,7 +1401,7 @@ func (x *CreateParkRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateParkRequest.ProtoReflect.Descriptor instead.
 func (*CreateParkRequest) Descriptor() ([]byte, []int) {
-	return file_backend_proto_service_proto_rawDescGZIP(), []int{18}
+	return file_backend_proto_service_proto_rawDescGZIP(), []int{20}
 }
 
 func (x *CreateParkRequest) GetName() string {
@@ -1338,7 +1427,7 @@ type CreateParkResponse struct {
 
 func (x *CreateParkResponse) Reset() {
 	*x = CreateParkResponse{}
-	mi := &file_backend_proto_service_proto_msgTypes[19]
+	mi := &file_backend_proto_service_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1350,7 +1439,7 @@ func (x *CreateParkResponse) String() string {
 func (*CreateParkResponse) ProtoMessage() {}
 
 func (x *CreateParkResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_backend_proto_service_proto_msgTypes[19]
+	mi := &file_backend_proto_service_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1363,7 +1452,7 @@ func (x *CreateParkResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateParkResponse.ProtoReflect.Descriptor instead.
 func (*CreateParkResponse) Descriptor() ([]byte, []int) {
-	return file_backend_proto_service_proto_rawDescGZIP(), []int{19}
+	return file_backend_proto_service_proto_rawDescGZIP(), []int{21}
 }
 
 func (x *CreateParkResponse) GetPark() *Park {
@@ -1382,7 +1471,7 @@ type GetParkRequest struct {
 
 func (x *GetParkRequest) Reset() {
 	*x = GetParkRequest{}
-	mi := &file_backend_proto_service_proto_msgTypes[20]
+	mi := &file_backend_proto_service_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1394,7 +1483,7 @@ func (x *GetParkRequest) String() string {
 func (*GetParkRequest) ProtoMessage() {}
 
 func (x *GetParkRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_backend_proto_service_proto_msgTypes[20]
+	mi := &file_backend_proto_service_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1407,7 +1496,7 @@ func (x *GetParkRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetParkRequest.ProtoReflect.Descriptor instead.
 func (*GetParkRequest) Descriptor() ([]byte, []int) {
-	return file_backend_proto_service_proto_rawDescGZIP(), []int{20}
+	return file_backend_proto_service_proto_rawDescGZIP(), []int{22}
 }
 
 func (x *GetParkRequest) GetId() string {
@@ -1426,7 +1515,7 @@ type GetParkResponse struct {
 
 func (x *GetParkResponse) Reset() {
 	*x = GetParkResponse{}
-	mi := &file_backend_proto_service_proto_msgTypes[21]
+	mi := &file_backend_proto_service_proto_msgTypes[23]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1438,7 +1527,7 @@ func (x *GetParkResponse) String() string {
 func (*GetParkResponse) ProtoMessage() {}
 
 func (x *GetParkResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_backend_proto_service_proto_msgTypes[21]
+	mi := &file_backend_proto_service_proto_msgTypes[23]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1451,7 +1540,7 @@ func (x *GetParkResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetParkResponse.ProtoReflect.Descriptor instead.
 func (*GetParkResponse) Descriptor() ([]byte, []int) {
-	return file_backend_proto_service_proto_rawDescGZIP(), []int{21}
+	return file_backend_proto_service_proto_rawDescGZIP(), []int{23}
 }
 
 func (x *GetParkResponse) GetPark() *Park {
@@ -1470,7 +1559,7 @@ type GetAllParksRequest struct {
 
 func (x *GetAllParksRequest) Reset() {
 	*x = GetAllParksRequest{}
-	mi := &file_backend_proto_service_proto_msgTypes[22]
+	mi := &file_backend_proto_service_proto_msgTypes[24]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1482,7 +1571,7 @@ func (x *GetAllParksRequest) String() string {
 func (*GetAllParksRequest) ProtoMessage() {}
 
 func (x *GetAllParksRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_backend_proto_service_proto_msgTypes[22]
+	mi := &file_backend_proto_service_proto_msgTypes[24]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1495,7 +1584,7 @@ func (x *GetAllParksRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetAllParksRequest.ProtoReflect.Descriptor instead.
 func (*GetAllParksRequest) Descriptor() ([]byte, []int) {
-	return file_backend_proto_service_proto_rawDescGZIP(), []int{22}
+	return file_backend_proto_service_proto_rawDescGZIP(), []int{24}
 }
 
 func (x *GetAllParksRequest) GetPagination() *PaginationRequest {
@@ -1515,7 +1604,7 @@ type GetAllParksResponse struct {
 
 func (x *GetAllParksResponse) Reset() {
 	*x = GetAllParksResponse{}
-	mi := &file_backend_proto_service_proto_msgTypes[23]
+	mi := &file_backend_proto_service_proto_msgTypes[25]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1527,7 +1616,7 @@ func (x *GetAllParksResponse) String() string {
 func (*GetAllParksResponse) ProtoMessage() {}
 
 func (x *GetAllParksResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_backend_proto_service_proto_msgTypes[23]
+	mi := &file_backend_proto_service_proto_msgTypes[25]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1540,7 +1629,7 @@ func (x *GetAllParksResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetAllParksResponse.ProtoReflect.Descriptor instead.
 func (*GetAllParksResponse) Descriptor() ([]byte, []int) {
-	return file_backend_proto_service_proto_rawDescGZIP(), []int{23}
+	return file_backend_proto_service_proto_rawDescGZIP(), []int{25}
 }
 
 func (x *GetAllParksResponse) GetParks() []*Park {
@@ -1551,110 +1640,6 @@ func (x *GetAllParksResponse) GetParks() []*Park {
 }
 
 func (x *GetAllParksResponse) GetPagination() *PaginationResponse {
-	if x != nil {
-		return x.Pagination
-	}
-	return nil
-}
-
-type GetParksByFiltersRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
-	Pagination    *PaginationRequest     `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *GetParksByFiltersRequest) Reset() {
-	*x = GetParksByFiltersRequest{}
-	mi := &file_backend_proto_service_proto_msgTypes[24]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *GetParksByFiltersRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*GetParksByFiltersRequest) ProtoMessage() {}
-
-func (x *GetParksByFiltersRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_backend_proto_service_proto_msgTypes[24]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use GetParksByFiltersRequest.ProtoReflect.Descriptor instead.
-func (*GetParksByFiltersRequest) Descriptor() ([]byte, []int) {
-	return file_backend_proto_service_proto_rawDescGZIP(), []int{24}
-}
-
-func (x *GetParksByFiltersRequest) GetName() string {
-	if x != nil {
-		return x.Name
-	}
-	return ""
-}
-
-func (x *GetParksByFiltersRequest) GetPagination() *PaginationRequest {
-	if x != nil {
-		return x.Pagination
-	}
-	return nil
-}
-
-type GetParksByFiltersResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Parks         []*Park                `protobuf:"bytes,1,rep,name=parks,proto3" json:"parks,omitempty"`
-	Pagination    *PaginationResponse    `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *GetParksByFiltersResponse) Reset() {
-	*x = GetParksByFiltersResponse{}
-	mi := &file_backend_proto_service_proto_msgTypes[25]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *GetParksByFiltersResponse) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*GetParksByFiltersResponse) ProtoMessage() {}
-
-func (x *GetParksByFiltersResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_backend_proto_service_proto_msgTypes[25]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use GetParksByFiltersResponse.ProtoReflect.Descriptor instead.
-func (*GetParksByFiltersResponse) Descriptor() ([]byte, []int) {
-	return file_backend_proto_service_proto_rawDescGZIP(), []int{25}
-}
-
-func (x *GetParksByFiltersResponse) GetParks() []*Park {
-	if x != nil {
-		return x.Parks
-	}
-	return nil
-}
-
-func (x *GetParksByFiltersResponse) GetPagination() *PaginationResponse {
 	if x != nil {
 		return x.Pagination
 	}
@@ -3282,10 +3267,10 @@ var File_backend_proto_service_proto protoreflect.FileDescriptor
 
 const file_backend_proto_service_proto_rawDesc = "" +
 	"\n" +
-	"\x1bbackend/proto/service.proto\x12\x12sparkly.backend.v1\x1a\x1fgoogle/protobuf/timestamp.proto\"D\n" +
-	"\x11PaginationRequest\x12\x12\n" +
-	"\x04page\x18\x01 \x01(\x05R\x04page\x12\x1b\n" +
-	"\tpage_size\x18\x02 \x01(\x05R\bpageSize\"y\n" +
+	"\x1bbackend/proto/service.proto\x12\x12sparkly.backend.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"X\n" +
+	"\x11PaginationRequest\x12\x1b\n" +
+	"\x04page\x18\x01 \x01(\x05B\a\xbaH\x04\x1a\x02(\x01R\x04page\x12&\n" +
+	"\tpage_size\x18\x02 \x01(\x05B\t\xbaH\x06\x1a\x04\x18d(\x01R\bpageSize\"y\n" +
 	"\x12PaginationResponse\x12\x1f\n" +
 	"\vtotal_items\x18\x01 \x01(\x05R\n" +
 	"totalItems\x12\x1f\n" +
@@ -3357,48 +3342,52 @@ const file_backend_proto_service_proto_rawDesc = "" +
 	"\tfile_size\x18\n" +
 	" \x01(\x03R\bfileSize\x129\n" +
 	"\n" +
-	"created_at\x18\v \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\">\n" +
+	"created_at\x18\v \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\"P\n" +
 	"\n" +
-	"RegRequest\x12\x14\n" +
-	"\x05email\x18\x01 \x01(\tR\x05email\x12\x1a\n" +
-	"\bpassword\x18\x02 \x01(\tR\bpassword\"}\n" +
+	"RegRequest\x12\x1d\n" +
+	"\x05email\x18\x01 \x01(\tB\a\xbaH\x04r\x02`\x01R\x05email\x12#\n" +
+	"\bpassword\x18\x02 \x01(\tB\a\xbaH\x04r\x02\x10\x06R\bpassword\"}\n" +
 	"\vRegResponse\x12\x14\n" +
 	"\x05email\x18\x01 \x01(\tR\x05email\x12\x14\n" +
 	"\x05token\x18\x02 \x01(\tR\x05token\x12#\n" +
 	"\rrefresh_token\x18\x03 \x01(\tR\frefreshToken\x12\x1d\n" +
 	"\n" +
-	"expires_in\x18\x04 \x01(\x03R\texpiresIn\"C\n" +
-	"\x0fGetTokenRequest\x12\x14\n" +
-	"\x05email\x18\x01 \x01(\tR\x05email\x12\x1a\n" +
-	"\bpassword\x18\x02 \x01(\tR\bpassword\"\x82\x01\n" +
+	"expires_in\x18\x04 \x01(\x03R\texpiresIn\"U\n" +
+	"\x0fGetTokenRequest\x12\x1d\n" +
+	"\x05email\x18\x01 \x01(\tB\a\xbaH\x04r\x02`\x01R\x05email\x12#\n" +
+	"\bpassword\x18\x02 \x01(\tB\a\xbaH\x04r\x02\x10\x06R\bpassword\"\x82\x01\n" +
 	"\x10GetTokenResponse\x12\x14\n" +
 	"\x05email\x18\x01 \x01(\tR\x05email\x12\x14\n" +
 	"\x05token\x18\x02 \x01(\tR\x05token\x12#\n" +
 	"\rrefresh_token\x18\x03 \x01(\tR\frefreshToken\x12\x1d\n" +
 	"\n" +
 	"expires_in\x18\x04 \x01(\x03R\texpiresIn\"\x12\n" +
-	"\x10CheckAuthRequest\"'\n" +
-	"\x11CheckAuthResponse\x12\x12\n" +
-	"\x04auth\x18\x01 \x01(\bR\x04auth\"v\n" +
-	"\x11UpdateUserRequest\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\x12\x19\n" +
-	"\x05email\x18\x02 \x01(\tH\x00R\x05email\x88\x01\x01\x12\x1f\n" +
-	"\bpassword\x18\x03 \x01(\tH\x01R\bpassword\x88\x01\x01B\b\n" +
+	"\x10CheckAuthRequest\"=\n" +
+	"\x11CheckAuthResponse\x12\x14\n" +
+	"\x05email\x18\x01 \x01(\tR\x05email\x12\x12\n" +
+	"\x04auth\x18\x02 \x01(\bR\x04auth\"\x16\n" +
+	"\x14RevokeSessionRequest\"1\n" +
+	"\x15RevokeSessionResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\"\x92\x01\n" +
+	"\x11UpdateUserRequest\x12\x18\n" +
+	"\x02id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x02id\x12\"\n" +
+	"\x05email\x18\x02 \x01(\tB\a\xbaH\x04r\x02`\x01H\x00R\x05email\x88\x01\x01\x12(\n" +
+	"\bpassword\x18\x03 \x01(\tB\a\xbaH\x04r\x02\x10\x06H\x01R\bpassword\x88\x01\x01B\b\n" +
 	"\x06_emailB\v\n" +
 	"\t_password\"B\n" +
 	"\x12UpdateUserResponse\x12,\n" +
-	"\x04user\x18\x01 \x01(\v2\x18.sparkly.backend.v1.UserR\x04user\"#\n" +
-	"\x11DeleteUserRequest\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\".\n" +
+	"\x04user\x18\x01 \x01(\v2\x18.sparkly.backend.v1.UserR\x04user\"-\n" +
+	"\x11DeleteUserRequest\x12\x18\n" +
+	"\x02id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x02id\".\n" +
 	"\x12DeleteUserResponse\x12\x18\n" +
-	"\asuccess\x18\x01 \x01(\bR\asuccess\"I\n" +
-	"\x11CreateParkRequest\x12\x12\n" +
-	"\x04name\x18\x01 \x01(\tR\x04name\x12 \n" +
-	"\vdescription\x18\x02 \x01(\tR\vdescription\"B\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\"]\n" +
+	"\x11CreateParkRequest\x12\x1d\n" +
+	"\x04name\x18\x01 \x01(\tB\t\xbaH\x06r\x04\x10\x01\x18\x1eR\x04name\x12)\n" +
+	"\vdescription\x18\x02 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\vdescription\"B\n" +
 	"\x12CreateParkResponse\x12,\n" +
-	"\x04park\x18\x01 \x01(\v2\x18.sparkly.backend.v1.ParkR\x04park\" \n" +
-	"\x0eGetParkRequest\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\"?\n" +
+	"\x04park\x18\x01 \x01(\v2\x18.sparkly.backend.v1.ParkR\x04park\"*\n" +
+	"\x0eGetParkRequest\x12\x18\n" +
+	"\x02id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x02id\"?\n" +
 	"\x0fGetParkResponse\x12,\n" +
 	"\x04park\x18\x01 \x01(\v2\x18.sparkly.backend.v1.ParkR\x04park\"[\n" +
 	"\x12GetAllParksRequest\x12E\n" +
@@ -3409,41 +3398,31 @@ const file_backend_proto_service_proto_rawDesc = "" +
 	"\x05parks\x18\x01 \x03(\v2\x18.sparkly.backend.v1.ParkR\x05parks\x12F\n" +
 	"\n" +
 	"pagination\x18\x02 \x01(\v2&.sparkly.backend.v1.PaginationResponseR\n" +
-	"pagination\"u\n" +
-	"\x18GetParksByFiltersRequest\x12\x12\n" +
-	"\x04name\x18\x01 \x01(\tR\x04name\x12E\n" +
-	"\n" +
-	"pagination\x18\x02 \x01(\v2%.sparkly.backend.v1.PaginationRequestR\n" +
-	"pagination\"\x93\x01\n" +
-	"\x19GetParksByFiltersResponse\x12.\n" +
-	"\x05parks\x18\x01 \x03(\v2\x18.sparkly.backend.v1.ParkR\x05parks\x12F\n" +
-	"\n" +
-	"pagination\x18\x02 \x01(\v2&.sparkly.backend.v1.PaginationResponseR\n" +
-	"pagination\"|\n" +
-	"\x11UpdateParkRequest\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\x12\x17\n" +
-	"\x04name\x18\x02 \x01(\tH\x00R\x04name\x88\x01\x01\x12%\n" +
-	"\vdescription\x18\x03 \x01(\tH\x01R\vdescription\x88\x01\x01B\a\n" +
+	"pagination\"\x9a\x01\n" +
+	"\x11UpdateParkRequest\x12\x18\n" +
+	"\x02id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x02id\x12\"\n" +
+	"\x04name\x18\x02 \x01(\tB\t\xbaH\x06r\x04\x10\x01\x18\x1eH\x00R\x04name\x88\x01\x01\x12.\n" +
+	"\vdescription\x18\x03 \x01(\tB\a\xbaH\x04r\x02\x10\x01H\x01R\vdescription\x88\x01\x01B\a\n" +
 	"\x05_nameB\x0e\n" +
 	"\f_description\"B\n" +
 	"\x12UpdateParkResponse\x12,\n" +
-	"\x04park\x18\x01 \x01(\v2\x18.sparkly.backend.v1.ParkR\x04park\"#\n" +
-	"\x11DeleteParkRequest\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\".\n" +
+	"\x04park\x18\x01 \x01(\v2\x18.sparkly.backend.v1.ParkR\x04park\"-\n" +
+	"\x11DeleteParkRequest\x12\x18\n" +
+	"\x02id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x02id\".\n" +
 	"\x12DeleteParkResponse\x12\x18\n" +
-	"\asuccess\x18\x01 \x01(\bR\asuccess\"c\n" +
-	"\x12CreateGroupRequest\x12\x17\n" +
-	"\apark_id\x18\x01 \x01(\tR\x06parkId\x12\x12\n" +
-	"\x04name\x18\x02 \x01(\tR\x04name\x12 \n" +
-	"\vdescription\x18\x03 \x01(\tR\vdescription\"L\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\"\x81\x01\n" +
+	"\x12CreateGroupRequest\x12!\n" +
+	"\apark_id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x06parkId\x12\x1d\n" +
+	"\x04name\x18\x02 \x01(\tB\t\xbaH\x06r\x04\x10\x01\x18\x1eR\x04name\x12)\n" +
+	"\vdescription\x18\x03 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\vdescription\"L\n" +
 	"\x13CreateGroupResponse\x125\n" +
-	"\x05group\x18\x01 \x01(\v2\x1f.sparkly.backend.v1.DeviceGroupR\x05group\"!\n" +
-	"\x0fGetGroupRequest\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\"I\n" +
+	"\x05group\x18\x01 \x01(\v2\x1f.sparkly.backend.v1.DeviceGroupR\x05group\"+\n" +
+	"\x0fGetGroupRequest\x12\x18\n" +
+	"\x02id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x02id\"I\n" +
 	"\x10GetGroupResponse\x125\n" +
-	"\x05group\x18\x01 \x01(\v2\x1f.sparkly.backend.v1.DeviceGroupR\x05group\"r\n" +
-	"\x10GetGroupsRequest\x12\x17\n" +
-	"\apark_id\x18\x01 \x01(\tR\x06parkId\x12E\n" +
+	"\x05group\x18\x01 \x01(\v2\x1f.sparkly.backend.v1.DeviceGroupR\x05group\"|\n" +
+	"\x10GetGroupsRequest\x12!\n" +
+	"\apark_id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x06parkId\x12E\n" +
 	"\n" +
 	"pagination\x18\x02 \x01(\v2%.sparkly.backend.v1.PaginationRequestR\n" +
 	"pagination\"\x94\x01\n" +
@@ -3451,35 +3430,35 @@ const file_backend_proto_service_proto_rawDesc = "" +
 	"\x06groups\x18\x01 \x03(\v2\x1f.sparkly.backend.v1.DeviceGroupR\x06groups\x12F\n" +
 	"\n" +
 	"pagination\x18\x02 \x01(\v2&.sparkly.backend.v1.PaginationResponseR\n" +
-	"pagination\"}\n" +
-	"\x12UpdateGroupRequest\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\x12\x17\n" +
-	"\x04name\x18\x02 \x01(\tH\x00R\x04name\x88\x01\x01\x12%\n" +
-	"\vdescription\x18\x03 \x01(\tH\x01R\vdescription\x88\x01\x01B\a\n" +
+	"pagination\"\x9b\x01\n" +
+	"\x12UpdateGroupRequest\x12\x18\n" +
+	"\x02id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x02id\x12\"\n" +
+	"\x04name\x18\x02 \x01(\tB\t\xbaH\x06r\x04\x10\x01\x18\x1eH\x00R\x04name\x88\x01\x01\x12.\n" +
+	"\vdescription\x18\x03 \x01(\tB\a\xbaH\x04r\x02\x10\x01H\x01R\vdescription\x88\x01\x01B\a\n" +
 	"\x05_nameB\x0e\n" +
 	"\f_description\"L\n" +
 	"\x13UpdateGroupResponse\x125\n" +
-	"\x05group\x18\x01 \x01(\v2\x1f.sparkly.backend.v1.DeviceGroupR\x05group\"$\n" +
-	"\x12DeleteGroupRequest\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\"/\n" +
+	"\x05group\x18\x01 \x01(\v2\x1f.sparkly.backend.v1.DeviceGroupR\x05group\".\n" +
+	"\x12DeleteGroupRequest\x12\x18\n" +
+	"\x02id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x02id\"/\n" +
 	"\x13DeleteGroupResponse\x12\x18\n" +
-	"\asuccess\x18\x01 \x01(\bR\asuccess\"Q\n" +
-	"\x17AddDeviceToGroupRequest\x12\x19\n" +
-	"\bgroup_id\x18\x01 \x01(\tR\agroupId\x12\x1b\n" +
-	"\tdevice_id\x18\x02 \x01(\tR\bdeviceId\"4\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\"e\n" +
+	"\x17AddDeviceToGroupRequest\x12#\n" +
+	"\bgroup_id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\agroupId\x12%\n" +
+	"\tdevice_id\x18\x02 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\bdeviceId\"4\n" +
 	"\x18AddDeviceToGroupResponse\x12\x18\n" +
-	"\asuccess\x18\x01 \x01(\bR\asuccess\"V\n" +
-	"\x1cRemoveDeviceFromGroupRequest\x12\x19\n" +
-	"\bgroup_id\x18\x01 \x01(\tR\agroupId\x12\x1b\n" +
-	"\tdevice_id\x18\x02 \x01(\tR\bdeviceId\"9\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\"j\n" +
+	"\x1cRemoveDeviceFromGroupRequest\x12#\n" +
+	"\bgroup_id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\agroupId\x12%\n" +
+	"\tdevice_id\x18\x02 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\bdeviceId\"9\n" +
 	"\x1dRemoveDeviceFromGroupResponse\x12\x18\n" +
-	"\asuccess\x18\x01 \x01(\bR\asuccess\"\"\n" +
-	"\x10GetDeviceRequest\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\"G\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\",\n" +
+	"\x10GetDeviceRequest\x12\x18\n" +
+	"\x02id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x02id\"G\n" +
 	"\x11GetDeviceResponse\x122\n" +
-	"\x06device\x18\x01 \x01(\v2\x1a.sparkly.backend.v1.DeviceR\x06device\"v\n" +
-	"\x14GetAllDevicesRequest\x12\x17\n" +
-	"\apark_id\x18\x01 \x01(\tR\x06parkId\x12E\n" +
+	"\x06device\x18\x01 \x01(\v2\x1a.sparkly.backend.v1.DeviceR\x06device\"\x80\x01\n" +
+	"\x14GetAllDevicesRequest\x12!\n" +
+	"\apark_id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x06parkId\x12E\n" +
 	"\n" +
 	"pagination\x18\x02 \x01(\v2%.sparkly.backend.v1.PaginationRequestR\n" +
 	"pagination\"\x95\x01\n" +
@@ -3487,14 +3466,17 @@ const file_backend_proto_service_proto_rawDesc = "" +
 	"\adevices\x18\x01 \x03(\v2\x1a.sparkly.backend.v1.DeviceR\adevices\x12F\n" +
 	"\n" +
 	"pagination\x18\x02 \x01(\v2&.sparkly.backend.v1.PaginationResponseR\n" +
-	"pagination\"\xf7\x01\n" +
-	"\x1aGetDevicesByFiltersRequest\x12\x17\n" +
-	"\apark_id\x18\x01 \x01(\tR\x06parkId\x12\x1d\n" +
+	"pagination\"\xb9\x02\n" +
+	"\x1aGetDevicesByFiltersRequest\x12!\n" +
+	"\apark_id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x06parkId\x12,\n" +
 	"\n" +
-	"device_ids\x18\x02 \x03(\tR\tdeviceIds\x12\x1b\n" +
-	"\tgroup_ids\x18\x03 \x03(\tR\bgroupIds\x12\x17\n" +
-	"\x04name\x18\x04 \x01(\tH\x00R\x04name\x88\x01\x01\x12\x1b\n" +
-	"\tbuild_ids\x18\x05 \x03(\tR\bbuildIds\x12E\n" +
+	"device_ids\x18\x02 \x03(\tB\r\xbaH\n" +
+	"\x92\x01\a\"\x05r\x03\xb0\x01\x01R\tdeviceIds\x12*\n" +
+	"\tgroup_ids\x18\x03 \x03(\tB\r\xbaH\n" +
+	"\x92\x01\a\"\x05r\x03\xb0\x01\x01R\bgroupIds\x12\"\n" +
+	"\x04name\x18\x04 \x01(\tB\t\xbaH\x06r\x04\x10\x01\x18\x1eH\x00R\x04name\x88\x01\x01\x12*\n" +
+	"\tbuild_ids\x18\x05 \x03(\tB\r\xbaH\n" +
+	"\x92\x01\a\"\x05r\x03\xb0\x01\x01R\bbuildIds\x12E\n" +
 	"\n" +
 	"pagination\x18\x06 \x01(\v2%.sparkly.backend.v1.PaginationRequestR\n" +
 	"paginationB\a\n" +
@@ -3503,13 +3485,13 @@ const file_backend_proto_service_proto_rawDesc = "" +
 	"\adevices\x18\x01 \x03(\v2\x1a.sparkly.backend.v1.DeviceR\adevices\x12F\n" +
 	"\n" +
 	"pagination\x18\x02 \x01(\v2&.sparkly.backend.v1.PaginationResponseR\n" +
-	"pagination\"!\n" +
-	"\x0fGetIssueRequest\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\"C\n" +
+	"pagination\"+\n" +
+	"\x0fGetIssueRequest\x12\x18\n" +
+	"\x02id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x02id\"C\n" +
 	"\x10GetIssueResponse\x12/\n" +
-	"\x05issue\x18\x01 \x01(\v2\x19.sparkly.backend.v1.IssueR\x05issue\"u\n" +
-	"\x13GetAllIssuesRequest\x12\x17\n" +
-	"\apark_id\x18\x01 \x01(\tR\x06parkId\x12E\n" +
+	"\x05issue\x18\x01 \x01(\v2\x19.sparkly.backend.v1.IssueR\x05issue\"\x7f\n" +
+	"\x13GetAllIssuesRequest\x12!\n" +
+	"\apark_id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x06parkId\x12E\n" +
 	"\n" +
 	"pagination\x18\x02 \x01(\v2%.sparkly.backend.v1.PaginationRequestR\n" +
 	"pagination\"\x91\x01\n" +
@@ -3517,10 +3499,10 @@ const file_backend_proto_service_proto_rawDesc = "" +
 	"\x06issues\x18\x01 \x03(\v2\x19.sparkly.backend.v1.IssueR\x06issues\x12F\n" +
 	"\n" +
 	"pagination\x18\x02 \x01(\v2&.sparkly.backend.v1.PaginationResponseR\n" +
-	"pagination\"\x94\x03\n" +
-	"\x19GetIssuesByFiltersRequest\x12\x17\n" +
-	"\apark_id\x18\x01 \x01(\tR\x06parkId\x12B\n" +
-	"\bseverity\x18\x02 \x01(\x0e2!.sparkly.backend.v1.IssueSeverityH\x00R\bseverity\x88\x01\x01\x12$\n" +
+	"pagination\"\xa8\x03\n" +
+	"\x19GetIssuesByFiltersRequest\x12!\n" +
+	"\apark_id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x06parkId\x12L\n" +
+	"\bseverity\x18\x02 \x01(\x0e2!.sparkly.backend.v1.IssueSeverityB\b\xbaH\x05\x82\x01\x02\x10\x01H\x00R\bseverity\x88\x01\x01\x12$\n" +
 	"\vis_resolved\x18\x03 \x01(\bH\x01R\n" +
 	"isResolved\x88\x01\x01\x12<\n" +
 	"\tfrom_time\x18\x04 \x01(\v2\x1a.google.protobuf.TimestampH\x02R\bfromTime\x88\x01\x01\x128\n" +
@@ -3538,9 +3520,9 @@ const file_backend_proto_service_proto_rawDesc = "" +
 	"\x06issues\x18\x01 \x03(\v2\x19.sparkly.backend.v1.IssueR\x06issues\x12F\n" +
 	"\n" +
 	"pagination\x18\x02 \x01(\v2&.sparkly.backend.v1.PaginationResponseR\n" +
-	"pagination\"%\n" +
-	"\x13ResolveIssueRequest\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\"G\n" +
+	"pagination\"/\n" +
+	"\x13ResolveIssueRequest\x12\x18\n" +
+	"\x02id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x02id\"G\n" +
 	"\x14ResolveIssueResponse\x12/\n" +
 	"\x05issue\x18\x01 \x01(\v2\x19.sparkly.backend.v1.IssueR\x05issue*\x9b\x01\n" +
 	"\rIssueSeverity\x12\x1e\n" +
@@ -3548,22 +3530,21 @@ const file_backend_proto_service_proto_rawDesc = "" +
 	"\x13ISSUE_SEVERITY_INFO\x10\x01\x12\x1a\n" +
 	"\x16ISSUE_SEVERITY_WARNING\x10\x02\x12\x18\n" +
 	"\x14ISSUE_SEVERITY_ERROR\x10\x03\x12\x1b\n" +
-	"\x17ISSUE_SEVERITY_CRITICAL\x10\x042\xc0\x03\n" +
+	"\x17ISSUE_SEVERITY_CRITICAL\x10\x042\xa6\x04\n" +
 	"\vUserService\x12F\n" +
 	"\x03Reg\x12\x1e.sparkly.backend.v1.RegRequest\x1a\x1f.sparkly.backend.v1.RegResponse\x12U\n" +
 	"\bGetToken\x12#.sparkly.backend.v1.GetTokenRequest\x1a$.sparkly.backend.v1.GetTokenResponse\x12X\n" +
-	"\tCheckAuth\x12$.sparkly.backend.v1.CheckAuthRequest\x1a%.sparkly.backend.v1.CheckAuthResponse\x12[\n" +
+	"\tCheckAuth\x12$.sparkly.backend.v1.CheckAuthRequest\x1a%.sparkly.backend.v1.CheckAuthResponse\x12d\n" +
+	"\rRevokeSession\x12(.sparkly.backend.v1.RevokeSessionRequest\x1a).sparkly.backend.v1.RevokeSessionResponse\x12[\n" +
 	"\n" +
 	"UpdateUser\x12%.sparkly.backend.v1.UpdateUserRequest\x1a&.sparkly.backend.v1.UpdateUserResponse\x12[\n" +
 	"\n" +
-	"DeleteUser\x12%.sparkly.backend.v1.DeleteUserRequest\x1a&.sparkly.backend.v1.DeleteUserResponse2\x88\n" +
-	"\n" +
+	"DeleteUser\x12%.sparkly.backend.v1.DeleteUserRequest\x1a&.sparkly.backend.v1.DeleteUserResponse2\x96\t\n" +
 	"\vParkService\x12[\n" +
 	"\n" +
 	"CreatePark\x12%.sparkly.backend.v1.CreateParkRequest\x1a&.sparkly.backend.v1.CreateParkResponse\x12R\n" +
 	"\aGetPark\x12\".sparkly.backend.v1.GetParkRequest\x1a#.sparkly.backend.v1.GetParkResponse\x12^\n" +
-	"\vGetAllParks\x12&.sparkly.backend.v1.GetAllParksRequest\x1a'.sparkly.backend.v1.GetAllParksResponse\x12p\n" +
-	"\x11GetParksByFilters\x12,.sparkly.backend.v1.GetParksByFiltersRequest\x1a-.sparkly.backend.v1.GetParksByFiltersResponse\x12[\n" +
+	"\vGetAllParks\x12&.sparkly.backend.v1.GetAllParksRequest\x1a'.sparkly.backend.v1.GetAllParksResponse\x12[\n" +
 	"\n" +
 	"UpdatePark\x12%.sparkly.backend.v1.UpdateParkRequest\x1a&.sparkly.backend.v1.UpdateParkResponse\x12[\n" +
 	"\n" +
@@ -3615,18 +3596,18 @@ var file_backend_proto_service_proto_goTypes = []any{
 	(*GetTokenResponse)(nil),              // 12: sparkly.backend.v1.GetTokenResponse
 	(*CheckAuthRequest)(nil),              // 13: sparkly.backend.v1.CheckAuthRequest
 	(*CheckAuthResponse)(nil),             // 14: sparkly.backend.v1.CheckAuthResponse
-	(*UpdateUserRequest)(nil),             // 15: sparkly.backend.v1.UpdateUserRequest
-	(*UpdateUserResponse)(nil),            // 16: sparkly.backend.v1.UpdateUserResponse
-	(*DeleteUserRequest)(nil),             // 17: sparkly.backend.v1.DeleteUserRequest
-	(*DeleteUserResponse)(nil),            // 18: sparkly.backend.v1.DeleteUserResponse
-	(*CreateParkRequest)(nil),             // 19: sparkly.backend.v1.CreateParkRequest
-	(*CreateParkResponse)(nil),            // 20: sparkly.backend.v1.CreateParkResponse
-	(*GetParkRequest)(nil),                // 21: sparkly.backend.v1.GetParkRequest
-	(*GetParkResponse)(nil),               // 22: sparkly.backend.v1.GetParkResponse
-	(*GetAllParksRequest)(nil),            // 23: sparkly.backend.v1.GetAllParksRequest
-	(*GetAllParksResponse)(nil),           // 24: sparkly.backend.v1.GetAllParksResponse
-	(*GetParksByFiltersRequest)(nil),      // 25: sparkly.backend.v1.GetParksByFiltersRequest
-	(*GetParksByFiltersResponse)(nil),     // 26: sparkly.backend.v1.GetParksByFiltersResponse
+	(*RevokeSessionRequest)(nil),          // 15: sparkly.backend.v1.RevokeSessionRequest
+	(*RevokeSessionResponse)(nil),         // 16: sparkly.backend.v1.RevokeSessionResponse
+	(*UpdateUserRequest)(nil),             // 17: sparkly.backend.v1.UpdateUserRequest
+	(*UpdateUserResponse)(nil),            // 18: sparkly.backend.v1.UpdateUserResponse
+	(*DeleteUserRequest)(nil),             // 19: sparkly.backend.v1.DeleteUserRequest
+	(*DeleteUserResponse)(nil),            // 20: sparkly.backend.v1.DeleteUserResponse
+	(*CreateParkRequest)(nil),             // 21: sparkly.backend.v1.CreateParkRequest
+	(*CreateParkResponse)(nil),            // 22: sparkly.backend.v1.CreateParkResponse
+	(*GetParkRequest)(nil),                // 23: sparkly.backend.v1.GetParkRequest
+	(*GetParkResponse)(nil),               // 24: sparkly.backend.v1.GetParkResponse
+	(*GetAllParksRequest)(nil),            // 25: sparkly.backend.v1.GetAllParksRequest
+	(*GetAllParksResponse)(nil),           // 26: sparkly.backend.v1.GetAllParksResponse
 	(*UpdateParkRequest)(nil),             // 27: sparkly.backend.v1.UpdateParkRequest
 	(*UpdateParkResponse)(nil),            // 28: sparkly.backend.v1.UpdateParkResponse
 	(*DeleteParkRequest)(nil),             // 29: sparkly.backend.v1.DeleteParkRequest
@@ -3683,89 +3664,86 @@ var file_backend_proto_service_proto_depIdxs = []int32{
 	1,  // 18: sparkly.backend.v1.GetAllParksRequest.pagination:type_name -> sparkly.backend.v1.PaginationRequest
 	4,  // 19: sparkly.backend.v1.GetAllParksResponse.parks:type_name -> sparkly.backend.v1.Park
 	2,  // 20: sparkly.backend.v1.GetAllParksResponse.pagination:type_name -> sparkly.backend.v1.PaginationResponse
-	1,  // 21: sparkly.backend.v1.GetParksByFiltersRequest.pagination:type_name -> sparkly.backend.v1.PaginationRequest
-	4,  // 22: sparkly.backend.v1.GetParksByFiltersResponse.parks:type_name -> sparkly.backend.v1.Park
-	2,  // 23: sparkly.backend.v1.GetParksByFiltersResponse.pagination:type_name -> sparkly.backend.v1.PaginationResponse
-	4,  // 24: sparkly.backend.v1.UpdateParkResponse.park:type_name -> sparkly.backend.v1.Park
-	5,  // 25: sparkly.backend.v1.CreateGroupResponse.group:type_name -> sparkly.backend.v1.DeviceGroup
-	5,  // 26: sparkly.backend.v1.GetGroupResponse.group:type_name -> sparkly.backend.v1.DeviceGroup
-	1,  // 27: sparkly.backend.v1.GetGroupsRequest.pagination:type_name -> sparkly.backend.v1.PaginationRequest
-	5,  // 28: sparkly.backend.v1.GetGroupsResponse.groups:type_name -> sparkly.backend.v1.DeviceGroup
-	2,  // 29: sparkly.backend.v1.GetGroupsResponse.pagination:type_name -> sparkly.backend.v1.PaginationResponse
-	5,  // 30: sparkly.backend.v1.UpdateGroupResponse.group:type_name -> sparkly.backend.v1.DeviceGroup
-	6,  // 31: sparkly.backend.v1.GetDeviceResponse.device:type_name -> sparkly.backend.v1.Device
-	1,  // 32: sparkly.backend.v1.GetAllDevicesRequest.pagination:type_name -> sparkly.backend.v1.PaginationRequest
-	6,  // 33: sparkly.backend.v1.GetAllDevicesResponse.devices:type_name -> sparkly.backend.v1.Device
-	2,  // 34: sparkly.backend.v1.GetAllDevicesResponse.pagination:type_name -> sparkly.backend.v1.PaginationResponse
-	1,  // 35: sparkly.backend.v1.GetDevicesByFiltersRequest.pagination:type_name -> sparkly.backend.v1.PaginationRequest
-	6,  // 36: sparkly.backend.v1.GetDevicesByFiltersResponse.devices:type_name -> sparkly.backend.v1.Device
-	2,  // 37: sparkly.backend.v1.GetDevicesByFiltersResponse.pagination:type_name -> sparkly.backend.v1.PaginationResponse
-	7,  // 38: sparkly.backend.v1.GetIssueResponse.issue:type_name -> sparkly.backend.v1.Issue
-	1,  // 39: sparkly.backend.v1.GetAllIssuesRequest.pagination:type_name -> sparkly.backend.v1.PaginationRequest
-	7,  // 40: sparkly.backend.v1.GetAllIssuesResponse.issues:type_name -> sparkly.backend.v1.Issue
-	2,  // 41: sparkly.backend.v1.GetAllIssuesResponse.pagination:type_name -> sparkly.backend.v1.PaginationResponse
-	0,  // 42: sparkly.backend.v1.GetIssuesByFiltersRequest.severity:type_name -> sparkly.backend.v1.IssueSeverity
-	59, // 43: sparkly.backend.v1.GetIssuesByFiltersRequest.from_time:type_name -> google.protobuf.Timestamp
-	59, // 44: sparkly.backend.v1.GetIssuesByFiltersRequest.to_time:type_name -> google.protobuf.Timestamp
-	1,  // 45: sparkly.backend.v1.GetIssuesByFiltersRequest.pagination:type_name -> sparkly.backend.v1.PaginationRequest
-	7,  // 46: sparkly.backend.v1.GetIssuesByFiltersResponse.issues:type_name -> sparkly.backend.v1.Issue
-	2,  // 47: sparkly.backend.v1.GetIssuesByFiltersResponse.pagination:type_name -> sparkly.backend.v1.PaginationResponse
-	7,  // 48: sparkly.backend.v1.ResolveIssueResponse.issue:type_name -> sparkly.backend.v1.Issue
-	9,  // 49: sparkly.backend.v1.UserService.Reg:input_type -> sparkly.backend.v1.RegRequest
-	11, // 50: sparkly.backend.v1.UserService.GetToken:input_type -> sparkly.backend.v1.GetTokenRequest
-	13, // 51: sparkly.backend.v1.UserService.CheckAuth:input_type -> sparkly.backend.v1.CheckAuthRequest
-	15, // 52: sparkly.backend.v1.UserService.UpdateUser:input_type -> sparkly.backend.v1.UpdateUserRequest
-	17, // 53: sparkly.backend.v1.UserService.DeleteUser:input_type -> sparkly.backend.v1.DeleteUserRequest
-	19, // 54: sparkly.backend.v1.ParkService.CreatePark:input_type -> sparkly.backend.v1.CreateParkRequest
-	21, // 55: sparkly.backend.v1.ParkService.GetPark:input_type -> sparkly.backend.v1.GetParkRequest
-	23, // 56: sparkly.backend.v1.ParkService.GetAllParks:input_type -> sparkly.backend.v1.GetAllParksRequest
-	25, // 57: sparkly.backend.v1.ParkService.GetParksByFilters:input_type -> sparkly.backend.v1.GetParksByFiltersRequest
-	27, // 58: sparkly.backend.v1.ParkService.UpdatePark:input_type -> sparkly.backend.v1.UpdateParkRequest
-	29, // 59: sparkly.backend.v1.ParkService.DeletePark:input_type -> sparkly.backend.v1.DeleteParkRequest
-	31, // 60: sparkly.backend.v1.ParkService.CreateGroup:input_type -> sparkly.backend.v1.CreateGroupRequest
-	33, // 61: sparkly.backend.v1.ParkService.GetGroup:input_type -> sparkly.backend.v1.GetGroupRequest
-	35, // 62: sparkly.backend.v1.ParkService.GetGroups:input_type -> sparkly.backend.v1.GetGroupsRequest
-	37, // 63: sparkly.backend.v1.ParkService.UpdateGroup:input_type -> sparkly.backend.v1.UpdateGroupRequest
-	39, // 64: sparkly.backend.v1.ParkService.DeleteGroup:input_type -> sparkly.backend.v1.DeleteGroupRequest
-	41, // 65: sparkly.backend.v1.ParkService.AddDeviceToGroup:input_type -> sparkly.backend.v1.AddDeviceToGroupRequest
-	43, // 66: sparkly.backend.v1.ParkService.RemoveDeviceFromGroup:input_type -> sparkly.backend.v1.RemoveDeviceFromGroupRequest
-	45, // 67: sparkly.backend.v1.DeviceService.GetDevice:input_type -> sparkly.backend.v1.GetDeviceRequest
-	47, // 68: sparkly.backend.v1.DeviceService.GetAllDevices:input_type -> sparkly.backend.v1.GetAllDevicesRequest
-	49, // 69: sparkly.backend.v1.DeviceService.GetDevicesByFilters:input_type -> sparkly.backend.v1.GetDevicesByFiltersRequest
-	51, // 70: sparkly.backend.v1.IssueService.GetIssue:input_type -> sparkly.backend.v1.GetIssueRequest
-	53, // 71: sparkly.backend.v1.IssueService.GetAllIssues:input_type -> sparkly.backend.v1.GetAllIssuesRequest
-	55, // 72: sparkly.backend.v1.IssueService.GetIssuesByFilters:input_type -> sparkly.backend.v1.GetIssuesByFiltersRequest
-	57, // 73: sparkly.backend.v1.IssueService.ResolveIssue:input_type -> sparkly.backend.v1.ResolveIssueRequest
-	10, // 74: sparkly.backend.v1.UserService.Reg:output_type -> sparkly.backend.v1.RegResponse
-	12, // 75: sparkly.backend.v1.UserService.GetToken:output_type -> sparkly.backend.v1.GetTokenResponse
-	14, // 76: sparkly.backend.v1.UserService.CheckAuth:output_type -> sparkly.backend.v1.CheckAuthResponse
-	16, // 77: sparkly.backend.v1.UserService.UpdateUser:output_type -> sparkly.backend.v1.UpdateUserResponse
-	18, // 78: sparkly.backend.v1.UserService.DeleteUser:output_type -> sparkly.backend.v1.DeleteUserResponse
-	20, // 79: sparkly.backend.v1.ParkService.CreatePark:output_type -> sparkly.backend.v1.CreateParkResponse
-	22, // 80: sparkly.backend.v1.ParkService.GetPark:output_type -> sparkly.backend.v1.GetParkResponse
-	24, // 81: sparkly.backend.v1.ParkService.GetAllParks:output_type -> sparkly.backend.v1.GetAllParksResponse
-	26, // 82: sparkly.backend.v1.ParkService.GetParksByFilters:output_type -> sparkly.backend.v1.GetParksByFiltersResponse
-	28, // 83: sparkly.backend.v1.ParkService.UpdatePark:output_type -> sparkly.backend.v1.UpdateParkResponse
-	30, // 84: sparkly.backend.v1.ParkService.DeletePark:output_type -> sparkly.backend.v1.DeleteParkResponse
-	32, // 85: sparkly.backend.v1.ParkService.CreateGroup:output_type -> sparkly.backend.v1.CreateGroupResponse
-	34, // 86: sparkly.backend.v1.ParkService.GetGroup:output_type -> sparkly.backend.v1.GetGroupResponse
-	36, // 87: sparkly.backend.v1.ParkService.GetGroups:output_type -> sparkly.backend.v1.GetGroupsResponse
-	38, // 88: sparkly.backend.v1.ParkService.UpdateGroup:output_type -> sparkly.backend.v1.UpdateGroupResponse
-	40, // 89: sparkly.backend.v1.ParkService.DeleteGroup:output_type -> sparkly.backend.v1.DeleteGroupResponse
-	42, // 90: sparkly.backend.v1.ParkService.AddDeviceToGroup:output_type -> sparkly.backend.v1.AddDeviceToGroupResponse
-	44, // 91: sparkly.backend.v1.ParkService.RemoveDeviceFromGroup:output_type -> sparkly.backend.v1.RemoveDeviceFromGroupResponse
-	46, // 92: sparkly.backend.v1.DeviceService.GetDevice:output_type -> sparkly.backend.v1.GetDeviceResponse
-	48, // 93: sparkly.backend.v1.DeviceService.GetAllDevices:output_type -> sparkly.backend.v1.GetAllDevicesResponse
-	50, // 94: sparkly.backend.v1.DeviceService.GetDevicesByFilters:output_type -> sparkly.backend.v1.GetDevicesByFiltersResponse
-	52, // 95: sparkly.backend.v1.IssueService.GetIssue:output_type -> sparkly.backend.v1.GetIssueResponse
-	54, // 96: sparkly.backend.v1.IssueService.GetAllIssues:output_type -> sparkly.backend.v1.GetAllIssuesResponse
-	56, // 97: sparkly.backend.v1.IssueService.GetIssuesByFilters:output_type -> sparkly.backend.v1.GetIssuesByFiltersResponse
-	58, // 98: sparkly.backend.v1.IssueService.ResolveIssue:output_type -> sparkly.backend.v1.ResolveIssueResponse
-	74, // [74:99] is the sub-list for method output_type
-	49, // [49:74] is the sub-list for method input_type
-	49, // [49:49] is the sub-list for extension type_name
-	49, // [49:49] is the sub-list for extension extendee
-	0,  // [0:49] is the sub-list for field type_name
+	4,  // 21: sparkly.backend.v1.UpdateParkResponse.park:type_name -> sparkly.backend.v1.Park
+	5,  // 22: sparkly.backend.v1.CreateGroupResponse.group:type_name -> sparkly.backend.v1.DeviceGroup
+	5,  // 23: sparkly.backend.v1.GetGroupResponse.group:type_name -> sparkly.backend.v1.DeviceGroup
+	1,  // 24: sparkly.backend.v1.GetGroupsRequest.pagination:type_name -> sparkly.backend.v1.PaginationRequest
+	5,  // 25: sparkly.backend.v1.GetGroupsResponse.groups:type_name -> sparkly.backend.v1.DeviceGroup
+	2,  // 26: sparkly.backend.v1.GetGroupsResponse.pagination:type_name -> sparkly.backend.v1.PaginationResponse
+	5,  // 27: sparkly.backend.v1.UpdateGroupResponse.group:type_name -> sparkly.backend.v1.DeviceGroup
+	6,  // 28: sparkly.backend.v1.GetDeviceResponse.device:type_name -> sparkly.backend.v1.Device
+	1,  // 29: sparkly.backend.v1.GetAllDevicesRequest.pagination:type_name -> sparkly.backend.v1.PaginationRequest
+	6,  // 30: sparkly.backend.v1.GetAllDevicesResponse.devices:type_name -> sparkly.backend.v1.Device
+	2,  // 31: sparkly.backend.v1.GetAllDevicesResponse.pagination:type_name -> sparkly.backend.v1.PaginationResponse
+	1,  // 32: sparkly.backend.v1.GetDevicesByFiltersRequest.pagination:type_name -> sparkly.backend.v1.PaginationRequest
+	6,  // 33: sparkly.backend.v1.GetDevicesByFiltersResponse.devices:type_name -> sparkly.backend.v1.Device
+	2,  // 34: sparkly.backend.v1.GetDevicesByFiltersResponse.pagination:type_name -> sparkly.backend.v1.PaginationResponse
+	7,  // 35: sparkly.backend.v1.GetIssueResponse.issue:type_name -> sparkly.backend.v1.Issue
+	1,  // 36: sparkly.backend.v1.GetAllIssuesRequest.pagination:type_name -> sparkly.backend.v1.PaginationRequest
+	7,  // 37: sparkly.backend.v1.GetAllIssuesResponse.issues:type_name -> sparkly.backend.v1.Issue
+	2,  // 38: sparkly.backend.v1.GetAllIssuesResponse.pagination:type_name -> sparkly.backend.v1.PaginationResponse
+	0,  // 39: sparkly.backend.v1.GetIssuesByFiltersRequest.severity:type_name -> sparkly.backend.v1.IssueSeverity
+	59, // 40: sparkly.backend.v1.GetIssuesByFiltersRequest.from_time:type_name -> google.protobuf.Timestamp
+	59, // 41: sparkly.backend.v1.GetIssuesByFiltersRequest.to_time:type_name -> google.protobuf.Timestamp
+	1,  // 42: sparkly.backend.v1.GetIssuesByFiltersRequest.pagination:type_name -> sparkly.backend.v1.PaginationRequest
+	7,  // 43: sparkly.backend.v1.GetIssuesByFiltersResponse.issues:type_name -> sparkly.backend.v1.Issue
+	2,  // 44: sparkly.backend.v1.GetIssuesByFiltersResponse.pagination:type_name -> sparkly.backend.v1.PaginationResponse
+	7,  // 45: sparkly.backend.v1.ResolveIssueResponse.issue:type_name -> sparkly.backend.v1.Issue
+	9,  // 46: sparkly.backend.v1.UserService.Reg:input_type -> sparkly.backend.v1.RegRequest
+	11, // 47: sparkly.backend.v1.UserService.GetToken:input_type -> sparkly.backend.v1.GetTokenRequest
+	13, // 48: sparkly.backend.v1.UserService.CheckAuth:input_type -> sparkly.backend.v1.CheckAuthRequest
+	15, // 49: sparkly.backend.v1.UserService.RevokeSession:input_type -> sparkly.backend.v1.RevokeSessionRequest
+	17, // 50: sparkly.backend.v1.UserService.UpdateUser:input_type -> sparkly.backend.v1.UpdateUserRequest
+	19, // 51: sparkly.backend.v1.UserService.DeleteUser:input_type -> sparkly.backend.v1.DeleteUserRequest
+	21, // 52: sparkly.backend.v1.ParkService.CreatePark:input_type -> sparkly.backend.v1.CreateParkRequest
+	23, // 53: sparkly.backend.v1.ParkService.GetPark:input_type -> sparkly.backend.v1.GetParkRequest
+	25, // 54: sparkly.backend.v1.ParkService.GetAllParks:input_type -> sparkly.backend.v1.GetAllParksRequest
+	27, // 55: sparkly.backend.v1.ParkService.UpdatePark:input_type -> sparkly.backend.v1.UpdateParkRequest
+	29, // 56: sparkly.backend.v1.ParkService.DeletePark:input_type -> sparkly.backend.v1.DeleteParkRequest
+	31, // 57: sparkly.backend.v1.ParkService.CreateGroup:input_type -> sparkly.backend.v1.CreateGroupRequest
+	33, // 58: sparkly.backend.v1.ParkService.GetGroup:input_type -> sparkly.backend.v1.GetGroupRequest
+	35, // 59: sparkly.backend.v1.ParkService.GetGroups:input_type -> sparkly.backend.v1.GetGroupsRequest
+	37, // 60: sparkly.backend.v1.ParkService.UpdateGroup:input_type -> sparkly.backend.v1.UpdateGroupRequest
+	39, // 61: sparkly.backend.v1.ParkService.DeleteGroup:input_type -> sparkly.backend.v1.DeleteGroupRequest
+	41, // 62: sparkly.backend.v1.ParkService.AddDeviceToGroup:input_type -> sparkly.backend.v1.AddDeviceToGroupRequest
+	43, // 63: sparkly.backend.v1.ParkService.RemoveDeviceFromGroup:input_type -> sparkly.backend.v1.RemoveDeviceFromGroupRequest
+	45, // 64: sparkly.backend.v1.DeviceService.GetDevice:input_type -> sparkly.backend.v1.GetDeviceRequest
+	47, // 65: sparkly.backend.v1.DeviceService.GetAllDevices:input_type -> sparkly.backend.v1.GetAllDevicesRequest
+	49, // 66: sparkly.backend.v1.DeviceService.GetDevicesByFilters:input_type -> sparkly.backend.v1.GetDevicesByFiltersRequest
+	51, // 67: sparkly.backend.v1.IssueService.GetIssue:input_type -> sparkly.backend.v1.GetIssueRequest
+	53, // 68: sparkly.backend.v1.IssueService.GetAllIssues:input_type -> sparkly.backend.v1.GetAllIssuesRequest
+	55, // 69: sparkly.backend.v1.IssueService.GetIssuesByFilters:input_type -> sparkly.backend.v1.GetIssuesByFiltersRequest
+	57, // 70: sparkly.backend.v1.IssueService.ResolveIssue:input_type -> sparkly.backend.v1.ResolveIssueRequest
+	10, // 71: sparkly.backend.v1.UserService.Reg:output_type -> sparkly.backend.v1.RegResponse
+	12, // 72: sparkly.backend.v1.UserService.GetToken:output_type -> sparkly.backend.v1.GetTokenResponse
+	14, // 73: sparkly.backend.v1.UserService.CheckAuth:output_type -> sparkly.backend.v1.CheckAuthResponse
+	16, // 74: sparkly.backend.v1.UserService.RevokeSession:output_type -> sparkly.backend.v1.RevokeSessionResponse
+	18, // 75: sparkly.backend.v1.UserService.UpdateUser:output_type -> sparkly.backend.v1.UpdateUserResponse
+	20, // 76: sparkly.backend.v1.UserService.DeleteUser:output_type -> sparkly.backend.v1.DeleteUserResponse
+	22, // 77: sparkly.backend.v1.ParkService.CreatePark:output_type -> sparkly.backend.v1.CreateParkResponse
+	24, // 78: sparkly.backend.v1.ParkService.GetPark:output_type -> sparkly.backend.v1.GetParkResponse
+	26, // 79: sparkly.backend.v1.ParkService.GetAllParks:output_type -> sparkly.backend.v1.GetAllParksResponse
+	28, // 80: sparkly.backend.v1.ParkService.UpdatePark:output_type -> sparkly.backend.v1.UpdateParkResponse
+	30, // 81: sparkly.backend.v1.ParkService.DeletePark:output_type -> sparkly.backend.v1.DeleteParkResponse
+	32, // 82: sparkly.backend.v1.ParkService.CreateGroup:output_type -> sparkly.backend.v1.CreateGroupResponse
+	34, // 83: sparkly.backend.v1.ParkService.GetGroup:output_type -> sparkly.backend.v1.GetGroupResponse
+	36, // 84: sparkly.backend.v1.ParkService.GetGroups:output_type -> sparkly.backend.v1.GetGroupsResponse
+	38, // 85: sparkly.backend.v1.ParkService.UpdateGroup:output_type -> sparkly.backend.v1.UpdateGroupResponse
+	40, // 86: sparkly.backend.v1.ParkService.DeleteGroup:output_type -> sparkly.backend.v1.DeleteGroupResponse
+	42, // 87: sparkly.backend.v1.ParkService.AddDeviceToGroup:output_type -> sparkly.backend.v1.AddDeviceToGroupResponse
+	44, // 88: sparkly.backend.v1.ParkService.RemoveDeviceFromGroup:output_type -> sparkly.backend.v1.RemoveDeviceFromGroupResponse
+	46, // 89: sparkly.backend.v1.DeviceService.GetDevice:output_type -> sparkly.backend.v1.GetDeviceResponse
+	48, // 90: sparkly.backend.v1.DeviceService.GetAllDevices:output_type -> sparkly.backend.v1.GetAllDevicesResponse
+	50, // 91: sparkly.backend.v1.DeviceService.GetDevicesByFilters:output_type -> sparkly.backend.v1.GetDevicesByFiltersResponse
+	52, // 92: sparkly.backend.v1.IssueService.GetIssue:output_type -> sparkly.backend.v1.GetIssueResponse
+	54, // 93: sparkly.backend.v1.IssueService.GetAllIssues:output_type -> sparkly.backend.v1.GetAllIssuesResponse
+	56, // 94: sparkly.backend.v1.IssueService.GetIssuesByFilters:output_type -> sparkly.backend.v1.GetIssuesByFiltersResponse
+	58, // 95: sparkly.backend.v1.IssueService.ResolveIssue:output_type -> sparkly.backend.v1.ResolveIssueResponse
+	71, // [71:96] is the sub-list for method output_type
+	46, // [46:71] is the sub-list for method input_type
+	46, // [46:46] is the sub-list for extension type_name
+	46, // [46:46] is the sub-list for extension extendee
+	0,  // [0:46] is the sub-list for field type_name
 }
 
 func init() { file_backend_proto_service_proto_init() }
@@ -3774,7 +3752,7 @@ func file_backend_proto_service_proto_init() {
 		return
 	}
 	file_backend_proto_service_proto_msgTypes[6].OneofWrappers = []any{}
-	file_backend_proto_service_proto_msgTypes[14].OneofWrappers = []any{}
+	file_backend_proto_service_proto_msgTypes[16].OneofWrappers = []any{}
 	file_backend_proto_service_proto_msgTypes[26].OneofWrappers = []any{}
 	file_backend_proto_service_proto_msgTypes[36].OneofWrappers = []any{}
 	file_backend_proto_service_proto_msgTypes[48].OneofWrappers = []any{}
