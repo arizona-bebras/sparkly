@@ -13,7 +13,10 @@ option go_package = "sparkly/backend/proto/v1;backendv1";
 
 message PaginationRequest {
   int32 page = 1 [(buf.validate.field).int32.gte = 1];
-  int32 page_size = 2 [(buf.validate.field).int32 = {gte: 1, lte: 100}];
+  int32 page_size = 2 [(buf.validate.field).int32 = {
+    gte: 1
+    lte: 100
+  }];
 }
 
 message PaginationResponse {
@@ -157,7 +160,10 @@ message DeleteUserResponse {
 // ============================================================================
 
 message CreateParkRequest {
-  string name = 1 [(buf.validate.field).string = {min_len: 1, max_len: 30}];
+  string name = 1 [(buf.validate.field).string = {
+    min_len: 1
+    max_len: 30
+  }];
   string description = 2 [(buf.validate.field).string.min_len = 1];
 }
 
@@ -184,7 +190,10 @@ message GetAllParksResponse {
 
 message UpdateParkRequest {
   string id = 1 [(buf.validate.field).string.uuid = true];
-  optional string name = 2 [(buf.validate.field).string = {min_len: 1, max_len: 30}];
+  optional string name = 2 [(buf.validate.field).string = {
+    min_len: 1
+    max_len: 30
+  }];
   optional string description = 3 [(buf.validate.field).string.min_len = 1];
 }
 
@@ -203,7 +212,10 @@ message DeleteParkResponse {
 // Device Groups Messages
 message CreateGroupRequest {
   string park_id = 1 [(buf.validate.field).string.uuid = true];
-  string name = 2 [(buf.validate.field).string = {min_len: 1, max_len: 30}];
+  string name = 2 [(buf.validate.field).string = {
+    min_len: 1
+    max_len: 30
+  }];
   string description = 3 [(buf.validate.field).string.min_len = 1];
 }
 
@@ -231,7 +243,10 @@ message GetGroupsResponse {
 
 message UpdateGroupRequest {
   string id = 1 [(buf.validate.field).string.uuid = true];
-  optional string name = 2 [(buf.validate.field).string = {min_len: 1, max_len: 30}];
+  optional string name = 2 [(buf.validate.field).string = {
+    min_len: 1
+    max_len: 30
+  }];
   optional string description = 3 [(buf.validate.field).string.min_len = 1];
 }
 
@@ -291,7 +306,10 @@ message GetDevicesByFiltersRequest {
   string park_id = 1 [(buf.validate.field).string.uuid = true];
   repeated string device_ids = 2 [(buf.validate.field).repeated.items.string.uuid = true];
   repeated string group_ids = 3 [(buf.validate.field).repeated.items.string.uuid = true];
-  optional string name = 4 [(buf.validate.field).string = {min_len: 1, max_len: 30}];
+  optional string name = 4 [(buf.validate.field).string = {
+    min_len: 1
+    max_len: 30
+  }];
   repeated string build_ids = 5 [(buf.validate.field).repeated.items.string.uuid = true];
   PaginationRequest pagination = 6;
 }
