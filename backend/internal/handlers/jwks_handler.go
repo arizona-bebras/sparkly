@@ -33,9 +33,11 @@ type jwks struct {
 func (h *JWKSHandler) GetJWKS(w http.ResponseWriter, r *http.Request) {
 	inMemoryKeys := h.service.GetPublicKeys()
 
-	publicKeys := make([]jwk, 0, len(inMemoryKeys))
+	publicKeys := jwks{
+		Keys: make([]jwk, 0, len(inMemoryKeys)),
+	}
 	for _, key := range inMemoryKeys {
-		publicKeys = append(publicKeys, jwk{
+		publicKeys.Keys = append(publicKeys.Keys, jwk{
 			Kty: "RSA",
 			Use: "sig",
 			Alg: "RS256",
