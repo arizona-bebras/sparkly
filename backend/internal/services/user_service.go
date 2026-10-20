@@ -19,7 +19,7 @@ type UserRepo interface {
 }
 
 type KeyManager interface {
-	GetCurrSignKey(ctx context.Context) (*rsa.PrivateKey, error)
+	GetCurrSignKey(ctx context.Context) (*rsa.PrivateKey, string, error)
 }
 
 type UserService struct {
@@ -29,7 +29,7 @@ type UserService struct {
 
 func NewUserService(userRepo UserRepo, KeyManager KeyManager) *UserService {
 	return &UserService{
-		repo: userRepo,
+		repo:       userRepo,
 		keyManager: KeyManager,
 	}
 }
@@ -40,7 +40,7 @@ type AuthToken struct {
 }
 
 func (s *UserService) generateTokens(ctx context.Context, id uuid.UUID, email string) (AuthToken, error) {
-	signKey, err := s.keyManager.GetCurrSignKey(ctx)
+	signKey, kid, err := s.keyManager.GetCurrSignKey(ctx)
 	if err != nil {
 		return AuthToken{}, fmt.Errorf("failed to get private key: %w", err)
 	}
@@ -55,6 +55,7 @@ func (s *UserService) generateTokens(ctx context.Context, id uuid.UUID, email st
 		"type":  "access",
 	}
 	accessToken := jwt.NewWithClaims(jwt.SigningMethodRS256, accessClaims)
+	accessToken.Header["kid"] = kid
 	accessString, err := accessToken.SignedString(signKey)
 	if err != nil {
 		return AuthToken{}, fmt.Errorf("failed to sign access token: %w", err)
@@ -68,6 +69,7 @@ func (s *UserService) generateTokens(ctx context.Context, id uuid.UUID, email st
 		"type":  "refresh",
 	}
 	refreshToken := jwt.NewWithClaims(jwt.SigningMethodRS256, refreshClaims)
+	refreshToken.Header["kid"] = kid
 	refreshString, err := refreshToken.SignedString(signKey)
 	if err != nil {
 		return AuthToken{}, fmt.Errorf("failed to sign refresh token: %w", err)

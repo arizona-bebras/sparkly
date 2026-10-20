@@ -7,12 +7,12 @@ import (
 	"sparkly/backend/internal/services"
 )
 
-type JWKSHadnelr struct {
+type JWKSHandler struct {
 	service *services.JWKSService
 }
 
-func NewJWKSHandler(s *services.JWKSService) *JWKSHadnelr {
-	return &JWKSHadnelr{
+func NewJWKSHandler(s *services.JWKSService) *JWKSHandler {
+	return &JWKSHandler{
 		service: s,
 	}
 }
@@ -30,7 +30,7 @@ type jwks struct {
 	Keys []jwk `json:"keys"`
 }
 
-func (h *JWKSHadnelr) GetJWKS(w http.ResponseWriter, r *http.Request) {
+func (h *JWKSHandler) GetJWKS(w http.ResponseWriter, r *http.Request) {
 	inMemoryKeys := h.service.GetPublicKeys()
 
 	publicKeys := make([]jwk, 0, len(inMemoryKeys))
@@ -45,9 +45,10 @@ func (h *JWKSHadnelr) GetJWKS(w http.ResponseWriter, r *http.Request) {
 		})
 	}
 
+	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(publicKeys); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		log.Printf(".well-known/jwks.json error: %w", err)
+		log.Printf(".well-known/jwks.json error: %v", err)
 		return
 	}
 }

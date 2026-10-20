@@ -5,9 +5,12 @@ import (
 	"crypto/rand"
 	"crypto/rsa"
 	"fmt"
-	"sparkly/backend/internal/domain"
 	"sync"
 	"time"
+
+	"sparkly/backend/internal/domain"
+
+	"golang.org/x/sync/singleflight"
 )
 
 type JWKSRepo interface {
@@ -26,40 +29,8 @@ type JWKSService struct {
 	currentKID   string
 	inMemoryKeys map[string]domain.JWK
 	repo         JWKSRepo
-}
 
-func NewJWKSService(repo JWKSRepo) (*JWKSService, error) {
-	s := &JWKSService{
-		repo:         repo,
-		inMemoryKeys: make(map[string]domain.JWK),
-	}
-	
-	ctx := context.Background()
-	keys, err := repo.GetActualKeys(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get keys: %v")
-	}
-	now := time.Now()
-	var latestActive *domain.JWK
-	for _, k := range keys {
-		s.inMemoryKeys[k.KID] = k
-
-		if k.SignUntil.After(now) {
-			if latestActive == nil || k.SignUntil.After(latestActive.CreatedAt.Add(domain.PRIVATE_KEY_SIGNING_PERIOD)) {
-				keyCopy := k
-				latestActive = &keyCopy
-			}
-		}
-	}
-	if latestActive != nil {
-		s.currentKID = latestActive.KID
-	} else {
-		err := s.generateNewKey(ctx); 
-		if err != nil {
-			return nil, fmt.Errorf("failed to generate initial key: %w", err)
-		}
-	}
-	return s, nil
+	rotationGroup singleflight.Group
 }
 
 func (r *JWKSService) generateNewKey(ctx context.Context) error {
@@ -79,6 +50,40 @@ func (r *JWKSService) generateNewKey(ctx context.Context) error {
 	return nil
 }
 
+func NewJWKSService(repo JWKSRepo) (*JWKSService, error) {
+	s := &JWKSService{
+		repo:         repo,
+		inMemoryKeys: make(map[string]domain.JWK),
+	}
+
+	ctx := context.Background()
+	keys, err := repo.GetActualKeys(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get keys: %v", err)
+	}
+	now := time.Now()
+	var latestActive *domain.JWK
+	for _, k := range keys {
+		s.inMemoryKeys[k.KID] = k
+
+		if k.SignUntil.After(now) {
+			if latestActive == nil || k.SignUntil.After(latestActive.CreatedAt.Add(domain.PRIVATE_KEY_SIGNING_PERIOD)) {
+				keyCopy := k
+				latestActive = &keyCopy
+			}
+		}
+	}
+	if latestActive != nil {
+		s.currentKID = latestActive.KID
+	} else {
+		err := s.generateNewKey(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("failed to generate initial key: %w", err)
+		}
+	}
+	return s, nil
+}
+
 func (s *JWKSService) GetPublicKeys() []domain.JWK {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
@@ -95,27 +100,45 @@ func (s *JWKSService) GetPublicKeys() []domain.JWK {
 	return keys
 }
 
-func (s *JWKSService) GetCurrSignKey(ctx context.Context) (*rsa.PrivateKey, error) {
+func (s *JWKSService) GetCurrSignKey(ctx context.Context) (*rsa.PrivateKey, string, error) {
 	s.mu.RLock()
 	currentKey, exists := s.inMemoryKeys[s.currentKID]
-
 	if exists && time.Now().Before(currentKey.SignUntil) {
 		key := currentKey.Private
+		kid := s.currentKID
 		s.mu.RUnlock()
-		return key, nil
+		return key, kid, nil
 	}
+	expiredKID := s.currentKID
 	s.mu.RUnlock()
 
-	s.mu.Lock()
-	defer s.mu.Unlock()
+	res, err, _ := s.rotationGroup.Do(expiredKID, func() (any, error) {
+		s.mu.RLock()
+		if curr, ok := s.inMemoryKeys[s.currentKID]; ok && time.Now().Before(curr.SignUntil) {
+			s.mu.RUnlock()
+			return curr, nil
+		}
+		s.mu.RUnlock()
 
-	if currentKey, exists = s.inMemoryKeys[s.currentKID]; exists && time.Now().Before(currentKey.SignUntil) {
-		return currentKey.Private, nil
-	}
+		newRSAKey, err := rsa.GenerateKey(rand.Reader, domain.KEY_SIZE)
+		if err != nil {
+			return nil, fmt.Errorf("failed to generate rsa key: %w", err)
+		}
 
-	err := s.generateNewKey(ctx)
+		savedKey, err := s.repo.SaveKey(ctx, newRSAKey)
+		if err != nil {
+			return nil, fmt.Errorf("failed to save key: %w", err)
+		}
+
+		s.mu.Lock()
+		s.inMemoryKeys[savedKey.KID] = savedKey
+		s.currentKID = savedKey.KID
+		s.mu.Unlock()
+		return savedKey, nil
+	})
 	if err != nil {
-		return nil, fmt.Errorf("failed to rotate key: %w", err)
+		return nil, "", err
 	}
-	return s.inMemoryKeys[s.currentKID].Private, nil
+	activeKey := res.(domain.JWK)
+	return activeKey.Private, activeKey.KID, nil
 }

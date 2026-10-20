@@ -11,11 +11,11 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"math/big"
 	"os"
 	"sparkly/backend/internal/db/models"
 	"sparkly/backend/internal/domain"
 	"time"
-	"math/big"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -34,8 +34,8 @@ type inMemoryKey struct {
 }
 
 type JWKSRepo struct {
-	masterKey    []byte
-	db           *gorm.DB
+	masterKey []byte
+	db        *gorm.DB
 }
 
 func (km *JWKSRepo) encryptPrivateKey(privKey *rsa.PrivateKey) ([]byte, error) {
@@ -98,8 +98,8 @@ func NewJWKSRepo(db *gorm.DB) (*JWKSRepo, error) {
 		return nil, errors.New("JWKS_MASTER_KEY must be 32 bytes")
 	}
 	r := &JWKSRepo{
-		masterKey:    []byte(masterKey),
-		db:           db,
+		masterKey: []byte(masterKey),
+		db:        db,
 	}
 
 	return r, nil
@@ -121,13 +121,13 @@ func (r *JWKSRepo) GetActualKeys(ctx context.Context) ([]domain.JWK, error) {
 		publicKey := privateKey.Public().(*rsa.PublicKey)
 		eBytes := big.NewInt(int64(publicKey.E)).Bytes()
 		keys[i] = domain.JWK{
-			KID: key.KID,
-			N: base64.URLEncoding.EncodeToString(publicKey.N.Bytes()),
-			E: base64.RawURLEncoding.EncodeToString(eBytes),
+			KID:       key.KID,
+			N:         base64.RawURLEncoding.EncodeToString(publicKey.N.Bytes()),
+			E:         base64.RawURLEncoding.EncodeToString(eBytes),
 			CreatedAt: key.CreatedAt,
 			ExpiresAt: key.ExpiresAt,
 			SignUntil: key.CreatedAt.Add(domain.PRIVATE_KEY_SIGNING_PERIOD),
-			Private: privateKey,
+			Private:   privateKey,
 		}
 	}
 
@@ -154,19 +154,19 @@ func (r *JWKSRepo) SaveKey(ctx context.Context, key *rsa.PrivateKey) (domain.JWK
 		ExpiresAt:    time.Now().Add(domain.PRIVATE_KEY_LIFETIME),
 	}
 
-	if err = r.db.Create(savedKey).Error; err != nil {
+	if err = r.db.WithContext(ctx).Create(savedKey).Error; err != nil {
 		return domain.JWK{}, fmt.Errorf("failed to write generated key %w", err)
 	}
 
 	publicKey := key.Public().(*rsa.PublicKey)
 	eBytes := big.NewInt(int64(publicKey.E)).Bytes()
 	return domain.JWK{
-		KID: savedKey.KID,
-		N: base64.URLEncoding.EncodeToString(publicKey.N.Bytes()),
-		E: base64.RawURLEncoding.EncodeToString(eBytes),
+		KID:       savedKey.KID,
+		N:         base64.RawURLEncoding.EncodeToString(publicKey.N.Bytes()),
+		E:         base64.RawURLEncoding.EncodeToString(eBytes),
 		CreatedAt: savedKey.CreatedAt,
 		ExpiresAt: savedKey.ExpiresAt,
 		SignUntil: savedKey.CreatedAt.Add(domain.PRIVATE_KEY_SIGNING_PERIOD),
-		Private: key,
+		Private:   key,
 	}, nil
 }

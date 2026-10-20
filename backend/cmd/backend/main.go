@@ -4,7 +4,6 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"sync"
 
 	"connectrpc.com/connect/v2"
 	"connectrpc.com/connect/v2/connecthttp"
@@ -63,7 +62,11 @@ func main() {
 		log.Fatalf("db init failed: %v", err)
 	}
 
-	jwksServer := http.NewServeMux()
+	server := connect.NewServer(
+		validate.NewServerInterceptor(),
+		metadata.NewAuthInterceptor(),
+	)
+
 	jwksRepo, err := repos.NewJWKSRepo(db)
 	if err != nil {
 		log.Fatalf("failed to init keys repo: %v", err)
@@ -73,12 +76,6 @@ func main() {
 		log.Fatalf("failed to initialize jwks: %v", err)
 	}
 	jwksHandler := handlers.NewJWKSHandler(jwksService)
-	jwksServer.HandleFunc("GET /.well-known/jwks.json", jwksHandler.GetJWKS)
-
-	server := connect.NewServer(
-		validate.NewServerInterceptor(),
-		metadata.NewAuthInterceptor(),
-	)
 
 	userRepo := repos.NewUserRepo(db)
 	userService := services.NewUserService(userRepo, jwksService)
@@ -91,17 +88,10 @@ func main() {
 	backendv1connect.RegisterParkServiceHandler(server, parkHandler)
 
 	mux := http.NewServeMux()
+
+	mux.HandleFunc("GET /.well-known/jwks.json", jwksHandler.GetJWKS)
 	connecthttp.Mount(mux, server)
 
-	wg := sync.WaitGroup{}
-	wg.Go(func() {
-		log.Printf("Connect server listening on :%s", env.MAIN_PORT)
-		log.Fatalf("server failed: %v", http.ListenAndServe(":"+env.MAIN_PORT, mux))
-	})
-	wg.Go(func() {
-		log.Printf("HTTP JWKS server listening on :%s", env.JWKS_PORT)
-		log.Fatalf("server failed: %v", http.ListenAndServe(":"+env.JWKS_PORT, jwksServer))
-	})
-
-	wg.Wait()
+	log.Printf("Connect server listening on :%s", env.MAIN_PORT)
+	log.Fatalf("server failed: %v", http.ListenAndServe(":"+env.MAIN_PORT, mux))
 }
