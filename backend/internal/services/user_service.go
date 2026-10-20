@@ -19,7 +19,7 @@ type UserRepo interface {
 }
 
 type KeyManager interface {
-	GetPrivateKey() (*rsa.PrivateKey, error)
+	GetCurrSignKey(ctx context.Context) (*rsa.PrivateKey, error)
 }
 
 type UserService struct {
@@ -39,8 +39,8 @@ type AuthToken struct {
 	Refresh string
 }
 
-func (s *UserService) generateTokens(id uuid.UUID, email string) (AuthToken, error) {
-	signKey, err := s.keyManager.GetPrivateKey()
+func (s *UserService) generateTokens(ctx context.Context, id uuid.UUID, email string) (AuthToken, error) {
+	signKey, err := s.keyManager.GetCurrSignKey(ctx)
 	if err != nil {
 		return AuthToken{}, fmt.Errorf("failed to get private key: %w", err)
 	}
@@ -90,7 +90,7 @@ func (s *UserService) Reg(ctx context.Context, email string, password string) (d
 		return domain.User{}, AuthToken{}, fmt.Errorf("registration failed: %w", err)
 	}
 
-	tokens, err := s.generateTokens(user.ID, user.Email)
+	tokens, err := s.generateTokens(ctx, user.ID, user.Email)
 	if err != nil {
 		return domain.User{}, AuthToken{}, fmt.Errorf("failed to generate tokens: %w", err)
 	}
@@ -109,7 +109,7 @@ func (s *UserService) GetTokens(ctx context.Context, email string, password stri
 		return domain.User{}, AuthToken{}, fmt.Errorf("auth failed: %w", domain.ErrWrongPassword)
 	}
 
-	tokens, err := s.generateTokens(user.ID, user.Email)
+	tokens, err := s.generateTokens(ctx, user.ID, user.Email)
 	if err != nil {
 		return domain.User{}, AuthToken{}, fmt.Errorf("failed to generate tokens: %w", err)
 	}

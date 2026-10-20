@@ -31,7 +31,7 @@ type jwks struct {
 }
 
 func (h *JWKSHadnelr) GetJWKS(w http.ResponseWriter, r *http.Request) {
-	inMemoryKeys := h.service.GetKeys()
+	inMemoryKeys := h.service.GetPublicKeys()
 
 	publicKeys := make([]jwk, 0, len(inMemoryKeys))
 	for _, key := range inMemoryKeys {

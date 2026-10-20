@@ -68,7 +68,10 @@ func main() {
 	if err != nil {
 		log.Fatalf("failed to init keys repo: %v", err)
 	}
-	jwksService := services.NewJWKSService(jwksRepo)
+	jwksService, err := services.NewJWKSService(jwksRepo)
+	if err != nil {
+		log.Fatalf("failed to initialize jwks: %v", err)
+	}
 	jwksHandler := handlers.NewJWKSHandler(jwksService)
 	jwksServer.HandleFunc("GET /.well-known/jwks.json", jwksHandler.GetJWKS)
 
@@ -78,7 +81,7 @@ func main() {
 	)
 
 	userRepo := repos.NewUserRepo(db)
-	userService := services.NewUserService(userRepo, jwksRepo)
+	userService := services.NewUserService(userRepo, jwksService)
 	userHandler := handlers.NewUserHandler(userService)
 	backendv1connect.RegisterUserServiceHandler(server, userHandler)
 
