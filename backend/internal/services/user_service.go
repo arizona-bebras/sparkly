@@ -53,7 +53,7 @@ func (s *UserService) generateTokens(ctx context.Context, id uuid.UUID, email st
 	accessClaims := jwt.MapClaims{
 		"id":    userID.String(),
 		"email": email,
-		"exp":   now.Add(24 * time.Hour).Unix(),
+		"exp":   now.Add(domain.ACCESS_TOKEN_LIFETIME).Unix(),
 		"iat":   now.Unix(),
 		"type":  "access",
 	}
@@ -71,7 +71,7 @@ func (s *UserService) generateTokens(ctx context.Context, id uuid.UUID, email st
 	refreshClaims := jwt.MapClaims{
 		"token_id": tokenID.String(),
 		"user_id":  userID.String(),
-		"exp":      now.Add(7 * 24 * time.Hour).Unix(),
+		"exp":      now.Add(domain.REFRESH_TOKEN_LIFETIME).Unix(),
 		"iat":      now.Unix(),
 		"type":     "refresh",
 	}
@@ -143,7 +143,7 @@ func (s *UserService) genNewAccessToken(userID uuid.UUID, email string) (string,
 	accessClaims := jwt.MapClaims{
 		"id":    userID.String(),
 		"email": email,
-		"exp":   now.Add(24 * time.Hour).Unix(),
+		"exp":   now.Add(domain.ACCESS_TOKEN_LIFETIME).Unix(),
 		"iat":   now.Unix(),
 		"type":  "access",
 	}

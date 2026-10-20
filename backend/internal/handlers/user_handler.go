@@ -5,6 +5,7 @@ import (
 	"errors"
 	"log"
 	"net/http"
+	"time"
 
 	"connectrpc.com/connect/v2"
 
@@ -69,6 +70,7 @@ func (h *UserHandler) Reg(ctx context.Context, r *pb.RegRequest) (*pb.RegRespons
 		Email:        user.Email,
 		Token:        token.Access,
 		RefreshToken: token.Refresh,
+		ExpiresIn:    time.Now().Add(time.Duration(accessCookie.MaxAge * int(time.Second))).Unix(),
 	}, nil
 }
 
@@ -118,6 +120,7 @@ func (h *UserHandler) GetToken(ctx context.Context, r *pb.GetTokenRequest) (*pb.
 		Email:        user.Email,
 		Token:        token.Access,
 		RefreshToken: token.Refresh,
+		ExpiresIn:    time.Now().Add(time.Duration(accessCookie.MaxAge * int(time.Second))).Unix(),
 	}, nil
 }
 
@@ -151,7 +154,7 @@ func (h *UserHandler) RefreshToken(ctx context.Context, r *pb.RefreshTokenReques
 		Path:     "/",
 		HttpOnly: true,
 		SameSite: http.SameSiteLaxMode,
-		MaxAge:   int(domain.ACCESS_TOKEN_LIFETIME),
+		MaxAge:   int(domain.ACCESS_TOKEN_LIFETIME / 1000),
 		// Secure: true,
 	}
 	refreshCookie := &http.Cookie{
@@ -160,7 +163,7 @@ func (h *UserHandler) RefreshToken(ctx context.Context, r *pb.RefreshTokenReques
 		Path:     "/",
 		HttpOnly: true,
 		SameSite: http.SameSiteLaxMode,
-		MaxAge:   int(domain.REFRESH_TOKEN_LIFETIME),
+		MaxAge:   int(domain.REFRESH_TOKEN_LIFETIME / 1000),
 		// Secure: true,
 	}
 	callInfo.ResponseHeader().Add("Set-Cookie", accessCookie.String())
@@ -170,6 +173,7 @@ func (h *UserHandler) RefreshToken(ctx context.Context, r *pb.RefreshTokenReques
 		Email:        user.Email,
 		Token:        token.Access,
 		RefreshToken: token.Refresh,
+		ExpiresIn:    time.Now().Add(time.Duration(accessCookie.MaxAge * int(time.Second))).Unix(),
 	}, nil
 }
 

@@ -132,6 +132,7 @@ message RefreshTokenResponse {
   string email = 1;
   string token = 2;
   string refresh_token = 3;
+  int64 expires_in = 4;
 }
 
 message RevokeTokenRequest {
