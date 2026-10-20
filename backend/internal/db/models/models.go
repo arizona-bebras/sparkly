@@ -134,3 +134,25 @@ type Release struct {
 func (Release) TableName() string {
 	return "releases"
 }
+
+type KeyStatus string
+
+const (
+	KeyStatusActive  KeyStatus = "active"
+	KeyStatusRotated KeyStatus = "rotated"
+	KeyStatusRevoked KeyStatus = "revoked"
+)
+
+type SigningKey struct {
+	ID           uuid.UUID `gorm:"type:uuid;primaryKey"`
+	KID          string    `gorm:"type:varchar(64);uniqueIndex;not null"`
+	EncryptedKey []byte    `gorm:"type:bytea;not null"`
+	Algorithm    string    `gorm:"type:varchar(16);not null"`
+	Status       KeyStatus `gorm:"type:varchar(7);not null'default:active"`
+	CreatedAt    time.Time `gorm:"not null"`
+	ExpiresAt    time.Time `gorm:"not null"`
+}
+
+func (SigningKey) TableName() string {
+	return "signing_keys"
+}
