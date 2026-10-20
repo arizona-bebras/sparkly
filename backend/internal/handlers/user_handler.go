@@ -51,7 +51,7 @@ func (h *UserHandler) Reg(ctx context.Context, r *pb.RegRequest) (*pb.RegRespons
 		Path:     "/",
 		HttpOnly: true,
 		SameSite: http.SameSiteLaxMode,
-		MaxAge:   int(domain.ACCESS_TOKEN_LIFETIME),
+		MaxAge:   int(domain.ACCESS_TOKEN_LIFETIME / 1000),
 		// Secure: true,
 	}
 	refreshCookie := &http.Cookie{
@@ -60,7 +60,7 @@ func (h *UserHandler) Reg(ctx context.Context, r *pb.RegRequest) (*pb.RegRespons
 		Path:     "/",
 		HttpOnly: true,
 		SameSite: http.SameSiteLaxMode,
-		MaxAge:   int(domain.REFRESH_TOKEN_LIFETIME),
+		MaxAge:   int(domain.REFRESH_TOKEN_LIFETIME / 1000),
 		// Secure: true,
 	}
 	callInfo.ResponseHeader().Add("Set-Cookie", accessCookie.String())
@@ -101,7 +101,7 @@ func (h *UserHandler) GetToken(ctx context.Context, r *pb.GetTokenRequest) (*pb.
 		Path:     "/",
 		HttpOnly: true,
 		SameSite: http.SameSiteLaxMode,
-		MaxAge:   int(domain.ACCESS_TOKEN_LIFETIME),
+		MaxAge:   int(domain.ACCESS_TOKEN_LIFETIME / 1000),
 		// Secure: true,
 	}
 	refreshCookie := &http.Cookie{
@@ -110,7 +110,7 @@ func (h *UserHandler) GetToken(ctx context.Context, r *pb.GetTokenRequest) (*pb.
 		Path:     "/",
 		HttpOnly: true,
 		SameSite: http.SameSiteLaxMode,
-		MaxAge:   int(domain.REFRESH_TOKEN_LIFETIME),
+		MaxAge:   int(domain.REFRESH_TOKEN_LIFETIME / 1000),
 		// Secure: true,
 	}
 	callInfo.ResponseHeader().Add("Set-Cookie", accessCookie.String())
@@ -137,6 +137,9 @@ func (h *UserHandler) RefreshToken(ctx context.Context, r *pb.RefreshTokenReques
 		}
 		if errors.Is(err, domain.ErrRevokedRefreshToken) {
 			return nil, connect.NewError(connect.CodeInvalidArgument, "token has been revoked")
+		}
+		if errors.Is(err, domain.ErrExpiredRefreshToken) {
+			return nil, connect.NewError(connect.CodeUnauthenticated, "token expired")
 		}
 		log.Printf("UserService/RefreshToken error: %v", err)
 		return nil, connect.NewError(connect.CodeInternal, "internal error")
