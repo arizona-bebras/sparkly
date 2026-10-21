@@ -162,7 +162,6 @@ type RefreshToken struct {
 	ID        uuid.UUID `gorm:"type:uuid;primaryKey"`
 	UserID    uuid.UUID `gorm:"type:uuid;not null;index"`
 	User      User      `gorm:"foreignKey:UserID;references:ID"`
-	Token     string
 	Revoked   bool
 	CreatedAt time.Time
 	ExpiresAt time.Time
@@ -175,7 +174,6 @@ func (RefreshToken) TableName() string {
 func (t *RefreshToken) ToDomain() domain.RefreshToken {
 	return domain.RefreshToken{
 		ID:        t.ID,
-		Token:     t.Token,
 		Revoked:   t.Revoked,
 		ExpiresAt: t.ExpiresAt,
 	}

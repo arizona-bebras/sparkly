@@ -51,7 +51,7 @@ func (h *UserHandler) Reg(ctx context.Context, r *pb.RegRequest) (*pb.RegRespons
 		Path:     "/",
 		HttpOnly: true,
 		SameSite: http.SameSiteLaxMode,
-		MaxAge:   int(domain.ACCESS_TOKEN_LIFETIME / 1000),
+		MaxAge:   int(domain.ACCESS_TOKEN_LIFETIME / time.Second),
 		// Secure: true,
 	}
 	refreshCookie := &http.Cookie{
@@ -60,7 +60,7 @@ func (h *UserHandler) Reg(ctx context.Context, r *pb.RegRequest) (*pb.RegRespons
 		Path:     "/",
 		HttpOnly: true,
 		SameSite: http.SameSiteLaxMode,
-		MaxAge:   int(domain.REFRESH_TOKEN_LIFETIME / 1000),
+		MaxAge:   int(domain.REFRESH_TOKEN_LIFETIME / time.Second),
 		// Secure: true,
 	}
 	callInfo.ResponseHeader().Add("Set-Cookie", accessCookie.String())
@@ -101,7 +101,7 @@ func (h *UserHandler) GetToken(ctx context.Context, r *pb.GetTokenRequest) (*pb.
 		Path:     "/",
 		HttpOnly: true,
 		SameSite: http.SameSiteLaxMode,
-		MaxAge:   int(domain.ACCESS_TOKEN_LIFETIME / 1000),
+		MaxAge:   int(domain.ACCESS_TOKEN_LIFETIME / time.Second),
 		// Secure: true,
 	}
 	refreshCookie := &http.Cookie{
@@ -110,7 +110,7 @@ func (h *UserHandler) GetToken(ctx context.Context, r *pb.GetTokenRequest) (*pb.
 		Path:     "/",
 		HttpOnly: true,
 		SameSite: http.SameSiteLaxMode,
-		MaxAge:   int(domain.REFRESH_TOKEN_LIFETIME / 1000),
+		MaxAge:   int(domain.REFRESH_TOKEN_LIFETIME / time.Second),
 		// Secure: true,
 	}
 	callInfo.ResponseHeader().Add("Set-Cookie", accessCookie.String())
@@ -157,26 +157,16 @@ func (h *UserHandler) RefreshToken(ctx context.Context, r *pb.RefreshTokenReques
 		Path:     "/",
 		HttpOnly: true,
 		SameSite: http.SameSiteLaxMode,
-		MaxAge:   int(domain.ACCESS_TOKEN_LIFETIME / 1000),
+		MaxAge:   int(domain.ACCESS_TOKEN_LIFETIME / time.Second),
 		// Secure: true,
 	}
-	refreshCookie := &http.Cookie{
-		Name:     "refresh_token",
-		Value:    token.Refresh,
-		Path:     "/",
-		HttpOnly: true,
-		SameSite: http.SameSiteLaxMode,
-		MaxAge:   int(domain.REFRESH_TOKEN_LIFETIME / 1000),
-		// Secure: true,
-	}
+
 	callInfo.ResponseHeader().Add("Set-Cookie", accessCookie.String())
-	callInfo.ResponseHeader().Add("Set-Cookie", refreshCookie.String())
 
 	return &pb.RefreshTokenResponse{
-		Email:        user.Email,
-		Token:        token.Access,
-		RefreshToken: token.Refresh,
-		ExpiresIn:    time.Now().Add(time.Duration(accessCookie.MaxAge * int(time.Second))).Unix(),
+		Email:     user.Email,
+		Token:     token.Access,
+		ExpiresIn: time.Now().Add(time.Duration(accessCookie.MaxAge * int(time.Second))).Unix(),
 	}, nil
 }
 

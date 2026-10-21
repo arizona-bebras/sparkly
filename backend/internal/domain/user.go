@@ -19,7 +19,6 @@ type User struct {
 
 type RefreshToken struct {
 	ID        uuid.UUID
-	Token     string
 	Revoked   bool
 	ExpiresAt time.Time
 }

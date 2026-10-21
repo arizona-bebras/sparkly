@@ -59,11 +59,10 @@ func (r *UserRepo) GetUser(ctx context.Context, email string) (domain.User, erro
 	return user.ToDomain(), nil
 }
 
-func (r *UserRepo) WriteRefreshToken(ctx context.Context, refreshString string, tokenID, userID uuid.UUID) error {
+func (r *UserRepo) WriteRefreshToken(ctx context.Context, tokenID, userID uuid.UUID) error {
 	token := models.RefreshToken{
 		ID:        tokenID,
 		UserID:    userID,
-		Token:     refreshString,
 		Revoked:   false,
 		CreatedAt: time.Now(),
 		ExpiresAt: time.Now().Add(domain.REFRESH_TOKEN_LIFETIME),
@@ -88,12 +87,10 @@ func (r *UserRepo) GetRefreshToken(ctx context.Context, tokenID uuid.UUID) (doma
 }
 
 func (r *UserRepo) RevokeRefreshToken(ctx context.Context, tokenID uuid.UUID) error {
-	token := models.RefreshToken{
-		ID: tokenID,
-	}
+	var token models.RefreshToken
 
 	err := r.db.Transaction(func(tx *gorm.DB) error {
-		if err := tx.WithContext(ctx).First(&token).Error; err != nil {
+		if err := tx.WithContext(ctx).First(&token, "id = ?", tokenID).Error; err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
 				return domain.ErrTokenNotFound
 			}

@@ -16,7 +16,7 @@ import (
 type UserRepo interface {
 	WriteNewUser(ctx context.Context, email, hashedPassword string) (domain.User, error)
 	GetUser(ctx context.Context, email string) (domain.User, error)
-	WriteRefreshToken(ctx context.Context, refreshString string, tokenID, userID uuid.UUID) error
+	WriteRefreshToken(ctx context.Context, tokenID, userID uuid.UUID) error
 	GetRefreshToken(ctx context.Context, tokenID uuid.UUID) (domain.User, domain.RefreshToken, error)
 	RevokeRefreshToken(ctx context.Context, tokenID uuid.UUID) error
 }
@@ -82,7 +82,7 @@ func (s *UserService) generateTokens(ctx context.Context, id uuid.UUID, email st
 		return AuthToken{}, fmt.Errorf("failed to sign refresh token: %w", err)
 	}
 
-	err = s.repo.WriteRefreshToken(ctx, refreshString, tokenID, userID)
+	err = s.repo.WriteRefreshToken(ctx, tokenID, userID)
 	if err != nil {
 		return AuthToken{}, fmt.Errorf("failed to write token: %w", err)
 	}
@@ -181,8 +181,7 @@ func (s *UserService) RefreshToken(ctx context.Context, tokenIDStr string) (doma
 	}
 
 	return user, AuthToken{
-		Access:  newAccessToken,
-		Refresh: refreshToken.Token,
+		Access: newAccessToken,
 	}, nil
 }
 
