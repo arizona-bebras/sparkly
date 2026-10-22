@@ -31,12 +31,12 @@ func (r *DevicesRepo) CreateDevice(ctx context.Context, parkTokenHash, deviceTok
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return domain.ErrParkNotFound
 		}
-		return fmt.Errorf("failed to write device to db: %w")
+		return fmt.Errorf("failed to write device to db: %w", err)
 	}
 
 	id, err := uuid.NewV7()
 	if err != nil {
-		fmt.Errorf("failed to generate id for device: %w", err)
+		return fmt.Errorf("failed to generate id for device: %w", err)
 	}
 	device := models.Device{
 		ID:        id,

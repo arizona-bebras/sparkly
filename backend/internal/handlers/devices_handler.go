@@ -37,8 +37,11 @@ func (h *DevicesHandler) RegDevice(w http.ResponseWriter, r *http.Request) {
 	if err := json.NewDecoder(r.Body).Decode(&parkToken); err != nil {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusBadRequest)
-		_, err := w.Write([]byte("invalid body"))
-		if err != nil {
+		encodeErr := json.NewEncoder(w).Encode(errorResponse{
+			StatusCode: http.StatusBadRequest,
+			Msg:        err.Error(),
+		})
+		if encodeErr != nil {
 			log.Printf("/devices/reg error: %v", err)
 		}
 		return
@@ -55,9 +58,10 @@ func (h *DevicesHandler) RegDevice(w http.ResponseWriter, r *http.Request) {
 			if encodeErr != nil {
 				log.Printf("/devices/reg error: %v", err)
 			}
-			return
+		} else {
+			w.WriteHeader(http.StatusInternalServerError)
+			log.Printf("/devices/reg error: %v", err)
 		}
-		log.Printf("/devices/reg error: %v", err)
 		return
 	}
 
