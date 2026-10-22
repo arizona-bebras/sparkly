@@ -1,7 +1,13 @@
+import { timestampFromDate } from '@bufbuild/protobuf/wkt';
 import { Code, ConnectError, createClient, createRouterTransport } from '@connectrpc/connect';
 // import { createConnectTransport } from "@connectrpc/connect-web";
 // import { PUBLIC_API_BASE_URL } from "$env/static/public";
-import { ParkService, UserService } from './gen/backend/proto/service_pb';
+import {
+  DeviceService,
+  ParkService,
+  UserService,
+  type Device,
+} from './gen/backend/proto/service_pb';
 
 // Тип для элементов мока парка
 interface MockPark {
@@ -26,6 +32,100 @@ const mockParks: MockPark[] = [
     name: 'Северный терминал',
     description: 'Терминал в северной промзоне',
     deviceCount: 2,
+  },
+];
+
+// Тип для элементов мока устройства
+interface MockDevice {
+  id: string;
+  name: string;
+  parkId: string;
+  groupIds: string[];
+  ipAddress: string;
+  joinedAt?: ReturnType<typeof timestampFromDate>;
+  lastSeenAt?: ReturnType<typeof timestampFromDate>;
+  createdAt?: ReturnType<typeof timestampFromDate>;
+  updatedAt?: ReturnType<typeof timestampFromDate>;
+}
+
+// In-memory хранилище для устройств
+const mockDevices: MockDevice[] = [
+  {
+    id: 'dev-1',
+    name: 'Касса #1 (Главный вход)',
+    parkId: 'park-1',
+    groupIds: ['grp-1'],
+    ipAddress: '192.168.1.101',
+    joinedAt: timestampFromDate(new Date('2026-09-01T10:00:00Z')),
+    lastSeenAt: timestampFromDate(new Date()),
+    createdAt: timestampFromDate(new Date('2026-09-01T10:00:00Z')),
+    updatedAt: timestampFromDate(new Date()),
+  },
+  {
+    id: 'dev-2',
+    name: 'Турникет Восток',
+    parkId: 'park-1',
+    groupIds: ['grp-2'],
+    ipAddress: '192.168.1.102',
+    joinedAt: timestampFromDate(new Date('2026-09-05T12:30:00Z')),
+    lastSeenAt: timestampFromDate(new Date(Date.now() - 1000 * 60 * 2)),
+    createdAt: timestampFromDate(new Date('2026-09-05T12:30:00Z')),
+    updatedAt: timestampFromDate(new Date()),
+  },
+  {
+    id: 'dev-3',
+    name: 'Турникет Запад',
+    parkId: 'park-1',
+    groupIds: ['grp-2'],
+    ipAddress: '192.168.1.103',
+    joinedAt: timestampFromDate(new Date('2026-09-05T12:35:00Z')),
+    lastSeenAt: timestampFromDate(new Date(Date.now() - 1000 * 60 * 15)),
+    createdAt: timestampFromDate(new Date('2026-09-05T12:35:00Z')),
+    updatedAt: timestampFromDate(new Date()),
+  },
+  {
+    id: 'dev-4',
+    name: 'Инфокиоск Центральный',
+    parkId: 'park-1',
+    groupIds: ['grp-3'],
+    ipAddress: '192.168.1.104',
+    joinedAt: timestampFromDate(new Date('2026-09-10T08:00:00Z')),
+    lastSeenAt: timestampFromDate(new Date(Date.now() - 1000 * 60 * 60 * 3)),
+    createdAt: timestampFromDate(new Date('2026-09-10T08:00:00Z')),
+    updatedAt: timestampFromDate(new Date()),
+  },
+  {
+    id: 'dev-5',
+    name: 'Шлагбаум Въезд',
+    parkId: 'park-1',
+    groupIds: ['grp-4'],
+    ipAddress: '192.168.1.105',
+    joinedAt: timestampFromDate(new Date('2026-09-12T09:20:00Z')),
+    lastSeenAt: timestampFromDate(new Date(Date.now() - 1000 * 60 * 60 * 24)),
+    createdAt: timestampFromDate(new Date('2026-09-12T09:20:00Z')),
+    updatedAt: timestampFromDate(new Date()),
+  },
+  {
+    id: 'dev-6',
+    name: 'Терминал погрузки #1',
+    parkId: 'park-2',
+    groupIds: ['grp-5'],
+    ipAddress: '10.0.1.50',
+    joinedAt: timestampFromDate(new Date('2026-09-15T11:00:00Z')),
+    lastSeenAt: timestampFromDate(new Date()),
+    createdAt: timestampFromDate(new Date('2026-09-15T11:00:00Z')),
+    updatedAt: timestampFromDate(new Date()),
+  },
+  {
+    id: 'dev-7',
+    name: 'Контроллер ворот склад',
+    parkId: 'park-2',
+    groupIds: ['grp-5'],
+    ipAddress: '10.0.1.51',
+    joinedAt: timestampFromDate(new Date('2026-09-18T14:10:00Z')),
+    lastSeenAt: timestampFromDate(new Date(Date.now() - 1000 * 60 * 5)),
+    createdAt: timestampFromDate(new Date('2026-09-18T14:10:00Z')),
+    updatedAt: timestampFromDate(new Date()),
   },
 ];
 
@@ -192,6 +292,77 @@ const mockTransport = createRouterTransport(({ service }) => {
       return { success: true };
     },
   });
+
+  // ==================== DEVICE SERVICE MOCK ====================
+  service(DeviceService, {
+    // Получить устройство по id
+    async getDevice(req) {
+      console.log('⚡ [MOCK] getDevice:', req.id);
+      await new Promise((r) => setTimeout(r, 200));
+
+      const device = mockDevices.find((d) => d.id === req.id);
+      if (!device) {
+        throw new ConnectError('Устройство не найдено', Code.NotFound);
+      }
+      return { device };
+    },
+
+    // Получить все устройства парка с пагинацией
+    async getAllDevices(req) {
+      console.log('⚡ [MOCK] getAllDevices для parkId:', req.parkId);
+      await new Promise((r) => setTimeout(r, 300));
+
+      const parkDevices = mockDevices.filter((d) => !req.parkId || d.parkId === req.parkId);
+      const page = req.pagination?.page || 1;
+      const pageSize = req.pagination?.pageSize || 10;
+      const startIndex = (page - 1) * pageSize;
+      const paged = parkDevices.slice(startIndex, startIndex + pageSize);
+
+      return {
+        devices: paged,
+        pagination: {
+          totalItems: parkDevices.length,
+          totalPages: Math.ceil(parkDevices.length / pageSize) || 1,
+          currentPage: page,
+        },
+      };
+    },
+
+    // Получить устройства по фильтрам (по имени, ID устройств, группам)
+    async getDevicesByFilters(req) {
+      console.log('⚡ [MOCK] getDevicesByFilters:', req);
+      await new Promise((r) => setTimeout(r, 300));
+
+      let filtered = mockDevices.filter((d) => !req.parkId || d.parkId === req.parkId);
+
+      if (req.deviceIds && req.deviceIds.length > 0) {
+        filtered = filtered.filter((d) => req.deviceIds.includes(d.id));
+      }
+
+      if (req.groupIds && req.groupIds.length > 0) {
+        filtered = filtered.filter((d) => d.groupIds.some((gId) => req.groupIds.includes(gId)));
+      }
+
+      if (req.name && req.name.trim().length > 0) {
+        const search = req.name.toLowerCase();
+        filtered = filtered.filter((d) => d.name.toLowerCase().includes(search));
+      }
+
+      const page = req.pagination?.page || 1;
+      const pageSize = req.pagination?.pageSize || 10;
+      const startIndex = (page - 1) * pageSize;
+      const paged = filtered.slice(startIndex, startIndex + pageSize);
+
+      return {
+        devices: paged,
+        pagination: {
+          totalItems: filtered.length,
+          totalPages: Math.ceil(filtered.length / pageSize) || 1,
+          currentPage: page,
+        },
+      };
+    },
+  });
 });
 
 // const transport = createConnectTransport({
@@ -201,4 +372,7 @@ const mockTransport = createRouterTransport(({ service }) => {
 export const client = {
   user: createClient(UserService, mockTransport),
   park: createClient(ParkService, mockTransport),
+  device: createClient(DeviceService, mockTransport),
 };
+
+export type { Device };
