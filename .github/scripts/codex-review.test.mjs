@@ -87,7 +87,9 @@ test("renders verdict, confidence, immutable links and GitHub annotations", () =
 
 test("workflow publishes structured check titles, conclusions and inline annotations", async () => {
   const workflow = readFileSync(new URL("../workflows/codex-review.yml", import.meta.url), "utf8");
-  const script = workflow.match(/          script: \|\n((?:            .*\n|\n)+)/)?.[1];
+  const script = workflow
+    .slice(workflow.indexOf("- name: Publish check on the PR commit"))
+    .match(/          script: \|\n((?:            .*\n|\n)+)/)?.[1];
   assert.ok(script, "Publish step must contain a GitHub script");
   const publish = new (Object.getPrototypeOf(async function () {}).constructor)(
     "require",
@@ -114,11 +116,14 @@ test("workflow publishes structured check titles, conclusions and inline annotat
       sha: "a".repeat(40),
     },
   ).check;
-  for (const [report, outcome, conclusion] of [
+  for (const [report, outcome, conclusion, current = "true"] of [
     [findingReport, "success", "neutral"],
     [cleanReport, "success", "success"],
     [findingReport, "failure", "failure"],
     [null, "success", "failure"],
+    [null, "cancelled", "cancelled"],
+    [null, "skipped", "neutral", "false"],
+    [null, "skipped", "failure", ""],
   ]) {
     let check;
     await publish(
@@ -136,6 +141,7 @@ test("workflow publishes structured check titles, conclusions and inline annotat
           REVIEW_OUTPUT_DIR: "/tmp/review",
           REVIEW_OUTCOME: outcome,
           PR_HEAD_SHA: "a".repeat(40),
+          PR_HEAD_CURRENT: current,
         },
       },
       context,
@@ -153,9 +159,45 @@ test("workflow publishes structured check titles, conclusions and inline annotat
     assert.equal(check.conclusion, conclusion);
     assert.ok(!check.output.title.includes("undefined"));
     const completed = report && outcome === "success";
-    assert.equal(check.output.title, completed ? report.title : "Codex review не завершилось");
+    assert.equal(
+      check.output.title,
+      current === "false"
+        ? "Codex review superseded"
+        : completed ? report.title : "Codex review не завершилось",
+    );
     assert.deepEqual(check.output.annotations, completed ? report.annotations : []);
   }
+});
+
+test("workflow checks current PR head via the API, including old manual reruns", async () => {
+  const workflow = readFileSync(new URL("../workflows/codex-review.yml", import.meta.url), "utf8");
+  const script = workflow
+    .slice(workflow.indexOf("- name: Check PR head"))
+    .match(/          script: \|\n((?:            .*\n|\n)+)/)?.[1];
+  assert.ok(script);
+  const checkHead = new (Object.getPrototypeOf(async function () {}).constructor)(
+    "process", "context", "github", "core", script,
+  );
+  const head = "a".repeat(40);
+  for (const currentHead of [head, "b".repeat(40)]) {
+    let output;
+    await checkHead(
+      { env: { PR_NUMBER: "42", PR_HEAD_SHA: head } },
+      { repo: { owner: "owner", repo: "repo" } },
+      { rest: { pulls: { async get(request) {
+        assert.deepEqual(request, { owner: "owner", repo: "repo", pull_number: 42 });
+        return { data: { head: { sha: currentHead } } };
+      } } } },
+      { setOutput(name, value) { output = [name, value]; }, info() {} },
+    );
+    assert.deepEqual(output, ["current", String(currentHead === head)]);
+  }
+  await assert.rejects(() => checkHead(
+    { env: { PR_NUMBER: "42", PR_HEAD_SHA: head } },
+    { repo: { owner: "owner", repo: "repo" } },
+    { rest: { pulls: { async get() { throw new Error("API unavailable"); } } } },
+    { setOutput() { assert.fail("Failed API calls must not mark the head current"); } },
+  ), /API unavailable/);
 });
 
 test("escapes model-supplied markdown and keeps check summary within API limit", () => {
@@ -221,7 +263,7 @@ test("custom permissions allow snapshot reads while denying host reads, writes a
   assert.ok(!profile.includes('="write"'));
 });
 
-test("end-to-end: exposes the head snapshot and fails closed if sandbox isolation fails", () => {
+test("end-to-end: reviews the event SHA despite a stale PR ref and fails closed if isolation fails", () => {
   const temporary = mkdtempSync(join(tmpdir(), "codex-review-test-"));
   try {
     const repository = join(temporary, "repository");
@@ -252,7 +294,7 @@ test("end-to-end: exposes the head snapshot and fails closed if sandbox isolatio
     writeFileSync(join(repository, "app.js"), "export const value = 2;\n");
     git("commit", "-am", "head");
     const head = git("rev-parse", "HEAD");
-    git("update-ref", "refs/pull/1/head", head);
+    git("update-ref", "refs/pull/1/head", base);
     git("checkout", "--detach", base);
     git("remote", "add", "origin", repository);
     writeFileSync(
@@ -326,6 +368,21 @@ else {
     assert.equal(check.annotations[0].path, "app.js");
     assert.equal(check.annotations[0].start_line, 1);
     assert.match(readFileSync(join(temporary, "summary.md"), "utf8"), /Проверено/);
+    // The pull ref is not required at all; repeat with it removed.
+    git("update-ref", "-d", "refs/pull/1/head");
+    execFileSync(process.execPath, [fileURLToPath(new URL("./codex-review.mjs", import.meta.url))], {
+      cwd: repository,
+      env: {
+        ...process.env,
+        CODEX_BIN: binary,
+        PR_BASE_SHA: base,
+        PR_HEAD_SHA: head,
+        PR_NUMBER: "1",
+        REVIEW_OUTPUT_DIR: join(temporary, "no-pull-ref-output"),
+        GITHUB_REPOSITORY: "owner/repo",
+      },
+      stdio: ["ignore", "pipe", "pipe"],
+    });
     writeFileSync(`${binary}.fail-sandbox`, "fail");
     assert.throws(
       () =>
@@ -347,7 +404,7 @@ else {
         ),
       (error) => /sandbox preflight failed/.test(error.stderr.toString()),
     );
-    assert.equal(readFileSync(`${binary}.exec-count`, "utf8"), "run\n");
+    assert.equal(readFileSync(`${binary}.exec-count`, "utf8"), "run\nrun\n");
   } finally {
     rmSync(temporary, { recursive: true, force: true });
   }
