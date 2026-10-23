@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { generateKeyPairSync, sign } from 'node:crypto';
 import { spawn } from 'node:child_process';
-import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import { chmod, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { createServer } from 'node:http';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -79,14 +79,17 @@ test('Envoy routing and cookie authentication', { timeout: 90000 }, async (t) =>
   const port = await listen(reservation);
   await new Promise((resolve) => reservation.close(resolve));
   config = config.replace('port_value: 10000', `port_value: ${port}`);
-  await writeFile(join(temporary, 'envoy.yaml'), config);
-  const args = ['-c', process.env.ENVOY_BIN ? join(temporary, 'envoy.yaml') : '/test/envoy.yaml',
+  const configPath = join(temporary, 'envoy.yaml');
+  await writeFile(configPath, config);
+  // Mount the file itself: mkdtemp's 0700 directory blocks the container's envoy user.
+  await chmod(configPath, 0o644);
+  const args = ['-c', process.env.ENVOY_BIN ? configPath : '/test/envoy.yaml',
     '--concurrency', '1', '--log-level', 'warn'];
   proxy = process.env.ENVOY_BIN
     ? spawn(process.env.ENVOY_BIN, args)
     : spawn('docker', ['run', '--rm', '--network', 'host',
       '--add-host', 'host.docker.internal:host-gateway',
-      '-v', `${directory}:/etc/envoy:ro`, '-v', `${temporary}:/test:ro`, image, ...args]);
+      '-v', `${configPath}:/test/envoy.yaml:ro`, image, ...args]);
   proxy.stdout.on('data', (chunk) => { logs += chunk; });
   proxy.stderr.on('data', (chunk) => { logs += chunk; });
   let spawnError;
