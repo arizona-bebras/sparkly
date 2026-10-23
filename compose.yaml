@@ -12,6 +12,12 @@ x-hosts: &hosts
   host.docker.internal: host-gateway
 
 services:
+  envoy:
+    build: ./envoy
+    ports:
+      - "${ENVOY_PORT:-10000}:10000"
+    extra_hosts: *hosts
+
   frontend:
     build:
       context: .

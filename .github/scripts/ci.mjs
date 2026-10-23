@@ -10,6 +10,7 @@ const components = {
   agent: { runtime: 'rust', artifact: 'agent/target/debug/sparkly-agent' },
   ml: { runtime: 'python', artifact: '' },
   proto: { runtime: 'node', artifact: '' },
+  envoy: { runtime: 'node', artifact: '' },
 };
 
 const nx = (...args) =>

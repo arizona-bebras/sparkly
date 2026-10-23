@@ -5,6 +5,7 @@
 - `agent/` — Rust.
 - `ml/` — Python.
 - `analytics/` — аналитика на Go.
+- `envoy/` — gateway: маршрутизация сервисов и JWT-аутентификация из cookie.
 - `docs/` — архитектура и решения.
 
 Protobuf-контракты хранятся в каталогах `proto/` соответствующих сервисов. Задачи проектов запускаются через Nx; JavaScript-зависимости управляются pnpm.
@@ -16,7 +17,7 @@ Protobuf-контракты хранятся в каталогах `proto/` со
 ```sh
 pnpm install
 pnpm dev                       # frontend
-pnpm check                     # проверки пяти проектов и Protobuf-контрактов
+pnpm check                     # проверки проектов и Protobuf-контрактов
 pnpm build                     # frontend, backend, analytics и agent
 pnpm nx run backend:dev        # запуск отдельного проекта
 pnpm nx run ml:dev
@@ -32,6 +33,7 @@ Nx использует `project.json` в каждом проекте. Кеш Nx
 | Сервис / профиль       | Порт хоста по умолчанию    |
 | ---------------------- | -------------------------- |
 | frontend               | 3000                       |
+| envoy                  | 10000                      |
 | backend                | 8080                       |
 | analytics              | 8081                       |
 | ml                     | 8082                       |
@@ -45,6 +47,11 @@ docker compose --profile '*' up --build -d
 # Только выбранные сервисы (backend)
 docker compose --profile backend up --build -d
 ```
+
+Gateway доступен на `http://localhost:10000` (порт задаётся через `ENVOY_PORT`).
+Для frontend через gateway задайте `FRONTEND_ORIGIN=http://localhost:10000`.
+Frontend и RPC регистрации/входа публичны, остальные маршруты сервисов требуют
+cookie `access_token`.
 
 Во всех контейнерах `extra_hosts` направляет имена `frontend`, `backend`, `analytics`, `ml`, `postgres`, `clickhouse` и `host.docker.internal` на `host-gateway`. Поэтому запрос `postgres:5432` идёт через опубликованный порт хоста. Использовать `127.0.0.1` в этих записях нельзя: это loopback самого контейнера. Снаружи Docker сервисы доступны через `localhost:<порт>`; записи `extra_hosts` не меняют DNS хоста или браузера.
 

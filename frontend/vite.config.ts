@@ -4,6 +4,13 @@ import { defineConfig, lazyPlugins } from 'vite-plus';
 
 export default defineConfig({
   plugins: lazyPlugins(() => [sveltekit(), tailwindcss()]),
+  server: {
+    proxy: {
+      '^/sparkly\\.': {
+        target: 'http://localhost:10000',
+      },
+    },
+  },
   lint: {
     ignorePatterns: ['.svelte-kit/**', 'build/**', 'dist/**'],
   },

@@ -1,0 +1,143 @@
+static_resources:
+  listeners:
+    - name: ingress
+      address:
+        socket_address: {address: 0.0.0.0, port_value: 10000}
+      filter_chains:
+        - filters:
+            - name: envoy.filters.network.http_connection_manager
+              typed_config:
+                "@type": type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager
+                stat_prefix: ingress
+                normalize_path: true
+                merge_slashes: true
+                path_with_escaped_slashes_action: REJECT_REQUEST
+                codec_type: AUTO
+                route_config:
+                  name: services
+                  virtual_hosts:
+                    - name: sparkly
+                      domains: ["*"]
+                      # New service routes inherit authentication by default.
+                      typed_per_filter_config:
+                        envoy.filters.http.jwt_authn:
+                          "@type": type.googleapis.com/envoy.extensions.filters.http.jwt_authn.v3.PerRouteConfig
+                          requirement_name: access_token
+                      routes:
+                        - match: {path: /sparkly.backend.v1.UserService/Reg}
+                          route: {cluster: backend}
+                          typed_per_filter_config: &public
+                            envoy.filters.http.jwt_authn:
+                              "@type": type.googleapis.com/envoy.extensions.filters.http.jwt_authn.v3.PerRouteConfig
+                              disabled: true
+                            envoy.filters.http.rbac:
+                              "@type": type.googleapis.com/envoy.extensions.filters.http.rbac.v3.RBACPerRoute
+                        - match: {path: /sparkly.backend.v1.UserService/GetToken}
+                          route: {cluster: backend}
+                          typed_per_filter_config: *public
+                        - match: {prefix: /sparkly.backend.}
+                          route: {cluster: backend}
+                        - match: {prefix: /sparkly.analytics.}
+                          route: {cluster: analytics}
+                        - match: {prefix: /sparkly.ml.}
+                          route: {cluster: ml}
+                        - match: {prefix: /sparkly.}
+                          direct_response: {status: 404}
+                        - match: {prefix: /}
+                          route: {cluster: frontend}
+                          typed_per_filter_config: *public
+                http_filters:
+                  - name: envoy.filters.http.jwt_authn
+                    typed_config:
+                      "@type": type.googleapis.com/envoy.extensions.filters.http.jwt_authn.v3.JwtAuthentication
+                      providers:
+                        backend:
+                          from_cookies: [access_token]
+                          require_expiration: true
+                          # Envoy interprets 0 as the default 60-second skew.
+                          clock_skew_seconds: 1
+                          remote_jwks:
+                            http_uri:
+                              uri: http://backend:8080/.well-known/jwks.json
+                              cluster: backend
+                              timeout: 2s
+                            cache_duration: 300s
+                          payload_in_metadata: access_token
+                          # Envoy 1.40 strips this header even on public routes.
+                          claim_to_headers:
+                            - header_name: x-user-id
+                              claim_name: id
+                      requirement_map:
+                        access_token: {provider_name: backend}
+                  - name: envoy.filters.http.rbac
+                    typed_config:
+                      "@type": type.googleapis.com/envoy.extensions.filters.http.rbac.v3.RBAC
+                      rules:
+                        action: ALLOW
+                        policies:
+                          access_identity:
+                            permissions:
+                              - any: true
+                            principals:
+                              - and_ids:
+                                  ids:
+                                    - sourced_metadata:
+                                        metadata_source: DYNAMIC
+                                        metadata_matcher:
+                                          filter: envoy.filters.http.jwt_authn
+                                          path: [{key: access_token}, {key: id}]
+                                          value:
+                                            string_match:
+                                              safe_regex:
+                                                regex: '[^\x00-\x1f\x7f]+'
+                                    - sourced_metadata:
+                                        metadata_source: DYNAMIC
+                                        metadata_matcher:
+                                          filter: envoy.filters.http.jwt_authn
+                                          path: [{key: access_token}, {key: type}]
+                                          value:
+                                            string_match: {exact: access}
+                  - name: envoy.filters.http.router
+                    typed_config:
+                      "@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
+  clusters:
+    - name: frontend
+      type: STRICT_DNS
+      connect_timeout: 2s
+      load_assignment:
+        cluster_name: frontend
+        endpoints:
+          - lb_endpoints:
+              - endpoint:
+                  address:
+                    socket_address: {address: frontend, port_value: 3000}
+    - name: backend
+      type: STRICT_DNS
+      connect_timeout: 2s
+      load_assignment:
+        cluster_name: backend
+        endpoints:
+          - lb_endpoints:
+              - endpoint:
+                  address:
+                    socket_address: {address: backend, port_value: 8080}
+    - name: analytics
+      type: STRICT_DNS
+      connect_timeout: 2s
+      load_assignment:
+        cluster_name: analytics
+        endpoints:
+          - lb_endpoints:
+              - endpoint:
+                  address:
+                    socket_address: {address: analytics, port_value: 8081}
+    - name: ml
+      type: STRICT_DNS
+      connect_timeout: 2s
+      load_assignment:
+        cluster_name: ml
+        endpoints:
+          - lb_endpoints:
+              - endpoint:
+                  address:
+                    socket_address: {address: ml, port_value: 8082}

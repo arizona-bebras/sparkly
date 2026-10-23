@@ -31,4 +31,16 @@ Vite Plus используется для сервера разработки (`
 
 Используется `adapter-node`: результат сборки находится в `build/`, запуск из каталога frontend — `node build`. Конфигурация SvelteKit хранится в стандартном `svelte.config.js`; код приложения и Vite-конфигурация используют TypeScript.
 
-Protobuf-контракты и браузерный транспорт до backend пока не настроены.
+В режиме разработки Vite проксирует `/sparkly.*` в Envoy по адресу
+`http://localhost:10000`, сохраняя путь, cookie и ответы `Set-Cookie`.
+
+```sh
+# Запустить gateway; backend и другие upstream должны быть доступны на хосте.
+docker compose up --build -d
+pnpm nx run frontend:dev
+```
+
+Открывайте адрес Vite, обычно `http://localhost:5173`; сетевые RPC на текущий origin
+идут через Vite → Envoy → сервис без CORS и без отдельного origin для cookie.
+Клиенты в `proto/client.ts` пока используют mock transport; dev-прокси готов для
+будущих сетевых вызовов. Защищённые вызовы требуют будущего backend JWKS.
