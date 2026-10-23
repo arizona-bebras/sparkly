@@ -1,0 +1,108 @@
+name: sparkly
+
+# Service names always resolve to the Docker host, even when a profile is off.
+# Loopback (127.0.0.1) would point back to the calling container.
+x-hosts: &hosts
+  frontend: host-gateway
+  backend: host-gateway
+  analytics: host-gateway
+  ml: host-gateway
+  postgres: host-gateway
+  clickhouse: host-gateway
+  host.docker.internal: host-gateway
+
+services:
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    profiles: [frontend]
+    ports:
+      - "${FRONTEND_PORT:-3000}:3000"
+    environment:
+      HOST: 0.0.0.0
+      PORT: "3000"
+      ORIGIN: ${FRONTEND_ORIGIN:-http://localhost:3000}
+    extra_hosts: *hosts
+
+  backend:
+    build: ./backend
+    profiles: [backend]
+    depends_on: [postgres]
+    ports:
+      - "${BACKEND_PORT:-8080}:8080"
+    environment:
+      PORT: "8080"
+      POSTGRES_HOST: ${POSTGRES_HOST:-postgres}
+      POSTGRES_PORT: ${POSTGRES_PORT:-5432}
+      POSTGRES_DB: ${POSTGRES_DB:-sparkly}
+      POSTGRES_USER: ${POSTGRES_USER:-sparkly}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-sparkly}
+      JWKS_MASTER_KEY: ${JWKS_MASTER_KEY:-sparkly-unsafe-private-masterkey}
+    # PostgreSQL may still be starting, or supplied by a local dev server.
+    restart: on-failure
+    extra_hosts: *hosts
+
+  analytics:
+    build: ./analytics
+    profiles: [analytics]
+    depends_on: [clickhouse]
+    ports:
+      - "${ANALYTICS_PORT:-8081}:8081"
+    environment:
+      PORT: "8081"
+    extra_hosts: *hosts
+
+  ml:
+    build: ./ml
+    profiles: [ml]
+    ports:
+      - "${ML_PORT:-8082}:8082"
+    environment:
+      PORT: "8082"
+    extra_hosts: *hosts
+
+  postgres:
+    image: postgres:18-bookworm
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-sparkly}
+      POSTGRES_USER: ${POSTGRES_USER:-sparkly}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-sparkly}
+    volumes:
+      - postgres-data:/var/lib/postgresql
+    healthcheck:
+      test: [CMD-SHELL, 'pg_isready -U "$${POSTGRES_USER}" -d "$${POSTGRES_DB}"']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    extra_hosts: *hosts
+
+  clickhouse:
+    image: clickhouse/clickhouse-server:26.8
+    ports:
+      - "${CLICKHOUSE_HTTP_PORT:-8123}:8123"
+      - "${CLICKHOUSE_NATIVE_PORT:-9000}:9000"
+    environment:
+      CLICKHOUSE_DB: ${CLICKHOUSE_DB:-sparkly}
+      CLICKHOUSE_USER: ${CLICKHOUSE_USER:-sparkly}
+      CLICKHOUSE_PASSWORD: ${CLICKHOUSE_PASSWORD:-sparkly}
+      CLICKHOUSE_DEFAULT_ACCESS_MANAGEMENT: "1"
+    volumes:
+      - clickhouse-data:/var/lib/clickhouse
+    ulimits:
+      nofile:
+        soft: 262144
+        hard: 262144
+    healthcheck:
+      test: [CMD-SHELL, 'clickhouse-client --user "$${CLICKHOUSE_USER}" --password "$${CLICKHOUSE_PASSWORD}" --query "SELECT 1"']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    extra_hosts: *hosts
+
+volumes:
+  postgres-data: {}
+  clickhouse-data: {}
