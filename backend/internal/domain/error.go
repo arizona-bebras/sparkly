@@ -13,7 +13,8 @@ var (
 	ErrInvalidID   = errors.New("invalid id, expected UUID")
 	ErrUnknownUser = errors.New("user's ID not provided")
 
-	ErrParkNotFound = errors.New("park with this ID doesnt exists")
-
 	ErrKeyNotFound = errors.New("unknown key id")
+	ErrParkNotFound = errors.New("park with this ID ro token doesnt exists")
+
+	ErrDuplicatedDevice = errors.New("this device is already registered")
 )

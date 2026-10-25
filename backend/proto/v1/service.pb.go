@@ -1533,6 +1533,7 @@ func (x *CreateParkRequest) GetDescription() string {
 type CreateParkResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Park          *Park                  `protobuf:"bytes,1,opt,name=park,proto3" json:"park,omitempty"`
+	ParkToken     string                 `protobuf:"bytes,2,opt,name=park_token,json=parkToken,proto3" json:"park_token,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1572,6 +1573,13 @@ func (x *CreateParkResponse) GetPark() *Park {
 		return x.Park
 	}
 	return nil
+}
+
+func (x *CreateParkResponse) GetParkToken() string {
+	if x != nil {
+		return x.ParkToken
+	}
+	return ""
 }
 
 type GetParkRequest struct {
@@ -3503,9 +3511,11 @@ const file_backend_proto_service_proto_rawDesc = "" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\"]\n" +
 	"\x11CreateParkRequest\x12\x1d\n" +
 	"\x04name\x18\x01 \x01(\tB\t\xbaH\x06r\x04\x10\x01\x18\x1eR\x04name\x12)\n" +
-	"\vdescription\x18\x02 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\vdescription\"B\n" +
+	"\vdescription\x18\x02 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\vdescription\"a\n" +
 	"\x12CreateParkResponse\x12,\n" +
-	"\x04park\x18\x01 \x01(\v2\x18.sparkly.backend.v1.ParkR\x04park\"*\n" +
+	"\x04park\x18\x01 \x01(\v2\x18.sparkly.backend.v1.ParkR\x04park\x12\x1d\n" +
+	"\n" +
+	"park_token\x18\x02 \x01(\tR\tparkToken\"*\n" +
 	"\x0eGetParkRequest\x12\x18\n" +
 	"\x02id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x02id\"?\n" +
 	"\x0fGetParkResponse\x12,\n" +

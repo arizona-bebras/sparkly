@@ -49,6 +49,7 @@ type Park struct {
 	ID          uuid.UUID `gorm:"type:uuid;primaryKey"`
 	Name        string    `gorm:"not null"`
 	Description string
+	TokenHash   string    `gorm:"uniqueIndex;not null"`
 	Groups      []Group   `gorm:"foreignKey:ParkID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 	Devices     []Device  `gorm:"foreignKey:ParkID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 	Issues      []Issue   `gorm:"foreignKey:ParkID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
@@ -88,10 +89,11 @@ func (Group) TableName() string {
 }
 
 type Device struct {
-	ID       uuid.UUID `gorm:"type:uuid;primaryKey"`
-	Name     string    `gorm:"not null"`
-	ParkID   uuid.UUID `gorm:"type:uuid;not null;index"`
-	JoinedAt time.Time
+	ID        uuid.UUID `gorm:"type:uuid;primaryKey"`
+	Name      string    `gorm:"not null"`
+	ParkID    uuid.UUID `gorm:"type:uuid;not null;index"`
+	TokenHash string    `gorm:"not null"`
+	JoinedAt  time.Time
 }
 
 func (Device) TableName() string {
