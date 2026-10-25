@@ -18,10 +18,11 @@ const (
 )
 
 type User struct {
-	ID       uuid.UUID `gorm:"type:uuid;primaryKey"`
-	Email    string    `gorm:"uniqueIndex;not null"`
-	Password string    `gorm:"not null"`
-	Parks    []Park    `gorm:"many2many:user_parks;constraint:OnDelete:CASCADE;"`
+	ID            uuid.UUID      `gorm:"type:uuid;primaryKey"`
+	Email         string         `gorm:"uniqueIndex;not null"`
+	Password      string         `gorm:"not null"`
+	Parks         []Park         `gorm:"many2many:user_parks;constraint:OnDelete:CASCADE;"`
+	RefreshTokens []RefreshToken `gorm:"foreignKey:UserID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 }
 
 func (User) TableName() string {
@@ -155,4 +156,25 @@ type SigningKey struct {
 
 func (SigningKey) TableName() string {
 	return "signing_keys"
+}
+
+type RefreshToken struct {
+	ID        uuid.UUID `gorm:"type:uuid;primaryKey"`
+	UserID    uuid.UUID `gorm:"type:uuid;not null;index"`
+	User      User      `gorm:"foreignKey:UserID;references:ID"`
+	Revoked   bool
+	CreatedAt time.Time
+	ExpiresAt time.Time
+}
+
+func (RefreshToken) TableName() string {
+	return "refresh_tokens"
+}
+
+func (t *RefreshToken) ToDomain() domain.RefreshToken {
+	return domain.RefreshToken{
+		ID:        t.ID,
+		Revoked:   t.Revoked,
+		ExpiresAt: t.ExpiresAt,
+	}
 }
