@@ -1,0 +1,15 @@
+{
+  "$schema": "../node_modules/nx/schemas/project-schema.json",
+  "name": "envoy",
+  "projectType": "application",
+  "sourceRoot": "envoy",
+  "targets": {
+    "check": {
+      "executor": "nx:run-commands",
+      "cache": false,
+      "options": {
+        "command": "node --test envoy/proxy.test.mjs"
+      }
+    }
+  }
+}

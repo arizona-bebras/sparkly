@@ -377,12 +377,8 @@ function main() {
     fetchEnvironment.GIT_CONFIG_KEY_0 = `http.${process.env.GITHUB_SERVER_URL || "https://github.com"}/.extraheader`;
     fetchEnvironment.GIT_CONFIG_VALUE_0 = `AUTHORIZATION: basic ${Buffer.from(`x-access-token:${process.env.GH_TOKEN}`).toString("base64")}`;
   }
-  git(
-    ["fetch", "--no-tags", "origin", `+refs/pull/${number}/head:refs/remotes/origin/codex-review`],
-    fetchEnvironment,
-  );
-  if (git(["rev-parse", "refs/remotes/origin/codex-review"]).trim() !== head)
-    throw new Error("PR head changed; the newer run will review it");
+  // Review the immutable event commit, independently of GitHub's mutable PR refs.
+  git(["fetch", "--no-tags", "origin", head], fetchEnvironment);
   const mergeBase = git(["merge-base", base, head]).trim();
   const diffArgs = ["diff", "--no-ext-diff", "--no-textconv", "--no-renames"];
   const paths = git([...diffArgs, "--name-only", "-z", mergeBase, head])

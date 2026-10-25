@@ -20,12 +20,12 @@ import (
 
 func main() {
 	env := struct {
+		POSTGRES_HOST     string
 		POSTGRES_DB       string
 		POSTGRES_USER     string
 		POSTGRES_PASSWORD string
 		POSTGRES_PORT     string
 		MAIN_PORT         string
-		JWKS_PORT         string
 	}{}
 
 	readEnv := func() {
@@ -33,6 +33,7 @@ func main() {
 		if err != nil {
 			log.Printf("failed to load .env file: %v", err)
 		}
+		env.POSTGRES_HOST, _ = os.LookupEnv("POSTGRES_HOST")
 		env.POSTGRES_DB, _ = os.LookupEnv("POSTGRES_DB")
 		env.POSTGRES_USER, _ = os.LookupEnv("POSTGRES_USER")
 		env.POSTGRES_PASSWORD, _ = os.LookupEnv("POSTGRES_PASSWORD")
@@ -41,16 +42,11 @@ func main() {
 		if env.MAIN_PORT == "" {
 			env.MAIN_PORT = "8080"
 		}
-
-		env.JWKS_PORT, _ = os.LookupEnv("JWKS_PORT")
-		if env.JWKS_PORT == "" {
-			env.JWKS_PORT = "8081"
-		}
 	}
 	readEnv()
 
 	db, err := db.NewPostgresConn(db.DSN{
-		Host:     "localhost",
+		Host:     env.POSTGRES_HOST,
 		User:     env.POSTGRES_USER,
 		Password: env.POSTGRES_PASSWORD,
 		DBName:   env.POSTGRES_DB,

@@ -20,6 +20,7 @@ jobs:
     permissions:
       contents: read
       checks: write
+      pull-requests: read
     env:
       PR_NUMBER: ${{ github.event.pull_request.number }}
       PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
@@ -36,8 +37,23 @@ jobs:
       - uses: actions/setup-node@v6
         with:
           node-version: "22.22.2"
+      - name: Check PR head
+        id: head
+        uses: actions/github-script@v9
+        with:
+          script: |
+            const { data: pr } = await github.rest.pulls.get({
+              ...context.repo,
+              pull_number: Number(process.env.PR_NUMBER),
+            });
+            const current = pr.head.sha === process.env.PR_HEAD_SHA;
+            core.setOutput('current', String(current));
+            if (!current) {
+              core.info(`Skipping superseded review: event ${process.env.PR_HEAD_SHA}, current PR head ${pr.head.sha}.`);
+            }
       - name: Review with installed Codex CLI
         id: codex
+        if: steps.head.outputs.current == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
           CODEX_BIN: ${{ vars.CODEX_BIN }}
@@ -48,11 +64,28 @@ jobs:
         uses: actions/github-script@v9
         env:
           REVIEW_OUTCOME: ${{ steps.codex.outcome }}
+          PR_HEAD_CURRENT: ${{ steps.head.outputs.current }}
         with:
           script: |
             const fs = require('node:fs');
             const path = require('node:path');
             const runUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+            if (process.env.PR_HEAD_CURRENT === 'false') {
+              await github.rest.checks.create({
+                ...context.repo,
+                name: 'Codex PR review',
+                head_sha: process.env.PR_HEAD_SHA,
+                status: 'completed',
+                conclusion: 'neutral',
+                details_url: runUrl,
+                output: {
+                  title: 'Codex review superseded',
+                  summary: 'The PR has a newer head commit. This event commit was not reviewed.',
+                  annotations: [],
+                },
+              });
+              return;
+            }
             let report;
             try {
               report = JSON.parse(fs.readFileSync(path.join(process.env.REVIEW_OUTPUT_DIR, 'check.json'), 'utf8'));
