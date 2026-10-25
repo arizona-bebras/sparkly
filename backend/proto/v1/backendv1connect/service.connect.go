@@ -36,8 +36,10 @@ const (
 	UserServiceGetTokenProcedure = "/sparkly.backend.v1.UserService/GetToken"
 	// UserServiceCheckAuthProcedure is the procedure name of the UserService's CheckAuth RPC.
 	UserServiceCheckAuthProcedure = "/sparkly.backend.v1.UserService/CheckAuth"
-	// UserServiceRevokeSessionProcedure is the procedure name of the UserService's RevokeSession RPC.
-	UserServiceRevokeSessionProcedure = "/sparkly.backend.v1.UserService/RevokeSession"
+	// UserServiceRefreshTokenProcedure is the procedure name of the UserService's RefreshToken RPC.
+	UserServiceRefreshTokenProcedure = "/sparkly.backend.v1.UserService/RefreshToken"
+	// UserServiceRevokeTokenProcedure is the procedure name of the UserService's RevokeToken RPC.
+	UserServiceRevokeTokenProcedure = "/sparkly.backend.v1.UserService/RevokeToken"
 	// UserServiceUpdateUserProcedure is the procedure name of the UserService's UpdateUser RPC.
 	UserServiceUpdateUserProcedure = "/sparkly.backend.v1.UserService/UpdateUser"
 	// UserServiceDeleteUserProcedure is the procedure name of the UserService's DeleteUser RPC.
@@ -109,11 +111,18 @@ var (
 			Procedure:  UserServiceCheckAuthProcedure,
 		}
 	})
-	userServiceRevokeSessionSpec = sync.OnceValue(func() connect.Spec {
+	userServiceRefreshTokenSpec = sync.OnceValue(func() connect.Spec {
 		return connect.Spec{
 			StreamType: connect.StreamTypeUnary,
-			Schema:     v1.File_backend_proto_service_proto.Services().ByName("UserService").Methods().ByName("RevokeSession"),
-			Procedure:  UserServiceRevokeSessionProcedure,
+			Schema:     v1.File_backend_proto_service_proto.Services().ByName("UserService").Methods().ByName("RefreshToken"),
+			Procedure:  UserServiceRefreshTokenProcedure,
+		}
+	})
+	userServiceRevokeTokenSpec = sync.OnceValue(func() connect.Spec {
+		return connect.Spec{
+			StreamType: connect.StreamTypeUnary,
+			Schema:     v1.File_backend_proto_service_proto.Services().ByName("UserService").Methods().ByName("RevokeToken"),
+			Procedure:  UserServiceRevokeTokenProcedure,
 		}
 	})
 	userServiceUpdateUserSpec = sync.OnceValue(func() connect.Spec {
@@ -137,7 +146,8 @@ type UserServiceClient interface {
 	Reg(context.Context, *v1.RegRequest) (*v1.RegResponse, error)
 	GetToken(context.Context, *v1.GetTokenRequest) (*v1.GetTokenResponse, error)
 	CheckAuth(context.Context, *v1.CheckAuthRequest) (*v1.CheckAuthResponse, error)
-	RevokeSession(context.Context, *v1.RevokeSessionRequest) (*v1.RevokeSessionResponse, error)
+	RefreshToken(context.Context, *v1.RefreshTokenRequest) (*v1.RefreshTokenResponse, error)
+	RevokeToken(context.Context, *v1.RevokeTokenRequest) (*v1.RevokeTokenResponse, error)
 	UpdateUser(context.Context, *v1.UpdateUserRequest) (*v1.UpdateUserResponse, error)
 	DeleteUser(context.Context, *v1.DeleteUserRequest) (*v1.DeleteUserResponse, error)
 }
@@ -153,7 +163,8 @@ type UserServiceHandler interface {
 	Reg(context.Context, *v1.RegRequest) (*v1.RegResponse, error)
 	GetToken(context.Context, *v1.GetTokenRequest) (*v1.GetTokenResponse, error)
 	CheckAuth(context.Context, *v1.CheckAuthRequest) (*v1.CheckAuthResponse, error)
-	RevokeSession(context.Context, *v1.RevokeSessionRequest) (*v1.RevokeSessionResponse, error)
+	RefreshToken(context.Context, *v1.RefreshTokenRequest) (*v1.RefreshTokenResponse, error)
+	RevokeToken(context.Context, *v1.RevokeTokenRequest) (*v1.RevokeTokenResponse, error)
 	UpdateUser(context.Context, *v1.UpdateUserRequest) (*v1.UpdateUserResponse, error)
 	DeleteUser(context.Context, *v1.DeleteUserRequest) (*v1.DeleteUserResponse, error)
 }
@@ -166,7 +177,8 @@ func RegisterUserServiceHandler(server *connect.Server, svc UserServiceHandler) 
 		connect.Method{Spec: userServiceRegSpec(), Handler: adapter.reg},
 		connect.Method{Spec: userServiceGetTokenSpec(), Handler: adapter.getToken},
 		connect.Method{Spec: userServiceCheckAuthSpec(), Handler: adapter.checkAuth},
-		connect.Method{Spec: userServiceRevokeSessionSpec(), Handler: adapter.revokeSession},
+		connect.Method{Spec: userServiceRefreshTokenSpec(), Handler: adapter.refreshToken},
+		connect.Method{Spec: userServiceRevokeTokenSpec(), Handler: adapter.revokeToken},
 		connect.Method{Spec: userServiceUpdateUserSpec(), Handler: adapter.updateUser},
 		connect.Method{Spec: userServiceDeleteUserSpec(), Handler: adapter.deleteUser},
 	)
@@ -187,8 +199,12 @@ func (UnimplementedUserServiceHandler) CheckAuth(context.Context, *v1.CheckAuthR
 	return nil, connect.NewError(connect.CodeUnimplemented, "sparkly.backend.v1.UserService.CheckAuth is not implemented")
 }
 
-func (UnimplementedUserServiceHandler) RevokeSession(context.Context, *v1.RevokeSessionRequest) (*v1.RevokeSessionResponse, error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, "sparkly.backend.v1.UserService.RevokeSession is not implemented")
+func (UnimplementedUserServiceHandler) RefreshToken(context.Context, *v1.RefreshTokenRequest) (*v1.RefreshTokenResponse, error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, "sparkly.backend.v1.UserService.RefreshToken is not implemented")
+}
+
+func (UnimplementedUserServiceHandler) RevokeToken(context.Context, *v1.RevokeTokenRequest) (*v1.RevokeTokenResponse, error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, "sparkly.backend.v1.UserService.RevokeToken is not implemented")
 }
 
 func (UnimplementedUserServiceHandler) UpdateUser(context.Context, *v1.UpdateUserRequest) (*v1.UpdateUserResponse, error) {
@@ -227,9 +243,17 @@ func (c *userServiceClient) CheckAuth(ctx context.Context, req *v1.CheckAuthRequ
 	return &res, nil
 }
 
-func (c *userServiceClient) RevokeSession(ctx context.Context, req *v1.RevokeSessionRequest) (*v1.RevokeSessionResponse, error) {
-	var res v1.RevokeSessionResponse
-	if err := c.client.CallUnary(ctx, userServiceRevokeSessionSpec(), req, &res); err != nil {
+func (c *userServiceClient) RefreshToken(ctx context.Context, req *v1.RefreshTokenRequest) (*v1.RefreshTokenResponse, error) {
+	var res v1.RefreshTokenResponse
+	if err := c.client.CallUnary(ctx, userServiceRefreshTokenSpec(), req, &res); err != nil {
+		return nil, err
+	}
+	return &res, nil
+}
+
+func (c *userServiceClient) RevokeToken(ctx context.Context, req *v1.RevokeTokenRequest) (*v1.RevokeTokenResponse, error) {
+	var res v1.RevokeTokenResponse
+	if err := c.client.CallUnary(ctx, userServiceRevokeTokenSpec(), req, &res); err != nil {
 		return nil, err
 	}
 	return &res, nil
@@ -289,12 +313,24 @@ func (h userServiceHandler) checkAuth(ctx context.Context, _ connect.Spec, strea
 	return stream.Send(res)
 }
 
-func (h userServiceHandler) revokeSession(ctx context.Context, _ connect.Spec, stream connect.ServerStream) error {
-	var req v1.RevokeSessionRequest
+func (h userServiceHandler) refreshToken(ctx context.Context, _ connect.Spec, stream connect.ServerStream) error {
+	var req v1.RefreshTokenRequest
 	if err := stream.Receive(&req); err != nil {
 		return err
 	}
-	res, err := h.svc.RevokeSession(ctx, &req)
+	res, err := h.svc.RefreshToken(ctx, &req)
+	if err != nil {
+		return err
+	}
+	return stream.Send(res)
+}
+
+func (h userServiceHandler) revokeToken(ctx context.Context, _ connect.Spec, stream connect.ServerStream) error {
+	var req v1.RevokeTokenRequest
+	if err := stream.Receive(&req); err != nil {
+		return err
+	}
+	res, err := h.svc.RevokeToken(ctx, &req)
 	if err != nil {
 		return err
 	}

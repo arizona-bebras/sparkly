@@ -124,17 +124,29 @@ message GetTokenResponse {
   int64 expires_in = 4;
 }
 
+message RefreshTokenRequest {
+  string token_id = 1 [(buf.validate.field).string.uuid = true];
+}
+
+message RefreshTokenResponse {
+  string email = 1;
+  string token = 2;
+  string refresh_token = 3;
+}
+
+message RevokeTokenRequest {
+  string token_id = 1 [(buf.validate.field).string.uuid = true];
+}
+
+message RevokeTokenResponse {
+  bool success = 1;
+}
+
 message CheckAuthRequest {}
 
 message CheckAuthResponse {
   string email = 1;
   bool auth = 2;
-}
-
-message RevokeSessionRequest {}
-
-message RevokeSessionResponse {
-  bool success = 1;
 }
 
 message UpdateUserRequest {
@@ -371,7 +383,8 @@ service UserService {
   rpc Reg(RegRequest) returns (RegResponse);
   rpc GetToken(GetTokenRequest) returns (GetTokenResponse);
   rpc CheckAuth(CheckAuthRequest) returns (CheckAuthResponse);
-  rpc RevokeSession(RevokeSessionRequest) returns (RevokeSessionResponse);
+  rpc RefreshToken(RefreshTokenRequest) returns (RefreshTokenResponse);
+  rpc RevokeToken(RevokeTokenRequest) returns (RevokeTokenResponse);
 
   rpc UpdateUser(UpdateUserRequest) returns (UpdateUserResponse);
   rpc DeleteUser(DeleteUserRequest) returns (DeleteUserResponse);
