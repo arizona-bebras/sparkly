@@ -4,7 +4,7 @@ import "errors"
 
 var (
 	ErrInvalidID = errors.New("invalid id, expected UUID")
-	
+
 	ErrUserNotFound        = errors.New("user not found")
 	ErrUnknownUser         = errors.New("user's ID not provided")
 	ErrDuplicatedUser      = errors.New("this user already exists")
