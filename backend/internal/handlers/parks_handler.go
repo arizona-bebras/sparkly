@@ -26,7 +26,7 @@ func NewParkHandler(s *services.ParkService) *ParkHandler {
 
 func (h *ParkHandler) CreatePark(ctx context.Context, r *pb.CreateParkRequest) (*pb.CreateParkResponse, error) {
 	name, desc := r.GetName(), r.GetDescription()
-	park, err := h.service.CreatePark(ctx, name, desc)
+	park, parkToken, err := h.service.CreatePark(ctx, name, desc)
 	if err != nil {
 		log.Printf("ParkService/CreatePark error: %v\n", err)
 		return nil, connect.NewError(connect.CodeInternal, "internal error")
@@ -38,6 +38,7 @@ func (h *ParkHandler) CreatePark(ctx context.Context, r *pb.CreateParkRequest) (
 			Name:        park.Name,
 			Description: park.Desc,
 		},
+		ParkToken: parkToken,
 	}, nil
 }
 

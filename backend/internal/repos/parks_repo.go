@@ -34,15 +34,14 @@ func (r *ParkRepo) CreatePark(ctx context.Context, userID uuid.UUID, data domain
 		ID:          id,
 		Name:        data.Name,
 		Description: data.Description,
+		TokenHash:   data.TokenHash,
 	}
 
 	err = r.db.Transaction(func(tx *gorm.DB) error {
-		err := tx.Create(&park).Error
-		if err != nil {
+		if err := tx.Create(&park).Error; err != nil {
 			return fmt.Errorf("create park db error: %w", err)
 		}
-		err = tx.Model(&models.User{ID: userID}).Association("Parks").Append(&park)
-		if tx.Error != nil {
+		if err := tx.Model(&models.User{ID: userID}).Association("Parks").Append(&park); err != nil {
 			return fmt.Errorf("failed to assign user to park: %w", err)
 		}
 

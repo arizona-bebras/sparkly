@@ -181,6 +181,7 @@ message CreateParkRequest {
 
 message CreateParkResponse {
   Park park = 1;
+  string park_token = 2;
 }
 
 message GetParkRequest {
