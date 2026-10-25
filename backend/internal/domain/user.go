@@ -6,11 +6,6 @@ import (
 	"github.com/google/uuid"
 )
 
-const (
-	ACCESS_TOKEN_LIFETIME  = time.Minute * 15
-	REFRESH_TOKEN_LIFETIME = time.Hour * 24 * 30
-)
-
 type User struct {
 	ID       uuid.UUID
 	Email    string

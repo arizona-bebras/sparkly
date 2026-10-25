@@ -42,7 +42,7 @@ type AuthToken struct {
 	Refresh string
 }
 
-func (s *UserService) generateTokens(ctx context.Context, id uuid.UUID, email string) (AuthToken, error) {
+func (s *UserService) generateTokens(ctx context.Context, userID uuid.UUID, email string) (AuthToken, error) {
 	signKey, kid, err := s.keyManager.GetCurrSignKey(ctx)
 	if err != nil {
 		return AuthToken{}, fmt.Errorf("failed to get private key: %w", err)
@@ -131,12 +131,11 @@ func (s *UserService) GetTokens(ctx context.Context, email string, password stri
 	return user, tokens, nil
 }
 
-func (s *UserService) genNewAccessToken(userID uuid.UUID, email string) (string, error) {
-	secret := os.Getenv("JWT_SECRET")
-	if secret == "" {
-		return "", fmt.Errorf("JWT_SECRET environment variable is not set")
+func (s *UserService) genNewAccessToken(ctx context.Context, userID uuid.UUID, email string) (string, error) {
+	signKey, kid, err := s.keyManager.GetCurrSignKey(ctx)
+	if err != nil {
+		return "", fmt.Errorf("failed to get private key: %w", err)
 	}
-	secretKey := []byte(secret)
 
 	now := time.Now()
 
@@ -147,8 +146,9 @@ func (s *UserService) genNewAccessToken(userID uuid.UUID, email string) (string,
 		"iat":   now.Unix(),
 		"type":  "access",
 	}
-	accessToken := jwt.NewWithClaims(jwt.SigningMethodHS256, accessClaims)
-	accessString, err := accessToken.SignedString(secretKey)
+	accessToken := jwt.NewWithClaims(jwt.SigningMethodRS256, accessClaims)
+	accessToken.Header["kid"] = kid
+	accessString, err := accessToken.SignedString(signKey)
 	if err != nil {
 		return "", fmt.Errorf("failed to sign access token: %w", err)
 	}
@@ -175,7 +175,7 @@ func (s *UserService) RefreshToken(ctx context.Context, tokenIDStr string) (doma
 		return domain.User{}, AuthToken{}, fmt.Errorf("failed to continue user session: %w", domain.ErrRevokedRefreshToken)
 	}
 
-	newAccessToken, err := s.genNewAccessToken(user.ID, user.Email)
+	newAccessToken, err := s.genNewAccessToken(ctx, user.ID, user.Email)
 	if err != nil {
 		return domain.User{}, AuthToken{}, fmt.Errorf("failed to generate new access token: %w", err)
 	}
