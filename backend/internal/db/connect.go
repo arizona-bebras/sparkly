@@ -62,6 +62,7 @@ func NewPostgresConn(dsnParams DSN) (*gorm.DB, error) {
 		&models.Issue{},
 		&models.Build{},
 		&models.Release{},
+		&models.SigningKey{},
 	)
 	if err != nil {
 		return nil, fmt.Errorf("migration error: %w", err)

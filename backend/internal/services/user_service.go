@@ -2,8 +2,8 @@ package services
 
 import (
 	"context"
+	"crypto/rsa"
 	"fmt"
-	"os"
 	"time"
 
 	"github.com/alexedwards/argon2id"
@@ -18,13 +18,19 @@ type UserRepo interface {
 	GetUser(ctx context.Context, email string) (domain.User, error)
 }
 
-type UserService struct {
-	repo UserRepo
+type KeyManager interface {
+	GetCurrSignKey(ctx context.Context) (*rsa.PrivateKey, string, error)
 }
 
-func NewUserService(userRepo UserRepo) *UserService {
+type UserService struct {
+	repo       UserRepo
+	keyManager KeyManager
+}
+
+func NewUserService(userRepo UserRepo, KeyManager KeyManager) *UserService {
 	return &UserService{
-		repo: userRepo,
+		repo:       userRepo,
+		keyManager: KeyManager,
 	}
 }
 
@@ -33,12 +39,11 @@ type AuthToken struct {
 	Refresh string
 }
 
-func generateTokens(id uuid.UUID, email string) (AuthToken, error) {
-	secret := os.Getenv("JWT_SECRET")
-	if secret == "" {
-		return AuthToken{}, fmt.Errorf("JWT_SECRET environment variable is not set")
+func (s *UserService) generateTokens(ctx context.Context, id uuid.UUID, email string) (AuthToken, error) {
+	signKey, kid, err := s.keyManager.GetCurrSignKey(ctx)
+	if err != nil {
+		return AuthToken{}, fmt.Errorf("failed to get private key: %w", err)
 	}
-	secretKey := []byte(secret)
 
 	now := time.Now()
 
@@ -49,8 +54,9 @@ func generateTokens(id uuid.UUID, email string) (AuthToken, error) {
 		"iat":   now.Unix(),
 		"type":  "access",
 	}
-	accessToken := jwt.NewWithClaims(jwt.SigningMethodHS256, accessClaims)
-	accessString, err := accessToken.SignedString(secretKey)
+	accessToken := jwt.NewWithClaims(jwt.SigningMethodRS256, accessClaims)
+	accessToken.Header["kid"] = kid
+	accessString, err := accessToken.SignedString(signKey)
 	if err != nil {
 		return AuthToken{}, fmt.Errorf("failed to sign access token: %w", err)
 	}
@@ -62,8 +68,9 @@ func generateTokens(id uuid.UUID, email string) (AuthToken, error) {
 		"iat":   now.Unix(),
 		"type":  "refresh",
 	}
-	refreshToken := jwt.NewWithClaims(jwt.SigningMethodHS256, refreshClaims)
-	refreshString, err := refreshToken.SignedString(secretKey)
+	refreshToken := jwt.NewWithClaims(jwt.SigningMethodRS256, refreshClaims)
+	refreshToken.Header["kid"] = kid
+	refreshString, err := refreshToken.SignedString(signKey)
 	if err != nil {
 		return AuthToken{}, fmt.Errorf("failed to sign refresh token: %w", err)
 	}
@@ -85,7 +92,7 @@ func (s *UserService) Reg(ctx context.Context, email string, password string) (d
 		return domain.User{}, AuthToken{}, fmt.Errorf("registration failed: %w", err)
 	}
 
-	tokens, err := generateTokens(user.ID, user.Email)
+	tokens, err := s.generateTokens(ctx, user.ID, user.Email)
 	if err != nil {
 		return domain.User{}, AuthToken{}, fmt.Errorf("failed to generate tokens: %w", err)
 	}
@@ -104,7 +111,7 @@ func (s *UserService) GetTokens(ctx context.Context, email string, password stri
 		return domain.User{}, AuthToken{}, fmt.Errorf("auth failed: %w", domain.ErrWrongPassword)
 	}
 
-	tokens, err := generateTokens(user.ID, user.Email)
+	tokens, err := s.generateTokens(ctx, user.ID, user.Email)
 	if err != nil {
 		return domain.User{}, AuthToken{}, fmt.Errorf("failed to generate tokens: %w", err)
 	}

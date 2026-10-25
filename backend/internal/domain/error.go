@@ -11,4 +11,6 @@ var (
 	ErrUnknownUser = errors.New("user's ID not provided")
 
 	ErrParkNotFound = errors.New("park with this ID doesnt exists")
+
+	ErrKeyNotFound = errors.New("unknown key id")
 )

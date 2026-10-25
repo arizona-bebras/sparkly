@@ -24,7 +24,8 @@ func main() {
 		POSTGRES_USER     string
 		POSTGRES_PASSWORD string
 		POSTGRES_PORT     string
-		PORT              string
+		MAIN_PORT         string
+		JWKS_PORT         string
 	}{}
 
 	readEnv := func() {
@@ -36,17 +37,17 @@ func main() {
 		env.POSTGRES_USER, _ = os.LookupEnv("POSTGRES_USER")
 		env.POSTGRES_PASSWORD, _ = os.LookupEnv("POSTGRES_PASSWORD")
 		env.POSTGRES_PORT, _ = os.LookupEnv("POSTGRES_PORT")
-		env.PORT, _ = os.LookupEnv("PORT")
-		if env.PORT == "" {
-			env.PORT = "8080"
+		env.MAIN_PORT, _ = os.LookupEnv("MAIN_PORT")
+		if env.MAIN_PORT == "" {
+			env.MAIN_PORT = "8080"
+		}
+
+		env.JWKS_PORT, _ = os.LookupEnv("JWKS_PORT")
+		if env.JWKS_PORT == "" {
+			env.JWKS_PORT = "8081"
 		}
 	}
 	readEnv()
-
-	_, ok := os.LookupEnv("JWT_SECRET")
-	if !ok {
-		log.Fatalf("jwt secret not found")
-	}
 
 	db, err := db.NewPostgresConn(db.DSN{
 		Host:     "localhost",
@@ -66,8 +67,18 @@ func main() {
 		metadata.NewAuthInterceptor(),
 	)
 
+	jwksRepo, err := repos.NewJWKSRepo(db)
+	if err != nil {
+		log.Fatalf("failed to init keys repo: %v", err)
+	}
+	jwksService, err := services.NewJWKSService(jwksRepo)
+	if err != nil {
+		log.Fatalf("failed to initialize jwks: %v", err)
+	}
+	jwksHandler := handlers.NewJWKSHandler(jwksService)
+
 	userRepo := repos.NewUserRepo(db)
-	userService := services.NewUserService(userRepo)
+	userService := services.NewUserService(userRepo, jwksService)
 	userHandler := handlers.NewUserHandler(userService)
 	backendv1connect.RegisterUserServiceHandler(server, userHandler)
 
@@ -77,8 +88,10 @@ func main() {
 	backendv1connect.RegisterParkServiceHandler(server, parkHandler)
 
 	mux := http.NewServeMux()
+
+	mux.HandleFunc("GET /.well-known/jwks.json", jwksHandler.GetJWKS)
 	connecthttp.Mount(mux, server)
 
-	log.Printf("Connect server listening on :%s", env.PORT)
-	log.Fatalf("server failed: %v", http.ListenAndServe(":"+env.PORT, mux))
+	log.Printf("Connect server listening on :%s", env.MAIN_PORT)
+	log.Fatalf("server failed: %v", http.ListenAndServe(":"+env.MAIN_PORT, mux))
 }
