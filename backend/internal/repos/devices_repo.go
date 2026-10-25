@@ -39,10 +39,11 @@ func (r *DevicesRepo) CreateDevice(ctx context.Context, parkTokenHash, deviceTok
 		fmt.Errorf("failed to generate id for device: %w", err)
 	}
 	device := models.Device{
-		ID:       id,
-		ParkID:   park.ID,
-		Name:     "device_" + id.String(),
-		JoinedAt: time.Now(),
+		ID:        id,
+		ParkID:    park.ID,
+		Name:      "device_" + id.String(),
+		TokenHash: deviceTokenHash,
+		JoinedAt:  time.Now(),
 	}
 
 	if err := r.db.WithContext(ctx).Create(&device).Error; err != nil {

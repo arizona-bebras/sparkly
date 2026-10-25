@@ -2,8 +2,10 @@ package handlers
 
 import (
 	"encoding/json"
+	"errors"
 	"log"
 	"net/http"
+	"sparkly/backend/internal/domain"
 	"sparkly/backend/internal/services"
 )
 
@@ -25,33 +27,46 @@ type deviceTokenResponse struct {
 	Token string `json:"device_token"`
 }
 
+type errorResponse struct {
+	StatusCode int    `json:"status_code"`
+	Msg        string `json:"message"`
+}
+
 func (h *DevicesHandler) RegDevice(w http.ResponseWriter, r *http.Request) {
 	var parkToken parkToken
 	if err := json.NewDecoder(r.Body).Decode(&parkToken); err != nil {
 		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
 		_, err := w.Write([]byte("invalid body"))
 		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-		} else {
-			w.WriteHeader(http.StatusBadRequest)
+			log.Printf("/devices/reg error: %v", err)
 		}
 		return
 	}
 
 	deviceToken, err := h.service.RegDevice(r.Context(), parkToken.Token)
 	if err != nil {
+		if errors.Is(err, domain.ErrParkNotFound) {
+			w.WriteHeader(http.StatusNotFound)
+			encodeErr := json.NewEncoder(w).Encode(errorResponse{
+				StatusCode: http.StatusNotFound,
+				Msg:        err.Error(),
+			})
+			if encodeErr != nil {
+				log.Printf("/devices/reg error: %v", err)
+			}
+			return
+		}
 		log.Printf("/devices/reg error: %v", err)
-		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
 	if err := json.NewEncoder(w).Encode(deviceTokenResponse{
 		Token: deviceToken,
 	}); err != nil {
 		log.Printf("/devices/reg error: %v", err)
-		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	w.WriteHeader(http.StatusCreated)
 }
