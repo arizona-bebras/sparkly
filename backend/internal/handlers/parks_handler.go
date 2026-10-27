@@ -28,6 +28,9 @@ func (h *ParkHandler) CreatePark(ctx context.Context, r *pb.CreateParkRequest) (
 	name, desc := r.GetName(), r.GetDescription()
 	park, parkToken, err := h.service.CreatePark(ctx, name, desc)
 	if err != nil {
+		if errors.Is(err, domain.ErrUnknownUser) {
+			return nil, connect.NewError(connect.CodeUnauthenticated, "unauthenticated user")
+		}
 		log.Printf("ParkService/CreatePark error: %v\n", err)
 		return nil, connect.NewError(connect.CodeInternal, "internal error")
 	}
@@ -47,6 +50,9 @@ func (h *ParkHandler) GetPark(ctx context.Context, r *pb.GetParkRequest) (*pb.Ge
 
 	park, err := h.service.GetParkByID(ctx, id)
 	if err != nil {
+		if errors.Is(err, domain.ErrUnknownUser) {
+			return nil, connect.NewError(connect.CodeUnauthenticated, "unauthenticated user")
+		}
 		if errors.Is(err, domain.ErrParkNotFound) {
 			return nil, connect.NewError(connect.CodeNotFound, "park with this id doesnt exists")
 		}
@@ -66,8 +72,8 @@ func (h *ParkHandler) GetPark(ctx context.Context, r *pb.GetParkRequest) (*pb.Ge
 func (h *ParkHandler) GetAllParks(ctx context.Context, r *pb.GetAllParksRequest) (*pb.GetAllParksResponse, error) {
 	parks, err := h.service.GetAllParks(ctx)
 	if err != nil {
-		if errors.Is(err, domain.ErrParkNotFound) {
-			return nil, connect.NewError(connect.CodeNotFound, "park with this id doesnt exists")
+		if errors.Is(err, domain.ErrUnknownUser) {
+			return nil, connect.NewError(connect.CodeUnauthenticated, "unauthenticated user")
 		}
 		log.Printf("ParkService/GetAllParks error: %v\n", err)
 		return nil, connect.NewError(connect.CodeNotFound, "internal error")
@@ -97,6 +103,9 @@ func (h *ParkHandler) UpdatePark(ctx context.Context, r *pb.UpdateParkRequest) (
 	})
 
 	if err != nil {
+		if errors.Is(err, domain.ErrUnknownUser) {
+			return nil, connect.NewError(connect.CodeUnauthenticated, "unauthenticated user")
+		}
 		if errors.Is(err, domain.ErrParkNotFound) {
 			return nil, connect.NewError(connect.CodeNotFound, "park with this id doesnt exists")
 		}
@@ -119,6 +128,9 @@ func (h *ParkHandler) DeletePark(ctx context.Context, r *pb.DeleteParkRequest) (
 	err := h.service.DeletePark(ctx, id)
 
 	if err != nil {
+		if errors.Is(err, domain.ErrUnknownUser) {
+			return nil, connect.NewError(connect.CodeUnauthenticated, "unauthenticated user")
+		}
 		if errors.Is(err, domain.ErrParkNotFound) {
 			return nil, connect.NewError(connect.CodeNotFound, "park with this id doesnt exists")
 		}

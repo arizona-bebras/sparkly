@@ -12,7 +12,7 @@ import (
 
 	"sparkly/backend/internal/db"
 	"sparkly/backend/internal/handlers"
-	"sparkly/backend/internal/metadata"
+	"sparkly/backend/internal/interceptors"
 	"sparkly/backend/internal/repos"
 	"sparkly/backend/internal/services"
 	"sparkly/backend/proto/v1/backendv1connect"
@@ -58,11 +58,6 @@ func main() {
 		log.Fatalf("db init failed: %v", err)
 	}
 
-	server := connect.NewServer(
-		validate.NewServerInterceptor(),
-		metadata.NewAuthInterceptor(),
-	)
-
 	jwksRepo, err := repos.NewJWKSRepo(db)
 	if err != nil {
 		log.Fatalf("failed to init keys repo: %v", err)
@@ -73,8 +68,19 @@ func main() {
 	}
 	jwksHandler := handlers.NewJWKSHandler(jwksService)
 
+	refreshTokenRepo := repos.NewRefreshTokenRepo(db)
+	tokenRefresher := interceptors.NewTokenRefresher(
+		jwksService,
+		refreshTokenRepo,
+	)
+
+	server := connect.NewServer(
+		validate.NewServerInterceptor(),
+		interceptors.NewAuthInterceptor(tokenRefresher),
+	)
+
 	userRepo := repos.NewUserRepo(db)
-	userService := services.NewUserService(userRepo, jwksService)
+	userService := services.NewUserService(userRepo, refreshTokenRepo, jwksService)
 	userHandler := handlers.NewUserHandler(userService)
 	backendv1connect.RegisterUserServiceHandler(server, userHandler)
 

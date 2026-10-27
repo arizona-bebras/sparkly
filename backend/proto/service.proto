@@ -134,9 +134,7 @@ message RefreshTokenResponse {
   int64 expires_in = 4;
 }
 
-message RevokeTokenRequest {
-  string token_id = 1 [(buf.validate.field).string.uuid = true];
-}
+message RevokeTokenRequest {}
 
 message RevokeTokenResponse {
   bool success = 1;
