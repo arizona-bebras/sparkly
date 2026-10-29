@@ -65,7 +65,6 @@ function getLanguage(language: string) {
   return aliases[name] ?? null;
 }
 
-
 export type HighlightedToken = {
   content: string;
   style?: string;
@@ -110,7 +109,6 @@ export async function loadHighlighter(language: string) {
   }
 
   return {
-    
     highlight(code: string, state?: GrammarState) {
       const tokenize = (text: string) =>
         shiki.codeToTokens(text, {
@@ -120,7 +118,6 @@ export async function loadHighlighter(language: string) {
           grammarState: state,
         }).tokens;
 
-      
       const tokens =
         lang === 'ansi' ? code.split('\n').flatMap((line) => tokenize(line)) : tokenize(code);
 
@@ -131,7 +128,6 @@ export async function loadHighlighter(language: string) {
     },
   };
 }
-
 
 export async function highlightCode(code: string, language: string) {
   const highlighter = await loadHighlighter(language);
