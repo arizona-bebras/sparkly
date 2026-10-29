@@ -1,0 +1,26 @@
+[package]
+name = "sparkly-esp32s3-example"
+version = "0.1.0"
+edition = "2024"
+publish = false
+
+[workspace]
+
+[dependencies]
+sparkly-agent = { path = "../../../..", features = ["defmt"] }
+sparkly-esp = { path = "../..", features = ["esp32s3"] }
+esp-hal = { version = "=1.0.0", features = ["esp32s3", "unstable"] }
+esp-bootloader-esp-idf = { version = "0.2", features = ["esp32s3"] }
+static_cell = "2"
+log = "0.4"
+defmt = "1"
+
+[profile.dev]
+opt-level = "s"
+debug = 2
+
+[profile.release]
+opt-level = "s"
+debug = 2
+lto = "fat"
+codegen-units = 1

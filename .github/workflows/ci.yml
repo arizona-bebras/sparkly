@@ -88,6 +88,11 @@ jobs:
         run: |
           rustup toolchain install stable --profile minimal --component clippy --component rustfmt
           rustup default stable
+      - name: Install Protocol Buffers compiler
+        if: matrix.project == 'agent'
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes protobuf-compiler
       - uses: actions/setup-python@v7
         if: matrix.runtime == 'python'
         with:

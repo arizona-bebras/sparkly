@@ -1,0 +1,17 @@
+version: v2
+inputs:
+  - directory: .
+    paths:
+      - analytics/proto/service.proto
+      - agent/proto/parcel.proto
+plugins:
+  - local: protoc-gen-go
+    out: analytics
+    opt:
+      - module=sparkly/analytics
+      - Magent/proto/parcel.proto=sparkly/analytics/proto/agent/v1;agentv1
+  - local: protoc-gen-connect-go
+    out: analytics
+    opt:
+      - module=sparkly/analytics
+      - Magent/proto/parcel.proto=sparkly/analytics/proto/agent/v1;agentv1

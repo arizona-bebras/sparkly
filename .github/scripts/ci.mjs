@@ -7,7 +7,7 @@ const components = {
   frontend: { runtime: 'node', artifact: 'frontend/build' },
   backend: { runtime: 'go', artifact: 'backend/bin/backend' },
   analytics: { runtime: 'go', artifact: 'analytics/bin/analytics' },
-  agent: { runtime: 'rust', artifact: 'agent/target/debug/sparkly-agent' },
+  agent: { runtime: 'rust', artifact: 'agent/target/ci-artifacts' },
   ml: { runtime: 'python', artifact: '' },
   proto: { runtime: 'node', artifact: '' },
   envoy: { runtime: 'node', artifact: '' },
