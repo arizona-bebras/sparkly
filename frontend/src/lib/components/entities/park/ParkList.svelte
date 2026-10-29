@@ -70,8 +70,8 @@
 				{#each parks.data.parks as park (park.id)}
 					<Card.Root
 						size="sm"
-						class="relative group/card transition-all hover:ring-foreground/20"
-						onclick={() => goto(`/control-panel/${park.id}`)}
+						class="relative group/card transition-all hover:ring-foreground/20 cursor-pointer"
+						onclick={() => goto(`/control-panel/${park.id}/settings?onboarding=open`)}
 					>
 						<Card.Header>
 							<Card.Title

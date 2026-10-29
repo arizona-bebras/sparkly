@@ -18,7 +18,7 @@ let {
 	park,
 	...restProps
 }: HTMLAttributes<HTMLFormElement> & {
-	onSuccess?: () => void;
+	onSuccess?: (park?: Park) => void;
 	park?: Park;
 } = $props();
 
@@ -30,9 +30,7 @@ const createParkMutation = createMutation(() => ({
 			description: data.description,
 		});
 	},
-	onSuccess: () => {
-		onSuccess?.();
-	},
+	onSuccess: (response) => { onSuccess?.(response.park); },
 }));
 
 const updateParkMutation = createMutation(() => ({
@@ -44,9 +42,7 @@ const updateParkMutation = createMutation(() => ({
 			description: data.description,
 		});
 	},
-	onSuccess: () => {
-		onSuccess?.();
-	},
+	onSuccess: (response) => { onSuccess?.(response.park); },
 }));
 
 let currentAction = $derived(park ? updateParkMutation : createParkMutation);
