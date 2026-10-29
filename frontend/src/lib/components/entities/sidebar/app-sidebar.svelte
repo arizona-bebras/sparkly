@@ -12,7 +12,7 @@
 	const parkId = $derived(page.params.park_id ?? "");
 	const currentPath = $derived(page.url.pathname);
 
-	const basePath = $derived(`/control-pannel/${parkId}`);
+	const basePath = $derived(`/control-panel/${parkId}`);
 
 	const mainNavItems = $derived([
 		{

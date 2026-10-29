@@ -1,6 +1,6 @@
 import { timestampFromDate } from '@bufbuild/protobuf/wkt';
 import { Code, ConnectError, createClient, createRouterTransport } from '@connectrpc/connect';
-// import { createConnectTransport } from "@connectrpc/connect-web";
+import { createConnectTransport } from '@connectrpc/connect-web';
 // import { PUBLIC_API_BASE_URL } from "$env/static/public";
 import {
   DeviceService,
@@ -129,7 +129,7 @@ const mockDevices: MockDevice[] = [
   },
 ];
 
-const mockTransport = createRouterTransport(({ service }) => {
+const _mockTransport = createRouterTransport(({ service }) => {
   // ==================== USER SERVICE MOCK ====================
   service(UserService, {
     async checkAuth() {
@@ -365,14 +365,14 @@ const mockTransport = createRouterTransport(({ service }) => {
   });
 });
 
-// const transport = createConnectTransport({
-// 	baseUrl: PUBLIC_API_BASE_URL || "https://demo.connectrpc.com",
-// });
+const transport = createConnectTransport({
+  baseUrl: '/',
+});
 
 export const client = {
-  user: createClient(UserService, mockTransport),
-  park: createClient(ParkService, mockTransport),
-  device: createClient(DeviceService, mockTransport),
+  user: createClient(UserService, transport),
+  park: createClient(ParkService, transport),
+  device: createClient(DeviceService, transport),
 };
 
 export type { Device };
