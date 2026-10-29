@@ -1,6 +1,10 @@
-//! Host demonstration: writes a protobuf parcel to disk and acknowledges the file.
+//! Host demonstration: posts a protobuf parcel to SPARKLY_INGEST_URL.
 use sparkly_agent::*;
-use std::{io::Write, sync::OnceLock, time::Instant};
+use std::{
+    io,
+    sync::OnceLock,
+    time::{Duration, Instant},
+};
 
 struct HostClock(Instant);
 impl Clock for HostClock {
@@ -9,18 +13,43 @@ impl Clock for HostClock {
     }
 }
 
-/// An explicit local recipient for the demo, not a backend transport.
-struct FileTransport;
-impl Transport for FileTransport {
-    type Error = std::io::Error;
+/// Development transport: ingest prints parcels without persisting them, so its
+/// 204 response is only a demo acknowledgment, not durable delivery.
+struct HttpTransport {
+    endpoint: String,
+    client: ureq::Agent,
+}
+
+impl HttpTransport {
+    fn new(endpoint: String) -> Self {
+        let config = ureq::Agent::config_builder()
+            .timeout_global(Some(Duration::from_secs(10)))
+            .max_redirects(0)
+            .build();
+        Self {
+            endpoint,
+            client: config.into(),
+        }
+    }
+}
+
+impl Transport for HttpTransport {
+    type Error = io::Error;
+
     fn send(&mut self, batch: OutboundBatch<'_>) -> Result<Acknowledgment, Self::Error> {
-        let mut file = std::fs::File::create("target/host-parcel.bin")?;
-        file.write_all(batch.bytes)?;
-        file.sync_all()?;
-        println!(
-            "wrote {} bytes to target/host-parcel.bin",
-            batch.bytes.len()
-        );
+        let response = self
+            .client
+            .post(&self.endpoint)
+            .header("Content-Type", "application/x-protobuf")
+            .send(batch.bytes)
+            .map_err(io::Error::other)?;
+        if response.status() != 204 {
+            return Err(io::Error::other(format!(
+                "ingest returned {}; expected 204 No Content",
+                response.status()
+            )));
+        }
+        println!("sent {} bytes to {}", batch.bytes.len(), self.endpoint);
         Ok(Acknowledgment { batch_id: batch.id })
     }
 }
@@ -28,6 +57,8 @@ impl Transport for FileTransport {
 static RECORDER: OnceLock<Recorder<RamStorage<16>, HostClock, NoBacktrace>> = OnceLock::new();
 
 fn main() {
+    let endpoint = std::env::var("SPARKLY_INGEST_URL")
+        .expect("set SPARKLY_INGEST_URL, e.g. http://localhost:8081/ingest");
     let build_id = build_id().expect("build this example using sparkly-link");
     let mut boot_id = [0; 16];
     std::io::Read::read_exact(
@@ -49,7 +80,11 @@ fn main() {
     log::info!(target: "host", "hello from Sparkly");
     metric!("cpu.temperature").set(23.5);
     counter!("requests.completed").increment(1);
-    let mut exporter =
-        Exporter::<_, _, 8192>::new(recorder, FileTransport, ProtobufEncoder, 1_000_000);
+    let mut exporter = Exporter::<_, _, 8192>::new(
+        recorder,
+        HttpTransport::new(endpoint),
+        ProtobufEncoder,
+        1_000_000,
+    );
     exporter.flush().unwrap();
 }

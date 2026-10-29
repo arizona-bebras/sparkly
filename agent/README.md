@@ -27,12 +27,16 @@ cargo clippy --workspace --all-targets --features std,defmt -- -D warnings
 cargo fmt --all -- --check
 cargo build -p sparkly-cli --bins
 cargo rustc --example host --features std -- -C linker=target/debug/sparkly-link -C linker-flavor=gcc
-target/debug/examples/host
+SPARKLY_INGEST_URL=http://localhost:8081/ingest target/debug/examples/host
 target/debug/sparkly inspect target/debug/examples/host
-protoc -I proto --decode=sparkly.agent.v1.Parcel proto/parcel.proto < target/host-parcel.bin
 ```
 
-The host example persists a sample parcel locally; it does not contact a backend.
+The host example requires `SPARKLY_INGEST_URL` and posts binary protobuf over HTTP
+with a 10-second timeout. Start the analytics ingest receiver before running it.
+Only `204 No Content` counts as a demo acknowledgment. This example assumes the
+development endpoint prints parcels; it does not provide durable delivery or
+authentication. The HTTP client is a development dependency and does not affect
+the portable library.
 `sparkly-link` finalizes the runtime build ID automatically after linking.
 `sparkly inspect` extracts and verifies build IDs and the metric dictionary.
 Run it on the finalized, unstripped ELF before releasing/uploading firmware.
