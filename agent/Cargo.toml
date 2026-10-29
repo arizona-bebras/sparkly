@@ -2,6 +2,49 @@
 name = "sparkly-agent"
 version = "0.1.0"
 edition = "2024"
+rust-version = "1.88"
 publish = false
 
+[workspace]
+members = ["crates/*"]
+exclude = ["crates/sparkly-esp/examples/esp32s3"]
+resolver = "3"
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.88"
+publish = false
+
+[workspace.dependencies]
+sparkly-core = { path = "crates/sparkly-core" }
+sparkly-protocol = { path = "crates/sparkly-protocol" }
+sparkly-macros = { path = "crates/sparkly-macros" }
+heapless = { version = "0.9", default-features = false }
+critical-section = "1.2"
+log = { version = "0.4", default-features = false }
+micropb = { version = "0.6", default-features = false, features = ["encode", "decode", "enable-64bit", "container-heapless-0-9"] }
+
+[features]
+default = ["log"]
+log = ["dep:log"]
+defmt = ["dep:defmt"]
+# Only applications/tests select the synchronization provider.
+std = ["critical-section/std"]
+
 [dependencies]
+sparkly-core.workspace = true
+sparkly-protocol.workspace = true
+sparkly-macros.workspace = true
+heapless.workspace = true
+critical-section.workspace = true
+log = { workspace = true, optional = true }
+defmt = { version = "1", optional = true }
+
+[dev-dependencies]
+critical-section = { workspace = true, features = ["std"] }
+micropb.workspace = true
+
+[[example]]
+name = "host"
+required-features = ["std", "log"]

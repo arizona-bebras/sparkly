@@ -1,0 +1,24 @@
+[package]
+name = "sparkly-cli"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+default-run = "sparkly"
+
+[[bin]]
+name = "sparkly"
+path = "src/main.rs"
+
+[[bin]]
+name = "sparkly-link"
+path = "src/bin/sparkly-link.rs"
+
+[dependencies]
+sparkly-build = { path = "../sparkly-build" }
+clap = { version = "4.6", features = ["derive"] }
+toml_edit = "0.22"
+tempfile = "3"
+
+[dev-dependencies]
+object = { version = "0.36", default-features = false, features = ["read", "std", "elf"] }

@@ -1,14 +1,14 @@
 {
   "$schema": "../node_modules/nx/schemas/project-schema.json",
   "name": "agent",
-  "projectType": "application",
+  "projectType": "library",
   "sourceRoot": "agent/src",
   "targets": {
     "build": {
       "executor": "nx:run-commands",
       "cache": false,
       "options": {
-        "command": "cargo build",
+        "command": "cargo build --workspace",
         "cwd": "agent"
       }
     },
@@ -16,7 +16,12 @@
       "executor": "nx:run-commands",
       "cache": false,
       "options": {
-        "command": "cargo run",
+        "commands": [
+          "cargo build -p sparkly-cli --bins",
+          "cargo rustc --example host --features std -- -C linker=target/debug/sparkly-link -C linker-flavor=gcc",
+          "target/debug/examples/host"
+        ],
+        "parallel": false,
         "cwd": "agent"
       }
     },
@@ -24,7 +29,7 @@
       "executor": "nx:run-commands",
       "cache": false,
       "options": {
-        "command": "cargo check",
+        "command": "cargo check --workspace --features std,defmt",
         "cwd": "agent"
       }
     },
@@ -32,7 +37,7 @@
       "executor": "nx:run-commands",
       "cache": false,
       "options": {
-        "command": "cargo clippy --all-targets -- -D warnings",
+        "command": "cargo clippy --workspace --all-targets --features std,defmt -- -D warnings",
         "cwd": "agent"
       }
     },
@@ -58,8 +63,17 @@
       "dependsOn": [
         "lint",
         "format:check",
-        "check:types"
+        "check:types",
+        "test"
       ]
+    },
+    "test": {
+      "executor": "nx:run-commands",
+      "cache": false,
+      "options": {
+        "command": "cargo test --workspace --features std,defmt",
+        "cwd": "agent"
+      }
     }
   }
 }

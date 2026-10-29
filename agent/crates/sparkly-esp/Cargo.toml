@@ -1,0 +1,21 @@
+[package]
+name = "sparkly-esp"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+
+[features]
+default = []
+esp32s3 = ["dep:esp-hal", "dep:esp-backtrace"]
+
+[dependencies]
+sparkly-agent = { path = "../..", default-features = false }
+heapless.workspace = true
+
+[target.'cfg(target_arch = "xtensa")'.dependencies]
+# Exact HAL version: reset/RNG APIs are unstable. Upgrade with the example checks.
+esp-hal = { version = "=1.0.0", features = ["esp32s3", "unstable"], optional = true }
+# The dependency requires an output feature even when only capture() is used.
+# No panic handler or global log logger is enabled.
+esp-backtrace = { version = "=0.18.1", default-features = false, features = ["esp32s3", "defmt"], optional = true }
