@@ -112,6 +112,7 @@ static_resources:
   clusters:
     - name: frontend
       type: STRICT_DNS
+      dns_lookup_family: V4_ONLY
       connect_timeout: 2s
       load_assignment:
         cluster_name: frontend
@@ -122,6 +123,7 @@ static_resources:
                     socket_address: { address: frontend, port_value: 3000 }
     - name: backend
       type: STRICT_DNS
+      dns_lookup_family: V4_ONLY
       connect_timeout: 2s
       load_assignment:
         cluster_name: backend
@@ -132,6 +134,7 @@ static_resources:
                     socket_address: { address: backend, port_value: 8080 }
     - name: analytics
       type: STRICT_DNS
+      dns_lookup_family: V4_ONLY
       connect_timeout: 2s
       load_assignment:
         cluster_name: analytics
@@ -142,6 +145,7 @@ static_resources:
                     socket_address: { address: analytics, port_value: 8081 }
     - name: ml
       type: STRICT_DNS
+      dns_lookup_family: V4_ONLY
       connect_timeout: 2s
       load_assignment:
         cluster_name: ml
