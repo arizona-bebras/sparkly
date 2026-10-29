@@ -5,6 +5,8 @@ package sparkly.analytics.v1;
 import "buf/validate/validate.proto";
 import "google/protobuf/timestamp.proto";
 
+option go_package = "sparkly/analytics/proto/v1;analyticsv1";
+
 enum IncidentSeverity {
   INCIDENT_SEVERITY_UNSPECIFIED = 0;
   INCIDENT_SEVERITY_INFO = 1;
