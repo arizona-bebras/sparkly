@@ -8,7 +8,12 @@
       "executor": "nx:run-commands",
       "cache": false,
       "options": {
-        "command": "cargo build --workspace",
+        "commands": [
+          "cargo build --workspace",
+          "mkdir -p target/ci-artifacts",
+          "cp target/debug/sparkly target/debug/sparkly-link target/ci-artifacts/"
+        ],
+        "parallel": false,
         "cwd": "agent"
       }
     },
