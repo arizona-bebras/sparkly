@@ -2,10 +2,12 @@ package handlers
 
 import (
 	"bytes"
-	"io"
+	"context"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
@@ -13,7 +15,7 @@ import (
 	agentv1 "sparkly/analytics/proto/agent/v1"
 )
 
-func TestIngestPrintsParcel(t *testing.T) {
+func TestIngestStoresParcel(t *testing.T) {
 	want := &agentv1.Parcel{
 		BatchId: []byte("batch-id"),
 		Events: []*agentv1.Event{
@@ -25,18 +27,21 @@ func TestIngestPrintsParcel(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	var output bytes.Buffer
+	var store recordingStore
 	response := httptest.NewRecorder()
-	NewIngestHandler(&output).ServeHTTP(response, httptest.NewRequest(http.MethodPost, "/ingest", bytes.NewReader(body)))
+	NewIngestHandler(&store).ServeHTTP(response, httptest.NewRequest(http.MethodPost, "/ingest", bytes.NewReader(body)))
 	if response.Code != http.StatusNoContent {
 		t.Fatalf("status = %d, body = %s", response.Code, response.Body)
 	}
+	if store.calls != 1 || store.receivedAt.IsZero() || store.receivedAt.Location() != time.UTC {
+		t.Fatalf("store calls = %d, received at = %v", store.calls, store.receivedAt)
+	}
 	var got agentv1.Parcel
-	if err := protojson.Unmarshal(output.Bytes(), &got); err != nil {
+	if err := protojson.Unmarshal(store.payload, &got); err != nil {
 		t.Fatal(err)
 	}
 	if !proto.Equal(want, &got) {
-		t.Fatalf("printed parcel = %v, want %v", &got, want)
+		t.Fatalf("stored parcel = %v, want %v", &got, want)
 	}
 }
 
@@ -51,24 +56,34 @@ func TestIngestRejectsInvalidBodies(t *testing.T) {
 		{"oversized", make([]byte, maxParcelBytes+1), http.StatusRequestEntityTooLarge},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
-			var output bytes.Buffer
+			var store recordingStore
 			response := httptest.NewRecorder()
-			NewIngestHandler(&output).ServeHTTP(response, httptest.NewRequest(http.MethodPost, "/ingest", bytes.NewReader(tc.body)))
-			if response.Code != tc.code || output.Len() != 0 {
-				t.Fatalf("status = %d, output = %q", response.Code, output.String())
+			NewIngestHandler(&store).ServeHTTP(response, httptest.NewRequest(http.MethodPost, "/ingest", bytes.NewReader(tc.body)))
+			if response.Code != tc.code || store.calls != 0 {
+				t.Fatalf("status = %d, store calls = %d", response.Code, store.calls)
 			}
 		})
 	}
 }
 
-type failingWriter struct{}
+type recordingStore struct {
+	payload    []byte
+	calls      int
+	receivedAt time.Time
+	err        error
+}
 
-func (failingWriter) Write([]byte) (int, error) { return 0, io.ErrClosedPipe }
+func (s *recordingStore) StoreRawBatch(ctx context.Context, payload []byte, receivedAt time.Time) error {
+	s.calls++
+	s.payload = append([]byte(nil), payload...)
+	s.receivedAt = receivedAt
+	return s.err
+}
 
-func TestIngestOutputFailure(t *testing.T) {
+func TestIngestStorageFailure(t *testing.T) {
 	response := httptest.NewRecorder()
-	NewIngestHandler(failingWriter{}).ServeHTTP(response, httptest.NewRequest(http.MethodPost, "/ingest", bytes.NewReader([]byte{0x0a, 1, 1})))
-	if response.Code != http.StatusInternalServerError {
+	NewIngestHandler(&recordingStore{err: errors.New("database unavailable")}).ServeHTTP(response, httptest.NewRequest(http.MethodPost, "/ingest", bytes.NewReader([]byte{0x0a, 1, 1})))
+	if response.Code != http.StatusServiceUnavailable {
 		t.Fatalf("status = %d", response.Code)
 	}
 }

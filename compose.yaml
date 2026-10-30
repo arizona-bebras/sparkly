@@ -57,6 +57,12 @@ services:
       - "${ANALYTICS_PORT:-8081}:8081"
     environment:
       PORT: "8081"
+      CLICKHOUSE_HOST: ${CLICKHOUSE_HOST:-clickhouse}
+      CLICKHOUSE_NATIVE_PORT: "9000"
+      CLICKHOUSE_DB: ${CLICKHOUSE_DB:-sparkly}
+      CLICKHOUSE_USER: ${CLICKHOUSE_USER:-sparkly}
+      CLICKHOUSE_PASSWORD: ${CLICKHOUSE_PASSWORD:-sparkly}
+    restart: on-failure
     extra_hosts: *hosts
 
   ml:

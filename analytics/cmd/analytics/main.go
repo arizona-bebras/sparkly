@@ -1,7 +1,7 @@
 package main
 
 import (
-	"io"
+	"context"
 	"log"
 	"net/http"
 	"os"
@@ -11,7 +11,9 @@ import (
 	"connectrpc.com/connect/v2/connecthttp"
 	"github.com/joho/godotenv"
 
+	"sparkly/analytics/internal/db"
 	"sparkly/analytics/internal/handlers"
+	"sparkly/analytics/internal/repos"
 	"sparkly/analytics/proto/v1/analyticsv1connect"
 )
 
@@ -24,9 +26,22 @@ func main() {
 		port = "8081"
 	}
 
+	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
+	conn, err := db.Open(ctx)
+	if err != nil {
+		cancel()
+		log.Fatalf("db init failed: %v", err)
+	}
+	defer conn.Close()
+	if err := db.Migrate(ctx, conn); err != nil {
+		cancel()
+		log.Fatalf("db migration failed: %v", err)
+	}
+	cancel()
+
 	httpServer := &http.Server{
 		Addr:              ":" + port,
-		Handler:           newMux(os.Stdout),
+		Handler:           newMux(repos.NewRawBatchesRepo(conn)),
 		ReadHeaderTimeout: 5 * time.Second,
 		ReadTimeout:       15 * time.Second,
 		WriteTimeout:      15 * time.Second,
@@ -36,12 +51,12 @@ func main() {
 	log.Fatalf("server failed: %v", httpServer.ListenAndServe())
 }
 
-func newMux(output io.Writer) *http.ServeMux {
+func newMux(store handlers.RawBatchStore) *http.ServeMux {
 	server := connect.NewServer()
 	analyticsv1connect.RegisterAnalyticsServiceHandler(server, analyticsv1connect.UnimplementedAnalyticsServiceHandler{})
 
 	mux := http.NewServeMux()
 	connecthttp.Mount(mux, server)
-	mux.Handle("POST /ingest", handlers.NewIngestHandler(output))
+	mux.Handle("POST /ingest", handlers.NewIngestHandler(store))
 	return mux
 }
