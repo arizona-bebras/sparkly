@@ -119,7 +119,7 @@ mod tests {
             1
         }
     }
-    static RECORDER: OnceLock<Recorder<RamStorage<4>, TestClock, NoBacktrace>> = OnceLock::new();
+    static RECORDER: OnceLock<Recorder<RamStorage<2048>, TestClock, NoBacktrace>> = OnceLock::new();
 
     #[test]
     fn fragments_commit_as_one_frame_and_overflow_recovers_on_next_frame() {

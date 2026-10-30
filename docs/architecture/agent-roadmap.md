@@ -8,7 +8,8 @@
 - Complete encoded defmt frames, with whole-frame overflow handling.
 - Static metric IDs, gauge/counter-delta handles and ELF-only dictionary entries.
 - Once-per-startup Boot events, random boot IDs and ordered mixed-boot parcels.
-- Protected boot markers during eviction and per-parcel loss deltas.
+- Byte-bounded circular storage, oldest-record eviction (including Boots), and
+  per-parcel loss deltas.
 - Bounded micropb encoding and retained retries with acknowledgment validation.
 - ESP32-S3 hardware adapter, build-ID linker integration and standalone example.
 - Linux demonstration, ELF inspector, portable tests and protocol round trips.
@@ -45,13 +46,16 @@
 
 ## Storage and observability improvements
 
-- Add a packed byte ring through `RecordStorage`; compare memory and copy costs
-  against the fixed-slot implementation before changing the default.
+- Measure byte-ring capture/pop latency on hardware. Compact the exporter's
+  pending batch as well,
+  preserving records on encoding failure and identical bytes on send retries.
 - Design a separate durable outbox contract and flash worker, including erase
   alignment, wear, power-fail recovery and pending-batch acknowledgment state.
   Persist queue-to-parcel transfers atomically, replay old pending parcels before
   new ones, and retain loss deltas with the original parcel IDs. Test power loss
-  at each commit/ack boundary and startup when storage contains only boot markers.
+  at each commit/ack boundary and startup with a full ring.
+- Design context recovery for telemetry whose Boot was evicted; loss deltas alone
+  cannot reconstruct firmware/build identity or missing reset boundaries.
 - Add cumulative counters, bounded labels, units and histograms with explicit
   overflow/reset semantics and dictionary versioning.
 - Add configurable backtrace depth/filtering, structured log fields and optional
