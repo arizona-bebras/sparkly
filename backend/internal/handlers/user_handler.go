@@ -126,6 +126,33 @@ func (h *UserHandler) GetToken(ctx context.Context, r *pb.GetTokenRequest) (*pb.
 
 func (h *UserHandler) RevokeToken(ctx context.Context, r *pb.RevokeTokenRequest) (*pb.RevokeTokenResponse, error) {
 
+	callInfo, ok := connect.CallInfoForServerContext(ctx)
+	if !ok {
+		log.Printf("failed to get call info, req: %s", r.String())
+		return nil, connect.NewError(connect.CodeInternal, "internal error")
+	}
+
+	clearAccessCookie := &http.Cookie{
+		Name:     "access_token",
+		Value:    "",
+		Path:     "/",
+		MaxAge:   -1,
+		Expires:  time.Unix(0, 0),
+		HttpOnly: true,
+		SameSite: http.SameSiteLaxMode,
+	}
+	clearRefreshCookie := &http.Cookie{
+		Name:     "refresh_token",
+		Value:    "",
+		Path:     "/",
+		MaxAge:   -1,
+		Expires:  time.Unix(0, 0),
+		HttpOnly: true,
+		SameSite: http.SameSiteLaxMode,
+	}
+	callInfo.ResponseHeader().Set("Set-Cookie", clearAccessCookie.String())
+	callInfo.ResponseHeader().Add("Set-Cookie", clearRefreshCookie.String())
+
 	err := h.service.RevokeSession(ctx)
 	if err != nil {
 		if errors.Is(err, domain.ErrTokenNotFound) {

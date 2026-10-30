@@ -9,6 +9,7 @@ import (
 
 	"sparkly/backend/internal/domain"
 	"sparkly/backend/internal/metadata"
+	"sparkly/backend/proto/v1/backendv1connect"
 
 	"connectrpc.com/connect/v2"
 )
@@ -30,6 +31,14 @@ func NewAuthInterceptor(refresher *TokenRefresher) connect.ServerInterceptor {
 			}
 
 			tokenID := info.RequestHeader().Get("X-Token-Id")
+
+			if req.Procedure == backendv1connect.UserServiceRevokeTokenProcedure {
+				if tokenID != "" {
+					ctx = context.WithValue(ctx, metadata.TokenIDContextKey, tokenID)
+				}
+				return next(ctx, req, stream)
+			}
+
 			if tokenID != "" {
 				user, token, err := refresher.RefreshToken(ctx, tokenID)
 				if err != nil {
