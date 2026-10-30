@@ -33,7 +33,7 @@ func NewAuthInterceptor(refresher *TokenRefresher) connect.ServerInterceptor {
 			if tokenID != "" {
 				user, token, err := refresher.RefreshToken(ctx, tokenID)
 				if err != nil {
-					log.Printf("failed to refresh access token: %w", err)
+					log.Printf("failed to refresh access token: %v", err)
 					return next(ctx, req, stream)
 				}
 				accessCookie := &http.Cookie{
