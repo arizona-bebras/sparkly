@@ -42,10 +42,6 @@ let {
 			onSuccess={async (savedPark) => {
 				open = false;
 				await client.refetchQueries({ queryKey: ["parks"] });
-				const targetId = savedPark?.id ?? park?.id;
-				if (targetId) {
-					await goto(`/control-panel/${targetId}/settings?onboarding=open`);
-				}
 			}}
 			{park}
 		/>

@@ -84,12 +84,16 @@
 									{park.description}
 								</Card.Description>
 							{/if}
-							<Card.Action class="flex items-center gap-1">
+							<Card.Action
+								class="flex items-center gap-1"
+								onclick={(e) => e.stopPropagation()}
+							>
 								<Button
 									variant="ghost"
 									size="icon-sm"
 									class="text-muted-foreground hover:text-foreground"
-									onclick={() => {
+									onclick={(e) => {
+										e.stopPropagation();
 										selectedPark = park;
 										isFormOpen = true;
 									}}
@@ -102,10 +106,17 @@
 									variant="ghost"
 									size="icon-sm"
 									class="text-muted-foreground hover:text-destructive hover:bg-destructive/10"
-									onclick={async () =>
-										await deleteMutation.mutateAsync(
-											park.id,
-										)}
+									onclick={async (e) => {
+										e.stopPropagation();
+										deletingParkId = park.id;
+										try {
+											await deleteMutation.mutateAsync(
+												park.id,
+											);
+										} finally {
+											deletingParkId = null;
+										}
+									}}
 									disabled={deletingParkId === park.id}
 									aria-label="Удалить парк {park.name}"
 								>
