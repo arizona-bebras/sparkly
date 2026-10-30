@@ -69,7 +69,6 @@
 	<div class="flex flex-col gap-1">
 		<div class="flex items-center gap-2">
 			<h1 class="text-2xl font-bold tracking-tight">Настройки парка</h1>
-			<Badge variant="outline" class="font-mono text-xs">#{parkId}</Badge>
 		</div>
 		<p class="text-sm text-muted-foreground">
 			Конфигурация параметров парка и руководство по интеграции устройств

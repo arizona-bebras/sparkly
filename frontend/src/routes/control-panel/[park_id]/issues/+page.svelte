@@ -11,7 +11,7 @@
 <div class="flex flex-col gap-2">
 	<h1 class="text-2xl font-bold tracking-tight">Проблемы (Issues)</h1>
 	<p class="text-sm text-muted-foreground">
-		Реестр ошибок и инцидентов парка #{parkId}
+		Реестр ошибок и инцидентов парка
 	</p>
 </div>
 

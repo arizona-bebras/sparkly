@@ -11,7 +11,8 @@
 <div class="flex flex-col gap-2">
 	<h1 class="text-2xl font-bold tracking-tight">Группы и релизы</h1>
 	<p class="text-sm text-muted-foreground">
-		Управление группами и версиями парка #{parkId}
+		Управление группами и версиями парка
 	</p>
 </div>
 
+ 

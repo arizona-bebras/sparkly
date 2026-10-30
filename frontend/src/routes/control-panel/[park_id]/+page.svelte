@@ -11,6 +11,6 @@
 <div class="flex flex-col gap-2">
 	<h1 class="text-2xl font-bold tracking-tight">Панель управления</h1>
 	<p class="text-sm text-muted-foreground">
-		Сводка по парку #{parkId}
+		Сводка по парку
 	</p>
 </div>

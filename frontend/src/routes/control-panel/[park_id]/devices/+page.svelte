@@ -31,7 +31,7 @@
 		<div>
 			<h1 class="text-2xl font-bold tracking-tight">Устройства</h1>
 			<p class="text-sm text-muted-foreground">
-				Список и мониторинг подключенных устройств парка #{parkId}
+				Список и мониторинг подключенных устройств парка
 			</p>
 		</div>
 		<Button
