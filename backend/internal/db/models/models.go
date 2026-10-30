@@ -50,6 +50,7 @@ type Park struct {
 	Name        string    `gorm:"not null"`
 	Description string
 	TokenHash   string    `gorm:"uniqueIndex;not null"`
+	Users       []User    `gorm:"many2many:user_parks"`
 	Groups      []Group   `gorm:"foreignKey:ParkID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 	Devices     []Device  `gorm:"foreignKey:ParkID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 	Issues      []Issue   `gorm:"foreignKey:ParkID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`

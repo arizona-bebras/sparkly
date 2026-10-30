@@ -25,7 +25,7 @@ func NewGroupsRepo(db *gorm.DB) *GroupsRepo {
 	}
 }
 
-func (r *GroupsRepo) CreateGroup(ctx context.Context, parkID uuid.UUID, name string, description string) (domain.Group, error) {
+func (r *GroupsRepo) CreateGroup(ctx context.Context, name string, description string, parkID, userID uuid.UUID) (domain.Group, error) {
 	id, err := uuid.NewV7()
 	if err != nil {
 		return domain.Group{}, fmt.Errorf("failed to generate new id: %w", err)
@@ -37,12 +37,37 @@ func (r *GroupsRepo) CreateGroup(ctx context.Context, parkID uuid.UUID, name str
 		Description: description,
 		ParkID:      parkID,
 	}
-	if err := r.db.WithContext(ctx).Create(&newGroup).Error; err != nil {
-		var pgErr *pgconn.PgError
-		if errors.Is(err, gorm.ErrForeignKeyViolated) || (errors.As(err, &pgErr) && pgErr.Code == "23503") {
-			return domain.Group{}, domain.ErrParkNotFound
+	err = r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		var park models.Park
+		if err := tx.First(&park, "id = ?", parkID).Error; err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				return domain.ErrParkNotFound
+			}
+			return fmt.Errorf("failed to find park in db: %w", err)
 		}
-		return domain.Group{}, fmt.Errorf("failed to write new group to db: %w", err)
+
+		var users []models.User
+		if err := tx.Model(&park).Association("Users").Find(&users, "id = ?", userID); err != nil {
+			return fmt.Errorf("failed to verify user access: %w", err)
+		}
+
+		if len(users) == 0 {
+			return domain.ErrParkAccessDenied
+		}
+
+		if err := tx.Create(&newGroup).Error; err != nil {
+			var pgErr *pgconn.PgError
+			if errors.Is(err, gorm.ErrForeignKeyViolated) || (errors.As(err, &pgErr) && pgErr.Code == "23503") {
+				return domain.ErrParkNotFound
+			}
+			return fmt.Errorf("failed to write new group to db: %w", err)
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return domain.Group{}, err
 	}
 
 	return newGroup.ToDomain(), nil

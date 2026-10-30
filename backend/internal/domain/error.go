@@ -15,7 +15,8 @@ var (
 
 	ErrKeyNotFound = errors.New("unknown key id")
 
-	ErrParkNotFound = errors.New("park with this ID or token doesnt exists")
+	ErrParkNotFound     = errors.New("park with this ID or token doesnt exists")
+	ErrParkAccessDenied = errors.New("you are not member of this park")
 
 	ErrGroupNotFound = errors.New("group with this ID doesnt exists")
 

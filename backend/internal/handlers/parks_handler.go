@@ -150,11 +150,17 @@ func (h *ParkHandler) CreateGroup(ctx context.Context, r *pb.CreateGroupRequest)
 
 	group, err := h.groupService.CreateGroup(ctx, parkID, name, desc)
 	if err != nil {
+		if errors.Is(err, domain.ErrUnknownUser) {
+			return nil, connect.NewError(connect.CodeUnauthenticated, "unauthenticated user")
+		}
 		if errors.Is(err, domain.ErrInvalidID) {
 			return nil, connect.NewError(connect.CodeInvalidArgument, "invalid park id")
 		}
 		if errors.Is(err, domain.ErrParkNotFound) {
 			return nil, connect.NewError(connect.CodeNotFound, "park with this id doesnt exists")
+		}
+		if errors.Is(err, domain.ErrParkAccessDenied) {
+			return nil, connect.NewError(connect.CodePermissionDenied, "access denied")
 		}
 		log.Printf("ParkService/CreateGroup error: %v\n", err)
 		return nil, connect.NewError(connect.CodeInternal, "internal error")

@@ -11,7 +11,7 @@ import (
 )
 
 type GroupsRepo interface {
-	CreateGroup(ctx context.Context, parkID uuid.UUID, name string, description string) (domain.Group, error)
+	CreateGroup(ctx context.Context, name string, description string, parkID, userID uuid.UUID) (domain.Group, error)
 	GetGroup(ctx context.Context, groupID, userID uuid.UUID) (domain.Group, error)
 	GetAllGroups(ctx context.Context, parkID, userID uuid.UUID) ([]domain.Group, error)
 	UpdateGroup(ctx context.Context, newName string, newDescription string, groupID, userID uuid.UUID) (domain.Group, error)
@@ -28,13 +28,32 @@ func NewGroupsService(repo GroupsRepo) *GroupsService {
 	}
 }
 
+func parseCtxUserIDValue(ctx context.Context) (uuid.UUID, error) {
+	userIDStr, err := metadata.UserIDFromContext(ctx)
+	if err != nil {
+		return uuid.UUID{}, err
+	}
+
+	userID, err := uuid.Parse(userIDStr)
+	if err != nil {
+		return uuid.UUID{}, domain.ErrInvalidID
+	}
+
+	return userID, nil
+}
+
 func (s *GroupsService) CreateGroup(ctx context.Context, parkIDStr, name, description string) (domain.Group, error) {
+	userID, err := parseCtxUserIDValue(ctx)
+	if err != nil {
+		return domain.Group{}, fmt.Errorf("failed to define user: %w", err)
+	}
+
 	parkID, err := uuid.Parse(parkIDStr)
 	if err != nil {
 		return domain.Group{}, fmt.Errorf("failed to identify park id: %w", domain.ErrInvalidID)
 	}
 
-	group, err := s.repo.CreateGroup(ctx, parkID, name, description)
+	group, err := s.repo.CreateGroup(ctx, name, description, parkID, userID)
 	if err != nil {
 		return domain.Group{}, fmt.Errorf("failed to create group: %w", err)
 	}
@@ -43,14 +62,9 @@ func (s *GroupsService) CreateGroup(ctx context.Context, parkIDStr, name, descri
 }
 
 func (s *GroupsService) GetGroup(ctx context.Context, groupIDStr string) (domain.Group, error) {
-	userIDStr, err := metadata.UserIDFromContext(ctx)
+	userID, err := parseCtxUserIDValue(ctx)
 	if err != nil {
 		return domain.Group{}, fmt.Errorf("failed to define user: %w", err)
-	}
-
-	userID, err := uuid.Parse(userIDStr)
-	if err != nil {
-		return domain.Group{}, fmt.Errorf("failed to define user: %w", domain.ErrInvalidID)
 	}
 
 	groupID, err := uuid.Parse(groupIDStr)
@@ -67,14 +81,9 @@ func (s *GroupsService) GetGroup(ctx context.Context, groupIDStr string) (domain
 }
 
 func (s *GroupsService) GetAllGroups(ctx context.Context, parkIDStr string) ([]domain.Group, error) {
-	userIDStr, err := metadata.UserIDFromContext(ctx)
+	userID, err := parseCtxUserIDValue(ctx)
 	if err != nil {
 		return []domain.Group{}, fmt.Errorf("failed to define user: %w", err)
-	}
-
-	userID, err := uuid.Parse(userIDStr)
-	if err != nil {
-		return []domain.Group{}, fmt.Errorf("failed to define user: %w", domain.ErrInvalidID)
 	}
 
 	parkID, err := uuid.Parse(parkIDStr)
@@ -91,14 +100,9 @@ func (s *GroupsService) GetAllGroups(ctx context.Context, parkIDStr string) ([]d
 }
 
 func (s *GroupsService) UpdateGroup(ctx context.Context, groupIDStr, newName, newDescription string) (domain.Group, error) {
-	userIDStr, err := metadata.UserIDFromContext(ctx)
+	userID, err := parseCtxUserIDValue(ctx)
 	if err != nil {
 		return domain.Group{}, fmt.Errorf("failed to define user: %w", err)
-	}
-
-	userID, err := uuid.Parse(userIDStr)
-	if err != nil {
-		return domain.Group{}, fmt.Errorf("failed to define user: %w", domain.ErrInvalidID)
 	}
 
 	groupID, err := uuid.Parse(groupIDStr)
@@ -115,14 +119,9 @@ func (s *GroupsService) UpdateGroup(ctx context.Context, groupIDStr, newName, ne
 }
 
 func (s *GroupsService) DeleteGroup(ctx context.Context, groupIDStr string) error {
-	userIDStr, err := metadata.UserIDFromContext(ctx)
+	userID, err := parseCtxUserIDValue(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to define user: %w", err)
-	}
-
-	userID, err := uuid.Parse(userIDStr)
-	if err != nil {
-		return fmt.Errorf("failed to define user: %w", domain.ErrInvalidID)
 	}
 
 	groupID, err := uuid.Parse(groupIDStr)

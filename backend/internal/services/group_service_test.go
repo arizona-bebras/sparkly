@@ -12,18 +12,25 @@ import (
 )
 
 type mockGroupsRepo struct {
+	parks     map[uuid.UUID]bool
 	groups    map[uuid.UUID]domain.Group
 	userParks map[uuid.UUID]map[uuid.UUID]bool
 }
 
 func newMockGroupsRepo() *mockGroupsRepo {
 	return &mockGroupsRepo{
+		parks:     make(map[uuid.UUID]bool),
 		groups:    make(map[uuid.UUID]domain.Group),
 		userParks: make(map[uuid.UUID]map[uuid.UUID]bool),
 	}
 }
 
+func (m *mockGroupsRepo) addPark(parkID uuid.UUID) {
+	m.parks[parkID] = true
+}
+
 func (m *mockGroupsRepo) allow(userID, parkID uuid.UUID) {
+	m.addPark(parkID)
 	if _, ok := m.userParks[userID]; !ok {
 		m.userParks[userID] = make(map[uuid.UUID]bool)
 	}
@@ -38,7 +45,13 @@ func (m *mockGroupsRepo) hasAccess(userID, parkID uuid.UUID) bool {
 	return parks[parkID]
 }
 
-func (m *mockGroupsRepo) CreateGroup(ctx context.Context, parkID uuid.UUID, name string, description string) (domain.Group, error) {
+func (m *mockGroupsRepo) CreateGroup(ctx context.Context, name string, description string, parkID, userID uuid.UUID) (domain.Group, error) {
+	if !m.parks[parkID] {
+		return domain.Group{}, domain.ErrParkNotFound
+	}
+	if !m.hasAccess(userID, parkID) {
+		return domain.Group{}, domain.ErrParkAccessDenied
+	}
 	id := uuid.New()
 	g := domain.Group{
 		ID:          id,
@@ -112,6 +125,17 @@ func TestGroupsServiceCRUD(t *testing.T) {
 	ctxUser1 := withUserContext(context.Background(), user1ID)
 	ctxUser2 := withUserContext(context.Background(), user2ID)
 
+	_, err := svc.CreateGroup(ctxUser2, parkID.String(), "Sensors", "Temperature sensors")
+	if !errors.Is(err, domain.ErrParkAccessDenied) {
+		t.Fatalf("Expected ErrParkAccessDenied for user2 CreateGroup, got: %v", err)
+	}
+
+	nonExistentParkID := uuid.New()
+	_, err = svc.CreateGroup(ctxUser1, nonExistentParkID.String(), "Sensors", "Temperature sensors")
+	if !errors.Is(err, domain.ErrParkNotFound) {
+		t.Fatalf("Expected ErrParkNotFound for non-existent park, got: %v", err)
+	}
+
 	created, err := svc.CreateGroup(ctxUser1, parkID.String(), "Sensors", "Temperature sensors")
 	if err != nil {
 		t.Fatalf("CreateGroup failed: %v", err)
@@ -184,7 +208,14 @@ func TestGroupsServiceValidationAndAuthErrors(t *testing.T) {
 
 	emptyCtx := context.Background()
 
-	_, err := svc.CreateGroup(emptyCtx, "not-a-uuid", "name", "desc")
+	_, err := svc.CreateGroup(emptyCtx, uuid.NewString(), "name", "desc")
+	if !errors.Is(err, domain.ErrUnknownUser) {
+		t.Fatalf("Expected ErrUnknownUser on missing user context in CreateGroup, got: %v", err)
+	}
+
+	validUserCtx := withUserContext(emptyCtx, uuid.New())
+
+	_, err = svc.CreateGroup(validUserCtx, "not-a-uuid", "name", "desc")
 	if !errors.Is(err, domain.ErrInvalidID) {
 		t.Fatalf("Expected ErrInvalidID on invalid park id in CreateGroup, got: %v", err)
 	}
@@ -210,12 +241,16 @@ func TestGroupsServiceValidationAndAuthErrors(t *testing.T) {
 	}
 
 	ctxWithInvalidUser := context.WithValue(emptyCtx, metadata.UserIDContextKey, "invalid-user-uuid")
+	_, err = svc.CreateGroup(ctxWithInvalidUser, uuid.NewString(), "name", "desc")
+	if !errors.Is(err, domain.ErrInvalidID) {
+		t.Fatalf("Expected ErrInvalidID on malformed user ID in CreateGroup, got: %v", err)
+	}
+
 	_, err = svc.GetGroup(ctxWithInvalidUser, uuid.NewString())
 	if !errors.Is(err, domain.ErrInvalidID) {
 		t.Fatalf("Expected ErrInvalidID on malformed user ID in GetGroup, got: %v", err)
 	}
 
-	validUserCtx := withUserContext(emptyCtx, uuid.New())
 	_, err = svc.GetGroup(validUserCtx, "invalid-group-uuid")
 	if !errors.Is(err, domain.ErrInvalidID) {
 		t.Fatalf("Expected ErrInvalidID on malformed group ID in GetGroup, got: %v", err)
