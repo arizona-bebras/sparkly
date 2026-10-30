@@ -4,10 +4,11 @@
 
 pub mod record;
 pub mod storage;
+mod storage_codec;
 pub mod transport;
 
 pub use record::*;
-pub use storage::{PushOutcome, RamStorage, RecordStorage, StorageFull};
+pub use storage::{ByteStorage, PushOutcome, RamStorage, RecordStorage, RingStorage, StorageFull};
 pub use transport::*;
 
 /// Microseconds since boot. Implementations must be monotonic, bounded,

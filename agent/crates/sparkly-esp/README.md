@@ -32,12 +32,15 @@ frame pointers, defmt linking, 16 backtrace frames, and `build-std = ["core"]`.
 The example is a separate workspace so Xtensa settings never affect host builds.
 
 The example uses `StaticCell`, installs both logging facades, records a sample
-temperature, and periodically drives an exporter. Its `Offline` transport
+temperature, uses a 2048-byte circular RAM queue, and periodically drives an
+exporter. Its `Offline` transport
 deliberately returns an error and keeps the first batch pending. Replace it with
 an authenticated application transport; the example does not pretend that a
-successful USB write is backend acceptance. Queued ordinary records eventually
-overwrite the oldest records while offline, with loss statistics retained.
-Boot markers are protected from eviction. The example starts with empty RAM;
+successful USB write is backend acceptance. Queued records eventually overwrite
+the oldest records while offline, including
+Boot markers, with loss statistics retained. Evicting an unexported Boot loses
+the context needed to interpret later telemetry. The example starts with empty
+RAM;
 applications restoring a durable stream append the new reset after that history.
 
 The example briefly enables the ADC entropy source to create a fresh boot ID.

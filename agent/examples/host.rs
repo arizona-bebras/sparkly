@@ -54,7 +54,7 @@ impl Transport for HttpTransport {
     }
 }
 
-static RECORDER: OnceLock<Recorder<RamStorage<16>, HostClock, NoBacktrace>> = OnceLock::new();
+static RECORDER: OnceLock<Recorder<RamStorage<2048>, HostClock, NoBacktrace>> = OnceLock::new();
 
 fn main() {
     let endpoint = std::env::var("SPARKLY_INGEST_URL")

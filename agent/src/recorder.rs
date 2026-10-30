@@ -15,8 +15,8 @@ pub enum CaptureError {
     BatchIdsExhausted,
 }
 
-/// Startup could not append the new reset. The existing stream is returned
-/// intact so the application can drain/recover it before retrying initialization.
+/// Startup could not append the new reset (for example, the byte budget is too
+/// small). The existing stream is returned intact for recovery.
 pub struct RecorderInitError<S: RecordStorage> {
     pub storage: S,
     pub error: S::Error,
@@ -71,7 +71,7 @@ pub struct Recorder<S, C, B> {
 
 impl<S: RecordStorage, C: Clock, B: Backtrace> Recorder<S, C, B> {
     /// Appends exactly one Boot after any restored history, before accepting
-    /// telemetry. Initialization fails rather than losing an older boot marker.
+    /// telemetry. Capacity pressure may evict older records, including Boots.
     pub fn new(
         session: Session,
         mut storage: S,

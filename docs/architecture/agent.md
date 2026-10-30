@@ -70,15 +70,62 @@ NMI/fault-handler safety. No crash handler is part of this implementation.
 
 ## Storage and memory
 
-`RamStorage<N>` is a bounded FIFO queue of complete owned records. When full it
-evicts the oldest ordinary telemetry record, atomically appends the new record
-and reports eviction. It never evicts a Boot: even a boot whose telemetry was
-entirely dropped is still a real reset that the backend must observe. If all
-slots contain boot markers, writes return `StorageFull` without changing history.
-The fixed-slot implementation shifts records to preserve order when removing an
-ordinary record from between protected markers.
-`N` is a record count, not bytes. Every slot has the size of the largest payload;
-this is an intentionally simple first implementation, not a packed byte ring.
+`RingStorage<B>` is a bounded FIFO of packed, variable-length records over a
+pluggable `ByteStorage` provider. `ByteStorage` exposes stable immutable/mutable
+byte slices. Arrays, borrowed mutable slices, `Vec<u8>` and `Box<[u8]>` work via a
+blanket implementation for `AsRef<[u8]> + AsMut<[u8]> + Send`. Custom providers can
+implement the trait directly. The provider must expose the same exclusive memory
+with a fixed positive length and bounded, nonblocking, infallible access.
+
+`RamStorage<N>` remains an alias for `RingStorage<[u8; N]>`, with the same const
+`new()` constructor. `N` is a byte budget including framing, not a record count.
+`RamStorage<2048>` reserves 2048 bytes plus head/length counters and alignment
+padding. Strings, defmt frames and traces occupy only their actual lengths.
+
+```rust
+// Inline RAM, unchanged:
+let inline = RamStorage::<2048>::new();
+
+// Caller-provided memory, without moving a large array into the recorder:
+let mut bytes = [0u8; 2048];
+let borrowed = RingStorage::with_storage(&mut bytes[..]);
+
+// Heap allocation belongs to the application, before capture:
+let heap = RingStorage::with_storage(vec![0u8; 2048].into_boxed_slice());
+```
+
+The portable library still requires no allocator. For a Vec provider the budget
+is its length, not allocation capacity; the ring never resizes it or allocates.
+`with_storage()` starts an empty queue without clearing the backing bytes and
+rejects zero capacity. `into_backing()` returns the provider but discards ring
+metadata; rewrapping those bytes does not recover previous records. Preserve the
+whole `RingStorage` when handing a live queue to another recorder.
+
+| Record | Stored bytes |
+| --- | --- |
+| Metric (gauge or counter delta) | 28 |
+| Text | 19 + target bytes + message bytes + 8 per captured address |
+| defmt | 15 + frame bytes + 8 per captured address |
+| Boot | 36 + all four metadata string lengths + 4 if a raw reset reason is present |
+
+These sizes include a two-byte total length, payload tag and timestamp. The
+private RAM encoding is independent of Rust layout and is not a persistent or
+network format. `used_bytes()`, `capacity_bytes()` and `record_size(&record)`
+expose queue sizing information. A `Record` is still materialized temporarily
+on capture/pop, and the exporter's owned batch still uses fixed-size records.
+
+The queue is a circular byte buffer with a head index and occupied-byte count.
+Records, including their length headers, may wrap across the end. Append writes
+only the incoming record; pop decodes directly from up to two slices and advances
+the head. Neither operation compacts or moves other queued records, and decoding
+needs no additional full-record scratch buffer.
+
+When space is needed, the queue evicts as many oldest complete records as necessary,
+including Boot records, then appends the new record. A record larger than the byte
+budget returns `StorageFull` without changing history. Eviction statistics count
+records, not bytes, and include evicted Boots. Eviction reads each removed length
+header and advances the head without decoding discarded payloads. The host and
+ESP examples use a 2048-byte queue.
 
 Limits: text 256 bytes, target 64 bytes, defmt 512 bytes, trace 16 addresses,
 batch eight stored events, including any Boot events. These limits are explicit in
@@ -91,12 +138,19 @@ Storage methods execute under the recorder's critical section. They must be
 bounded, nonblocking and non-reentrant; a failed push must preserve existing
 records. Flash erase/write does not satisfy this capture-path contract. A flash
 journal should use RAM staging and a separate worker/durable outbox contract.
+These are two extension levels: `ByteStorage` changes memory ownership/location
+under the shared ring; `RecordStorage` changes the record queue itself. A flash
+adapter can use `RingStorage` for its capture staging, with a worker handling
+erases, alignment, failed writes, wear and power-loss recovery. Direct raw flash
+is not supported by the mutable-slice interface. Flash drivers and durable ring
+metadata/recovery are not implemented by this memory abstraction.
 
 `Recorder::new()` appends one new Boot after any restored records before accepting
-telemetry. It is fallible: if the reset cannot be stored, `RecorderInitError`
-returns the original storage intact. The ESP initializer also returns storage
-on build-ID or session validation failures. Applications must recover/drain the
-existing stream and retry, rather than skipping a reset and continuing capture.
+telemetry. Appending the Boot may evict older records, including other Boots.
+It is fallible: if the reset exceeds the byte budget or a custom storage write
+fails, `RecorderInitError` returns the original storage intact. The ESP initializer
+also returns storage on build-ID or session validation failures. Applications must
+provide sufficient capacity or recover storage and retry before continuing capture.
 `into_storage()` returns queued records for recovery or handoff; it does not
 include a batch already owned by an exporter.
 
@@ -131,7 +185,7 @@ pending batch. This is at-least-once transmission of retained records, requiring
 backend deduplication; bounded RAM does not guarantee lossless delivery.
 On restart, a durable outbox must replay pending parcels with their original IDs
 before any newly assembled parcel. It must transfer queue ownership to a durable
-parcel atomically, so a boot marker cannot disappear between queue and outbox.
+parcel atomically, so retained records cannot disappear between queue and outbox.
 
 ## Boot context and protobuf
 
@@ -142,7 +196,17 @@ hardware reason code. Stored metadata is serialized unchanged even after a
 firmware update; the codec does not substitute its current version.
 
 Boot context applies to all subsequent events until the next Boot, across parcel
-boundaries. A parcel may contain old-boot events, a new reset, and new-boot events.
+boundaries. This describes a stream whose Boot events were retained. Under capacity
+pressure the ring may evict an unexported Boot while retaining its later telemetry;
+boot/build context for those events is then unavailable. The loss delta counts the
+evicted Boot but does not identify the missing reset or reconstruct its metadata.
+Consumers cannot assume every reset is delivered or safely infer context across
+losses. Reliable attribution would require a separate context/recovery mechanism;
+it is not implemented. The current development receiver only decodes and prints
+parcels.
+
+For streams with intact boot context, a parcel may contain old-boot events, a new
+reset, and new-boot events.
 It may also contain only ordinary events whose boot context was accepted in a
 previous parcel. The encoder does not add repeated headers. For example:
 

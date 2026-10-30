@@ -22,6 +22,10 @@ impl Backtrace for TestBacktrace {
         }
     }
 }
+// Fixture Boot: framing/identity/string lengths plus the current agent version.
+const BOOT_BYTES: usize = 64 + env!("CARGO_PKG_VERSION").len();
+const METRIC_BYTES: usize = 28;
+
 fn recorder<const N: usize>() -> Recorder<RamStorage<N>, TestClock, TestBacktrace> {
     Recorder::new(
         Session::new([7; 16], "0123456789abcdef", "test", "power_on").unwrap(),
@@ -40,42 +44,27 @@ fn decode(batch: &Batch) -> pb::Parcel {
 }
 
 #[test]
-fn ring_eviction_keeps_complete_newest_records_and_boot_context() {
-    let recorder = recorder::<3>();
+fn byte_queue_eviction_keeps_newest_records_and_counts_evicted_boot() {
+    let recorder = recorder::<{ BOOT_BYTES + 2 * METRIC_BYTES }>();
     for value in 0..4 {
         recorder
             .metric(1, MetricValue::CounterDelta(value))
             .unwrap();
     }
     let batch = recorder.take_batch().unwrap().unwrap();
-    assert_eq!(batch.records.len(), 3);
-    assert!(matches!(batch.records[0].payload, Payload::Boot(_)));
-    assert!(matches!(
-        batch.records[1].payload,
-        Payload::Metric {
-            value: MetricValue::CounterDelta(2),
-            ..
-        }
-    ));
-    assert!(matches!(
-        batch.records[2].payload,
-        Payload::Metric {
-            value: MetricValue::CounterDelta(3),
-            ..
-        }
-    ));
-    assert_eq!(recorder.statistics().evicted, 2);
-    let parcel = decode(&batch);
-    assert_eq!(parcel.dropped_records, 2);
-    assert!(
-        matches!(&parcel.events[0].payload, Some(pb::Event_::Payload::Boot(boot))
-            if boot.build_id == "0123456789abcdef" && boot.boot_id.as_slice() == [7; 16])
-    );
+    assert_eq!(batch.records.len(), 4);
+    for (record, expected) in batch.records.iter().zip(0..4) {
+        assert!(matches!(record.payload, Payload::Metric {
+            value: MetricValue::CounterDelta(value), ..
+        } if value == expected));
+    }
+    assert_eq!(recorder.statistics().evicted, 1);
+    assert_eq!(decode(&batch).dropped_records, 1);
 }
 
 #[test]
 fn boot_is_exported_once_without_repeated_headers_in_later_batches() {
-    let recorder = recorder::<2>();
+    let recorder = recorder::<1024>();
     let boot = recorder.take_batch().unwrap().unwrap();
     assert_eq!(decode(&boot).events.len(), 1);
     assert!(recorder.take_batch().unwrap().is_none());
@@ -97,7 +86,7 @@ fn restored_history_precedes_the_new_reset_in_the_same_parcel() {
     old_session.agent_version = "old-agent".try_into().unwrap();
     let old = Recorder::new(
         old_session,
-        RamStorage::<4>::new(),
+        RamStorage::<1024>::new(),
         TestClock(AtomicU64::new(123)),
         TestBacktrace,
     )
@@ -136,8 +125,10 @@ fn restored_history_precedes_the_new_reset_in_the_same_parcel() {
 }
 
 #[test]
-fn eviction_preserves_every_reset_when_history_spans_boots() {
-    let old = recorder::<4>();
+fn eviction_removes_oldest_records_including_resets_across_boots() {
+    // Second Boot uses "new-build", "test", "reset" metadata.
+    let old =
+        recorder::<{ BOOT_BYTES + 54 + env!("CARGO_PKG_VERSION").len() + 2 * METRIC_BYTES }>();
     old.metric(1, MetricValue::Gauge(10.0)).unwrap();
     let next = Recorder::new(
         Session::new([8; 16], "new-build", "test", "reset").unwrap(),
@@ -151,16 +142,13 @@ fn eviction_preserves_every_reset_when_history_spans_boots() {
     }
 
     let parcel = decode(&next.take_batch().unwrap().unwrap());
-    assert_eq!(parcel.dropped_records, 3);
+    assert_eq!(parcel.dropped_records, 2);
+    assert_eq!(parcel.events.len(), 5);
     assert!(
         matches!(&parcel.events[0].payload, Some(pb::Event_::Payload::Boot(boot))
-        if boot.boot_id.as_slice() == [7; 16])
-    );
-    assert!(
-        matches!(&parcel.events[1].payload, Some(pb::Event_::Payload::Boot(boot))
         if boot.boot_id.as_slice() == [8; 16])
     );
-    for (event, expected) in parcel.events[2..].iter().zip([22.0, 23.0]) {
+    for (event, expected) in parcel.events[1..].iter().zip([20.0, 21.0, 22.0, 23.0]) {
         assert!(
             matches!(&event.payload, Some(pb::Event_::Payload::Metric(metric))
             if metric.measurement == Some(pb::Metric_::Measurement::Gauge(expected)))
@@ -169,8 +157,9 @@ fn eviction_preserves_every_reset_when_history_spans_boots() {
 }
 
 #[test]
-fn startup_returns_the_existing_stream_when_only_boot_markers_fill_storage() {
-    let old = recorder::<2>();
+fn startup_evicts_oldest_boot_when_history_fills_storage() {
+    // Second Boot uses "second", "test", "reset" metadata.
+    let old = recorder::<{ BOOT_BYTES + 51 + env!("CARGO_PKG_VERSION").len() }>();
     let next = Recorder::new(
         Session::new([8; 16], "second", "test", "reset").unwrap(),
         old.into_storage(),
@@ -178,17 +167,16 @@ fn startup_returns_the_existing_stream_when_only_boot_markers_fill_storage() {
         TestBacktrace,
     )
     .unwrap();
-    let error = Recorder::new(
+    let newest = Recorder::new(
         Session::new([9; 16], "third", "test", "reset").unwrap(),
         next.into_storage(),
         TestClock(AtomicU64::new(0)),
         TestBacktrace,
     )
-    .err()
-    .expect("full boot history must not be overwritten");
-    assert_eq!(error.error, StorageFull);
-    let mut storage = error.storage;
-    for id in [7, 8] {
+    .unwrap();
+    assert_eq!(newest.statistics().evicted, 1);
+    let mut storage = newest.into_storage();
+    for id in [8, 9] {
         assert!(
             matches!(storage.pop().unwrap().payload, Payload::Boot(boot) if boot.boot_id == [id; 16])
         );
@@ -197,29 +185,40 @@ fn startup_returns_the_existing_stream_when_only_boot_markers_fill_storage() {
 }
 
 #[test]
-fn telemetry_cannot_overwrite_an_undelivered_reset() {
-    let recorder = recorder::<1>();
-    assert_eq!(
-        recorder.metric(1, MetricValue::Gauge(1.0)),
-        Err(CaptureError::Storage)
+fn startup_returns_existing_stream_when_new_boot_exceeds_byte_budget() {
+    let old = recorder::<BOOT_BYTES>();
+    let error = Recorder::new(
+        Session::new([8; 16], &"b".repeat(64), &"f".repeat(32), &"r".repeat(64)).unwrap(),
+        old.into_storage(),
+        TestClock(AtomicU64::new(0)),
+        TestBacktrace,
+    )
+    .err()
+    .expect("oversized Boot must fail without eviction");
+    assert_eq!(error.error, StorageFull);
+    let mut storage = error.storage;
+    assert!(
+        matches!(storage.pop().unwrap().payload, Payload::Boot(boot) if boot.boot_id == [7; 16])
     );
+    assert!(storage.pop().is_none());
+}
+
+#[test]
+fn telemetry_can_overwrite_an_undelivered_reset() {
+    let recorder = recorder::<BOOT_BYTES>();
+    recorder.metric(1, MetricValue::Gauge(1.0)).unwrap();
     let parcel = decode(&recorder.take_batch().unwrap().unwrap());
     assert_eq!(parcel.events.len(), 1);
     assert!(matches!(
         parcel.events[0].payload,
-        Some(pb::Event_::Payload::Boot(_))
-    ));
-    assert_eq!(parcel.dropped_records, 1);
-    recorder.metric(1, MetricValue::Gauge(2.0)).unwrap();
-    assert!(matches!(
-        decode(&recorder.take_batch().unwrap().unwrap()).events[0].payload,
         Some(pb::Event_::Payload::Metric(_))
     ));
+    assert_eq!(parcel.dropped_records, 1);
 }
 
 #[test]
 fn events_continue_in_order_across_parcels_without_repeating_the_boot() {
-    let recorder = recorder::<16>();
+    let recorder = recorder::<1024>();
     for value in 0..12 {
         recorder
             .metric(1, MetricValue::CounterDelta(value))
@@ -249,17 +248,8 @@ fn events_continue_in_order_across_parcels_without_repeating_the_boot() {
 
 #[test]
 fn loss_counts_are_parcel_deltas_instead_of_per_boot_snapshots() {
-    let recorder = recorder::<3>();
+    let recorder = recorder::<{ BOOT_BYTES + 2 * METRIC_BYTES }>();
     for value in 0..4 {
-        recorder
-            .metric(1, MetricValue::CounterDelta(value))
-            .unwrap();
-    }
-    assert_eq!(
-        decode(&recorder.take_batch().unwrap().unwrap()).dropped_records,
-        2
-    );
-    for value in 4..8 {
         recorder
             .metric(1, MetricValue::CounterDelta(value))
             .unwrap();
@@ -268,7 +258,16 @@ fn loss_counts_are_parcel_deltas_instead_of_per_boot_snapshots() {
         decode(&recorder.take_batch().unwrap().unwrap()).dropped_records,
         1
     );
-    assert_eq!(recorder.statistics().evicted, 3);
+    for value in 4..9 {
+        recorder
+            .metric(1, MetricValue::CounterDelta(value))
+            .unwrap();
+    }
+    assert_eq!(
+        decode(&recorder.take_batch().unwrap().unwrap()).dropped_records,
+        1
+    );
+    assert_eq!(recorder.statistics().evicted, 2);
     assert!(recorder.take_batch().unwrap().is_none());
 }
 
@@ -289,7 +288,7 @@ fn timestamps_follow_commit_order_when_metrics_arrive_during_formatting() {
     }
     let recorder = Recorder::new(
         Session::new([7; 16], "build", "test", "reset").unwrap(),
-        RamStorage::<3>::new(),
+        RamStorage::<1024>::new(),
         TickClock(AtomicU64::new(1)),
         NoBacktrace,
     )
@@ -314,7 +313,7 @@ fn timestamps_follow_commit_order_when_metrics_arrive_during_formatting() {
 
 #[test]
 fn text_truncates_at_utf8_boundary_and_captures_backtrace_at_callsite() {
-    let recorder = recorder::<2>();
+    let recorder = recorder::<1024>();
     recorder
         .text(Level::Warn, "sensor", format_args!("{}", "€".repeat(100)))
         .unwrap();
@@ -340,7 +339,7 @@ fn recursive_formatting_is_rejected_without_deadlock() {
             out.write_str("outer")
         }
     }
-    let recorder = recorder::<2>();
+    let recorder = recorder::<1024>();
     recorder
         .text(
             Level::Info,
@@ -354,7 +353,7 @@ fn recursive_formatting_is_rejected_without_deadlock() {
 
 #[test]
 fn protobuf_preserves_typed_metrics_and_complete_defmt_frames() {
-    let recorder = recorder::<4>();
+    let recorder = recorder::<1024>();
     metric!("cpu.temperature")
         .set_on(&recorder, 23.123456789)
         .unwrap();
@@ -379,7 +378,7 @@ fn protobuf_preserves_typed_metrics_and_complete_defmt_frames() {
 
 #[test]
 fn oversized_defmt_frame_is_dropped_whole() {
-    let recorder = recorder::<2>();
+    let recorder = recorder::<1024>();
     assert_eq!(
         recorder.defmt(&[0; MAX_DEFMT + 1]),
         Err(CaptureError::OversizedFrame)
@@ -392,7 +391,7 @@ fn oversized_defmt_frame_is_dropped_whole() {
 
 #[test]
 fn losses_after_a_boot_only_batch_are_still_exported() {
-    let recorder = recorder::<1>();
+    let recorder = recorder::<BOOT_BYTES>();
     recorder.take_batch().unwrap().unwrap();
     assert!(recorder.take_batch().unwrap().is_none());
     recorder.reject();
@@ -420,7 +419,7 @@ impl Transport for RetryingTransport {
 
 #[test]
 fn failures_and_wrong_ack_retry_identical_bytes_while_capture_continues() {
-    let recorder = recorder::<2>();
+    let recorder = recorder::<1024>();
     recorder.metric(1, MetricValue::Gauge(1.0)).unwrap();
     let mut exporter =
         Exporter::<_, _, 8192>::new(&recorder, RetryingTransport::default(), ProtobufEncoder, 1);
@@ -454,7 +453,7 @@ impl BatchEncoder for FailOnce {
 
 #[test]
 fn encoder_failure_does_not_lose_drained_records() {
-    let recorder = recorder::<2>();
+    let recorder = recorder::<1024>();
     recorder.metric(1, MetricValue::Gauge(1.0)).unwrap();
     let mut exporter = Exporter::<_, _, 8192>::new(
         &recorder,
@@ -476,7 +475,7 @@ fn encoder_failure_does_not_lose_drained_records() {
 
 #[test]
 fn tiny_output_buffer_fails_instead_of_emitting_partial_parcel() {
-    let recorder = recorder::<1>();
+    let recorder = recorder::<BOOT_BYTES>();
     let batch = recorder.take_batch().unwrap().unwrap();
     assert_eq!(
         ProtobufEncoder.encode(&batch, &mut [0; 8]),
@@ -486,7 +485,7 @@ fn tiny_output_buffer_fails_instead_of_emitting_partial_parcel() {
 
 #[test]
 fn periodic_poll_does_not_busy_retry() {
-    let recorder = recorder::<1>();
+    let recorder = recorder::<BOOT_BYTES>();
     let mut exporter = Exporter::<_, _, 8192>::new(
         &recorder,
         RetryingTransport::default(),
@@ -517,7 +516,7 @@ fn cancelled_async_send_keeps_identical_pending_batch() {
             Ok(Acknowledgment { batch_id: batch.id })
         }
     }
-    let recorder = recorder::<1>();
+    let recorder = recorder::<BOOT_BYTES>();
     let mut exporter = Exporter::<_, _, 8192>::new(
         &recorder,
         Suspended { calls: Vec::new() },
@@ -539,4 +538,36 @@ fn cancelled_async_send_keeps_identical_pending_batch() {
     }
     let calls = &exporter.transport_mut().calls;
     assert_eq!(calls[0], calls[1]);
+}
+
+#[test]
+fn recorder_accepts_borrowed_and_heap_backed_rings() {
+    fn capture<S: RecordStorage>(storage: S)
+    where
+        S::Error: fmt::Debug,
+    {
+        let recorder = Recorder::new(
+            Session::new([7; 16], "build", "test", "reset").unwrap(),
+            storage,
+            TestClock(AtomicU64::new(123)),
+            NoBacktrace,
+        )
+        .unwrap();
+        recorder.metric(1, MetricValue::CounterDelta(42)).unwrap();
+        let parcel = decode(&recorder.take_batch().unwrap().unwrap());
+        assert_eq!(parcel.events.len(), 2);
+        assert!(matches!(
+            &parcel.events[0].payload,
+            Some(pb::Event_::Payload::Boot(_))
+        ));
+        assert!(
+            matches!(&parcel.events[1].payload, Some(pb::Event_::Payload::Metric(metric))
+            if metric.measurement == Some(pb::Metric_::Measurement::CounterDelta(42)))
+        );
+    }
+    let mut memory = [0_u8; 256];
+    capture(RingStorage::with_storage(&mut memory[..]));
+    capture(RingStorage::with_storage(
+        vec![0_u8; 256].into_boxed_slice(),
+    ));
 }

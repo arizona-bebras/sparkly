@@ -14,7 +14,7 @@ use static_cell::StaticCell;
 
 esp_bootloader_esp_idf::esp_app_desc!();
 
-static RECORDER: StaticCell<EspRecorder<RamStorage<16>>> = StaticCell::new();
+static RECORDER: StaticCell<EspRecorder<RamStorage<2048>>> = StaticCell::new();
 
 #[main]
 fn main() -> ! {
