@@ -1,6 +1,7 @@
 <script lang="ts">
 import { useQueryClient } from "@tanstack/svelte-query";
 import type { Snippet } from "svelte";
+import { goto } from "$app/navigation";
 import * as Dialog from "$lib/components/ui/dialog/index.js";
 import type { Park } from "../../../../../proto/gen/backend/proto/service_pb";
 import ParkForm from "../../forms/park/Park.svelte";
@@ -23,21 +24,26 @@ let {
 	{#if children}
 		{@render children()}
 	{:else}
-		<p>создать паркFSDAFLSJFSJDOKFS</p>
+		<p>Создать парк</p>
 	{/if} 
 	</Dialog.Trigger>
 
 	<Dialog.Content class="sm:max-w-md">
 		<Dialog.Header>
-			<Dialog.Title>Создать парк</Dialog.Title>
+			<Dialog.Title>{park ? "Редактировать парк" : "Создать парк"}</Dialog.Title>
 			<Dialog.Description>
-				Заполните информацию для создания нового парка.
+				{park
+					? "Отредактируйте информацию о парке."
+					: "Заполните информацию для создания нового парка."}
 			</Dialog.Description>
 		</Dialog.Header>
 
-		<ParkForm onSuccess={() => {
-			open = false
-			client.refetchQueries({queryKey: ['parks']})
-		}} {park} />
+		<ParkForm
+			onSuccess={async (savedPark) => {
+				open = false;
+				await client.refetchQueries({ queryKey: ["parks"] });
+			}}
+			{park}
+		/>
 	</Dialog.Content>
 </Dialog.Root>

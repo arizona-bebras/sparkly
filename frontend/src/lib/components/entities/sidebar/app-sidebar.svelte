@@ -1,6 +1,9 @@
 <script lang="ts">
 	import * as Sidebar from "$lib/components/ui/sidebar/index.js";
+	import { Skeleton } from "$lib/components/ui/skeleton/index.js";
 	import { page } from "$app/state";
+	import { createQuery } from "@tanstack/svelte-query";
+	import { client } from "$proto";
 	import SparklesIcon from "@lucide/svelte/icons/sparkles";
 	import LayoutDashboardIcon from "@lucide/svelte/icons/layout-dashboard";
 	import CpuIcon from "@lucide/svelte/icons/cpu";
@@ -12,7 +15,16 @@
 	const parkId = $derived(page.params.park_id ?? "");
 	const currentPath = $derived(page.url.pathname);
 
-	const basePath = $derived(`/control-pannel/${parkId}`);
+	const parkQuery = createQuery(() => ({
+		queryKey: ["park", parkId],
+		queryFn: () => client.park.getPark({ id: parkId }),
+		enabled: !!parkId,
+		staleTime: 1000 * 60 * 5,
+	}));
+
+	const park = $derived(parkQuery.data?.park);
+
+	const basePath = $derived(`/control-panel/${parkId}`);
 
 	const mainNavItems = $derived([
 		{
@@ -53,13 +65,23 @@
 
 <Sidebar.Root collapsible="icon">
 	<Sidebar.Header class="p-3 border-b border-sidebar-border">
-		<div class="flex items-center gap-2 font-semibold">
+		<div class="flex items-center gap-2.5 min-w-0">
 			<div class="flex size-7 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground">
 				<SparklesIcon class="size-4" />
 			</div>
-			<div class="flex flex-col gap-0.5 leading-none group-data-[collapsible=icon]:hidden">
-				<span class="text-base font-bold tracking-tight">Sparkly</span>
-				<span class="text-xs text-muted-foreground font-mono">Парк #{parkId}</span>
+			<div class="flex flex-col min-w-0 flex-1 leading-tight group-data-[collapsible=icon]:hidden">
+				{#if parkQuery.isPending && !park}
+					<Skeleton class="h-4 w-28 mb-1" />
+					<Skeleton class="h-3 w-36" />
+				{:else if park}
+					<span class="text-sm font-bold tracking-tight truncate" title={park.name}>{park.name}</span>
+					{#if park.description}
+						<span class="text-xs text-muted-foreground truncate" title={park.description}>{park.description}</span>
+					{/if}
+				{:else}
+					<span class="text-sm font-bold tracking-tight truncate">Sparkly</span>
+					<span class="text-xs text-muted-foreground font-mono truncate">Парк #{parkId}</span>
+				{/if}
 			</div>
 		</div>
 	</Sidebar.Header>

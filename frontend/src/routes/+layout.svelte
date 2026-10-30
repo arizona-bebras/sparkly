@@ -1,9 +1,45 @@
 <script lang="ts">
-	import { QueryClient, QueryClientProvider } from "@tanstack/svelte-query";
+	import {
+		QueryCache,
+		MutationCache,
+		QueryClient,
+		QueryClientProvider,
+		type DefaultError,
+	} from "@tanstack/svelte-query";
 	import { SvelteQueryDevtools } from "@tanstack/svelte-query-devtools";
+	import { goto } from "$app/navigation";
+	import { page } from "$app/state";
 
 	let { children } = $props();
-	const queryClient = new QueryClient();
+
+	function handleAuthError(error: DefaultError) {
+		if (
+			error.message.includes("401") ||
+			error.message.includes("unauthenticated")
+		) {
+			if (!page.url.pathname.startsWith("/auth")) {
+				goto("/auth/signin");
+			}
+		}
+	}
+
+	const queryClient = new QueryClient({
+		queryCache: new QueryCache({ onError: handleAuthError }),
+		mutationCache: new MutationCache({ onError: handleAuthError }),
+		defaultOptions: {
+			queries: {
+				retry: (failureCount, error) => {
+					if (
+						error.message.includes("401") ||
+						error.message.includes("unauthenticated")
+					) {
+						return false;
+					}
+					return failureCount < 3;
+				},
+			},
+		},
+	});
 </script>
 
 <QueryClientProvider client={queryClient}>
