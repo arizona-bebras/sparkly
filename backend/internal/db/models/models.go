@@ -78,14 +78,33 @@ func (_ Park) FromDomain(p domain.Park) Park {
 }
 
 type Group struct {
-	ID      uuid.UUID `gorm:"type:uuid;primaryKey"`
-	Name    string    `gorm:"not null"`
-	ParkID  uuid.UUID `gorm:"type:uuid;not null;index"`
-	Devices []Device  `gorm:"many2many:group_devices;constraint:OnDelete:CASCADE;"`
+	ID          uuid.UUID `gorm:"type:uuid;primaryKey"`
+	Name        string    `gorm:"not null"`
+	Description string
+	ParkID      uuid.UUID `gorm:"type:uuid;not null;index"`
+	Devices     []Device  `gorm:"many2many:group_devices;constraint:OnDelete:CASCADE;"`
 }
 
 func (Group) TableName() string {
 	return "groups"
+}
+
+func (g Group) ToDomain() domain.Group {
+	return domain.Group{
+		ID:          g.ID,
+		Name:        g.Name,
+		Description: g.Description,
+		ParkID:      g.ParkID,
+	}
+}
+
+func (_ Group) FromDomain(g domain.Group) Group {
+	return Group{
+		ID:          g.ID,
+		Name:        g.Name,
+		Description: g.Description,
+		ParkID:      g.ParkID,
+	}
 }
 
 type Device struct {

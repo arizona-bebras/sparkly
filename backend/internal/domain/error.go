@@ -15,7 +15,9 @@ var (
 
 	ErrKeyNotFound = errors.New("unknown key id")
 
-	ErrParkNotFound = errors.New("park with this ID ro token doesnt exists")
+	ErrParkNotFound = errors.New("park with this ID or token doesnt exists")
+
+	ErrGroupNotFound = errors.New("group with this ID doesnt exists")
 
 	ErrDuplicatedDevice = errors.New("this device is already registered")
 )

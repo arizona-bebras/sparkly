@@ -86,7 +86,9 @@ func main() {
 
 	parkRepo := repos.NewParkRepo(db)
 	parkService := services.NewParkService(parkRepo)
-	parkHandler := handlers.NewParkHandler(parkService)
+	groupsRepo := repos.NewGroupsRepo(db)
+	groupsService := services.NewGroupsService(groupsRepo)
+	parkHandler := handlers.NewParkHandler(parkService, groupsService)
 	backendv1connect.RegisterParkServiceHandler(server, parkHandler)
 
 	devicesRepo := repos.NewDevicesRepo(db)
