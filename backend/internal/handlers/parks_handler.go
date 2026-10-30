@@ -67,6 +67,7 @@ func (h *ParkHandler) GetPark(ctx context.Context, r *pb.GetParkRequest) (*pb.Ge
 			Id:          park.ID.String(),
 			Name:        park.Name,
 			Description: park.Desc,
+			Token:       &park.Token,
 		},
 	}, nil
 }

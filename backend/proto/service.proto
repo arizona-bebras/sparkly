@@ -37,8 +37,9 @@ message Park {
   string name = 2;
   string description = 3;
   int32 device_count = 4;
-  google.protobuf.Timestamp created_at = 5;
-  google.protobuf.Timestamp updated_at = 6;
+  optional string token = 5;
+  google.protobuf.Timestamp created_at = 6;
+  google.protobuf.Timestamp updated_at = 7;
 }
 
 message DeviceGroup {
@@ -47,8 +48,9 @@ message DeviceGroup {
   string name = 3;
   string description = 4;
   int32 device_count = 5;
-  google.protobuf.Timestamp created_at = 6;
-  google.protobuf.Timestamp updated_at = 7;
+  optional string token = 6;
+  google.protobuf.Timestamp created_at = 7;
+  google.protobuf.Timestamp updated_at = 8;
 }
 
 message Device {

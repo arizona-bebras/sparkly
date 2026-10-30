@@ -11,10 +11,10 @@ import (
 )
 
 type GroupsRepo interface {
-	CreateGroup(ctx context.Context, name string, description string, parkID, userID uuid.UUID) (domain.Group, error)
+	CreateGroup(ctx context.Context, userID uuid.UUID, data domain.CreateGroupParams) (domain.Group, error)
 	GetGroup(ctx context.Context, groupID, userID uuid.UUID) (domain.Group, error)
 	GetAllGroups(ctx context.Context, parkID, userID uuid.UUID) ([]domain.Group, error)
-	UpdateGroup(ctx context.Context, newName string, newDescription string, groupID, userID uuid.UUID) (domain.Group, error)
+	UpdateGroup(ctx context.Context, newData domain.UpdateGroupParams, groupID, userID uuid.UUID) (domain.Group, error)
 	DeleteGroup(ctx context.Context, groupID, userID uuid.UUID) error
 }
 
@@ -53,7 +53,11 @@ func (s *GroupsService) CreateGroup(ctx context.Context, parkIDStr, name, descri
 		return domain.Group{}, fmt.Errorf("failed to identify park id: %w", domain.ErrInvalidID)
 	}
 
-	group, err := s.repo.CreateGroup(ctx, name, description, parkID, userID)
+	group, err := s.repo.CreateGroup(ctx, userID, domain.CreateGroupParams{
+		Name:        name,
+		Description: description,
+		ParkID:      parkID,
+	})
 	if err != nil {
 		return domain.Group{}, fmt.Errorf("failed to create group: %w", err)
 	}
@@ -110,7 +114,10 @@ func (s *GroupsService) UpdateGroup(ctx context.Context, groupIDStr, newName, ne
 		return domain.Group{}, fmt.Errorf("failed to identify group id: %w", domain.ErrInvalidID)
 	}
 
-	group, err := s.repo.UpdateGroup(ctx, newName, newDescription, groupID, userID)
+	group, err := s.repo.UpdateGroup(ctx, domain.UpdateGroupParams{
+		Name:        newName,
+		Description: newDescription,
+	}, groupID, userID)
 	if err != nil {
 		return domain.Group{}, fmt.Errorf("failed to update group: %w", err)
 	}

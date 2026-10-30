@@ -25,7 +25,7 @@ func NewGroupsRepo(db *gorm.DB) *GroupsRepo {
 	}
 }
 
-func (r *GroupsRepo) CreateGroup(ctx context.Context, name string, description string, parkID, userID uuid.UUID) (domain.Group, error) {
+func (r *GroupsRepo) CreateGroup(ctx context.Context, userID uuid.UUID, data domain.CreateGroupParams) (domain.Group, error) {
 	id, err := uuid.NewV7()
 	if err != nil {
 		return domain.Group{}, fmt.Errorf("failed to generate new id: %w", err)
@@ -33,13 +33,13 @@ func (r *GroupsRepo) CreateGroup(ctx context.Context, name string, description s
 
 	newGroup := models.Group{
 		ID:          id,
-		Name:        name,
-		Description: description,
-		ParkID:      parkID,
+		Name:        data.Name,
+		Description: data.Description,
+		ParkID:      data.ParkID,
 	}
 	err = r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		var park models.Park
-		if err := tx.First(&park, "id = ?", parkID).Error; err != nil {
+		if err := tx.First(&park, "id = ?", data.ParkID).Error; err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
 				return domain.ErrParkNotFound
 			}
@@ -98,17 +98,17 @@ func (r *GroupsRepo) GetAllGroups(ctx context.Context, parkID, userID uuid.UUID)
 	return domainGroups, nil
 }
 
-func (r *GroupsRepo) UpdateGroup(ctx context.Context, newName string, newDescription string, groupID, userID uuid.UUID) (domain.Group, error) {
+func (r *GroupsRepo) UpdateGroup(ctx context.Context, newData domain.UpdateGroupParams, groupID, userID uuid.UUID) (domain.Group, error) {
 	newGroup := models.Group{
 		ID: groupID,
 	}
 
 	updates := make(map[string]any)
-	if newName != "" {
-		updates["name"] = newName
+	if newData.Name != "" {
+		updates["name"] = newData.Name
 	}
-	if newDescription != "" {
-		updates["description"] = newDescription
+	if newData.Description != "" {
+		updates["description"] = newData.Description
 	}
 
 	if len(updates) == 0 {

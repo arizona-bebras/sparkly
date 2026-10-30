@@ -45,19 +45,19 @@ func (m *mockGroupsRepo) hasAccess(userID, parkID uuid.UUID) bool {
 	return parks[parkID]
 }
 
-func (m *mockGroupsRepo) CreateGroup(ctx context.Context, name string, description string, parkID, userID uuid.UUID) (domain.Group, error) {
-	if !m.parks[parkID] {
+func (m *mockGroupsRepo) CreateGroup(ctx context.Context, userID uuid.UUID, data domain.CreateGroupParams) (domain.Group, error) {
+	if !m.parks[data.ParkID] {
 		return domain.Group{}, domain.ErrParkNotFound
 	}
-	if !m.hasAccess(userID, parkID) {
+	if !m.hasAccess(userID, data.ParkID) {
 		return domain.Group{}, domain.ErrParkAccessDenied
 	}
 	id := uuid.New()
 	g := domain.Group{
 		ID:          id,
-		ParkID:      parkID,
-		Name:        name,
-		Description: description,
+		ParkID:      data.ParkID,
+		Name:        data.Name,
+		Description: data.Description,
 	}
 	m.groups[id] = g
 	return g, nil
@@ -84,16 +84,16 @@ func (m *mockGroupsRepo) GetAllGroups(ctx context.Context, parkID, userID uuid.U
 	return result, nil
 }
 
-func (m *mockGroupsRepo) UpdateGroup(ctx context.Context, newName string, newDescription string, groupID, userID uuid.UUID) (domain.Group, error) {
+func (m *mockGroupsRepo) UpdateGroup(ctx context.Context, newData domain.UpdateGroupParams, groupID, userID uuid.UUID) (domain.Group, error) {
 	g, ok := m.groups[groupID]
 	if !ok || !m.hasAccess(userID, g.ParkID) {
 		return domain.Group{}, domain.ErrGroupNotFound
 	}
-	if newName != "" {
-		g.Name = newName
+	if newData.Name != "" {
+		g.Name = newData.Name
 	}
-	if newDescription != "" {
-		g.Description = newDescription
+	if newData.Description != "" {
+		g.Description = newData.Description
 	}
 	m.groups[groupID] = g
 	return g, nil

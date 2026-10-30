@@ -3,7 +3,6 @@ package services
 import (
 	"context"
 	"crypto/rand"
-	"crypto/sha256"
 	"encoding/base64"
 	"fmt"
 	"sparkly/backend/internal/domain"
@@ -56,12 +55,10 @@ func (s *ParkService) CreatePark(ctx context.Context, name, desc string) (domain
 		return domain.Park{}, "", fmt.Errorf("failed to generate park token: %w", err)
 	}
 
-	tokenHash := sha256.Sum256([]byte(token))
-
 	park, err := s.repo.CreatePark(ctx, userID, domain.CreateParkParams{
 		Name:        name,
 		Description: desc,
-		TokenHash:   base64.RawURLEncoding.EncodeToString(tokenHash[:]),
+		Token:       token,
 	})
 
 	if err != nil {

@@ -49,13 +49,13 @@ type Park struct {
 	ID          uuid.UUID `gorm:"type:uuid;primaryKey"`
 	Name        string    `gorm:"not null"`
 	Description string
-	TokenHash   string    `gorm:"uniqueIndex;not null"`
 	Users       []User    `gorm:"many2many:user_parks"`
 	Groups      []Group   `gorm:"foreignKey:ParkID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 	Devices     []Device  `gorm:"foreignKey:ParkID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 	Issues      []Issue   `gorm:"foreignKey:ParkID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 	Builds      []Build   `gorm:"foreignKey:ParkID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 	Releases    []Release `gorm:"foreignKey:ParkID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
+	Tokens      Token     `gorm:"foreignKey:ParkID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 }
 
 func (Park) TableName() string {
@@ -83,7 +83,8 @@ type Group struct {
 	Name        string    `gorm:"not null"`
 	Description string
 	ParkID      uuid.UUID `gorm:"type:uuid;not null;index"`
-	Devices     []Device  `gorm:"many2many:group_devices;constraint:OnDelete:CASCADE;"`
+	Devices     []Device  `gorm:"many2many:group_devices"`
+	Tokens      []Token   `gorm:"many2many:group_tokens"`
 }
 
 func (Group) TableName() string {
@@ -109,15 +110,28 @@ func (_ Group) FromDomain(g domain.Group) Group {
 }
 
 type Device struct {
-	ID        uuid.UUID `gorm:"type:uuid;primaryKey"`
-	Name      string    `gorm:"not null"`
-	ParkID    uuid.UUID `gorm:"type:uuid;not null;index"`
-	TokenHash string    `gorm:"not null"`
-	JoinedAt  time.Time
+	ID       uuid.UUID `gorm:"type:uuid;primaryKey"`
+	Name     string    `gorm:"not null"`
+	ParkID   uuid.UUID `gorm:"type:uuid;not null;index"`
+	Token    string    `gorm:"not null"`
+	Groups   []Group   `gorm:"many2many:group_devices"`
+	JoinedAt time.Time
 }
 
 func (Device) TableName() string {
 	return "devices"
+}
+
+type Token struct {
+	ID        uuid.UUID `gorm:"type:uuid;primaryKey"`
+	ParkID    uuid.UUID `gorm:"type:uuid;not null;index"`
+	Groups    []Group   `gorm:"many2many:group_tokens;"`
+	IsDefault bool
+	Token     string `gorm:"uniqueIndex;not null"`
+}
+
+func (Token) TableName() string {
+	return "tokens"
 }
 
 type Issue struct {
