@@ -1,10 +1,13 @@
 # Архитектура
 
+- [Agent: implemented structure and extension contracts](agent.md)
+- [Agent: future implementation plan](agent-roadmap.md)
+
 > Текущий каркас репозитория упрощён до `backend/`, `frontend/`, `agent/`, `ml/` и `analytics/`. Ниже описана целевая схема системы; остальные компоненты пока не имеют отдельных проектов.
 
 ## Потоки данных
 
-1. Агент отправляет Protobuf-телеметрию через mTLS/HTTP2 в Caddy; Caddy направляет её в ingest. Adopt-запросы идут через Caddy в Control Plane.
+1. Агент формирует Protobuf-телеметрию. Планируются прямой транспорт с mTLS и передача подписанных пакетов через мост; HTTP-версия и реализация ingest-транспорта пока не выбраны. Регистрация устройства использует enrollment token и CSR. Подробности — в [архитектуре агента](agent.md).
 2. Ingest передаёт метрики, сырые логи и трейсы в аналитику, а запросы символикации — в RabbitMQ.
 3. Symbolicator получает задания из RabbitMQ, обращается к S3-хранилищу символов и публикует результаты для аналитики.
 4. Аналитика работает с ClickHouse и обменивается данными с Control Plane через gRPC.

@@ -2,21 +2,21 @@ syntax = "proto3";
 
 package sparkly.agent.v1;
 
-import "buf/validate/validate.proto";
-
 message Parcel {
   bytes batch_id = 1;
+  // Ordered device stream. Boot changes the context for all subsequent events,
+  // including events in later parcels. A parcel may span several boots.
   repeated Event events = 2;
+  // Losses since the previous parcel was assembled. Count once after deduplication.
+  uint64 dropped_records = 3;
 }
 
 message Event {
   // Микросекунды с начала данной загрузки; сбрасывается при перезагрузке.
-  // 0 — допустимое значение. Сравнивается только внутри одного boot_seq.
+  // 0 — допустимое значение. Контекст задаётся последним Boot в потоке.
   uint64 monotonic_us = 1;
 
   oneof payload {
-    option (buf.validate.oneof).required = true;
-
     Boot boot = 2;
     Metric metric = 3;
     Log log = 4;
@@ -29,27 +29,41 @@ message Boot {
   string firmware_version = 2;
   string agent_version = 3;
   string build_id = 4;
-  uint64 boot_seq = 5;
+  optional uint32 raw_reset_reason = 5;
+  // Identifies this reset; ordering comes from the device stream, not this ID.
+  bytes boot_id = 6;
 }
 
 message Metric {
   uint64 metric_id = 1;
-  float value = 2;
+  oneof measurement {
+    double gauge = 2;
+    uint64 counter_delta = 3;
+  }
 }
 
 message Log {
   oneof content {
-    option (buf.validate.oneof).required = true;
-
     RawLog raw_log = 1;
     bytes defmt_log = 2;
   }
   repeated Frame frames = 3;
+  TraceStatus trace_status = 4;
 }
 
 message RawLog {
   LogLevel level = 1;
   string message = 2;
+  string target = 3;
+  bool truncated = 4;
+}
+
+enum TraceStatus {
+  TRACE_STATUS_UNSPECIFIED = 0;
+  TRACE_STATUS_UNSUPPORTED = 1;
+  TRACE_STATUS_COMPLETE = 2;
+  TRACE_STATUS_TRUNCATED = 3;
+  TRACE_STATUS_PARTIAL = 4;
 }
 
 enum LogLevel {
