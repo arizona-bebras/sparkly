@@ -1,10 +1,12 @@
 package handlers
 
 import (
+	"context"
 	"errors"
 	"io"
+	"log"
 	"net/http"
-	"sync"
+	"time"
 
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
@@ -14,11 +16,14 @@ import (
 
 const maxParcelBytes = 1 << 20
 
-// NewIngestHandler decodes binary protobuf parcels and prints one JSON line per
-// request. This development endpoint does not persist or deduplicate parcels.
-func NewIngestHandler(output io.Writer) http.Handler {
-	var outputMu sync.Mutex
+type RawBatchStore interface {
+	StoreRawBatch(context.Context, []byte, time.Time) error
+}
+
+// NewIngestHandler validates binary protobuf parcels and persists their JSON form.
+func NewIngestHandler(store RawBatchStore) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		receivedAt := time.Now().UTC()
 		r.Body = http.MaxBytesReader(w, r.Body, maxParcelBytes)
 		defer r.Body.Close()
 		body, err := io.ReadAll(r.Body)
@@ -45,11 +50,9 @@ func NewIngestHandler(output io.Writer) http.Handler {
 			http.Error(w, "could not format parcel", http.StatusInternalServerError)
 			return
 		}
-		outputMu.Lock()
-		_, err = output.Write(append(data, '\n'))
-		outputMu.Unlock()
-		if err != nil {
-			http.Error(w, "could not print parcel", http.StatusInternalServerError)
+		if err := store.StoreRawBatch(r.Context(), data, receivedAt); err != nil {
+			log.Printf("store raw batch: %v", err)
+			http.Error(w, "could not store parcel", http.StatusServiceUnavailable)
 			return
 		}
 		w.WriteHeader(http.StatusNoContent)
