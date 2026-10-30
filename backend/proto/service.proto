@@ -124,16 +124,6 @@ message GetTokenResponse {
   int64 expires_in = 4;
 }
 
-message RefreshTokenRequest {
-  string token_id = 1 [(buf.validate.field).string.uuid = true];
-}
-
-message RefreshTokenResponse {
-  string email = 1;
-  string token = 2;
-  int64 expires_in = 4;
-}
-
 message RevokeTokenRequest {}
 
 message RevokeTokenResponse {
@@ -382,7 +372,6 @@ service UserService {
   rpc Reg(RegRequest) returns (RegResponse);
   rpc GetToken(GetTokenRequest) returns (GetTokenResponse);
   rpc CheckAuth(CheckAuthRequest) returns (CheckAuthResponse);
-  rpc RefreshToken(RefreshTokenRequest) returns (RefreshTokenResponse);
   rpc RevokeToken(RevokeTokenRequest) returns (RevokeTokenResponse);
 
   rpc UpdateUser(UpdateUserRequest) returns (UpdateUserResponse);

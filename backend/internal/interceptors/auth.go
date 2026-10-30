@@ -3,10 +3,12 @@ package interceptors
 import (
 	"context"
 	"fmt"
+	"log"
 	"net/http"
+	"time"
+
 	"sparkly/backend/internal/domain"
 	"sparkly/backend/internal/metadata"
-	"time"
 
 	"connectrpc.com/connect/v2"
 )
@@ -31,7 +33,8 @@ func NewAuthInterceptor(refresher *TokenRefresher) connect.ServerInterceptor {
 			if tokenID != "" {
 				user, token, err := refresher.RefreshToken(ctx, tokenID)
 				if err != nil {
-					return fmt.Errorf("failed to refresh access token: %w", err)
+					log.Printf("failed to refresh access token: %w", err)
+					return next(ctx, req, stream)
 				}
 				accessCookie := &http.Cookie{
 					Name:     "access_token",
