@@ -1,0 +1,10 @@
+[package]
+name = "sparkly-build"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+
+[dependencies]
+object = { version = "0.36", default-features = false, features = ["read", "std", "elf"] }
+tempfile = "3"

@@ -65,12 +65,21 @@
         "cwd": "analytics"
       }
     },
+    "test": {
+      "executor": "nx:run-commands",
+      "cache": false,
+      "options": {
+        "command": "go test ./...",
+        "cwd": "analytics"
+      }
+    },
     "check": {
       "executor": "nx:noop",
       "cache": false,
       "dependsOn": [
         "lint",
-        "format:check"
+        "format:check",
+        "test"
       ]
     }
   }
