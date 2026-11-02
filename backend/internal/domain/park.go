@@ -7,15 +7,16 @@ const (
 )
 
 type Park struct {
-	ID   uuid.UUID
-	Name string
-	Desc string
+	ID    uuid.UUID
+	Name  string
+	Desc  string
+	Token string
 }
 
 type CreateParkParams struct {
 	Name        string
 	Description string
-	TokenHash   string
+	Token       string
 }
 
 type UpdateParkParams struct {

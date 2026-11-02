@@ -6,12 +6,11 @@ import (
 	"sparkly/backend/internal/domain"
 
 	"crypto/rand"
-	"crypto/sha256"
 	"fmt"
 )
 
 type DevicesRepo interface {
-	CreateDevice(ctx context.Context, parkTokenHash, deviceTokenHash string) error
+	CreateDevice(ctx context.Context, parkToken, deviceToken string) error
 }
 
 type DeviceService struct {
@@ -40,12 +39,9 @@ func (s *DeviceService) RegDevice(ctx context.Context, parkToken string) (string
 		return "", fmt.Errorf("failed to generate device token: %w", err)
 	}
 
-	deviceTokenHash := sha256.Sum256([]byte(deviceToken))
-	parkTokenHash := sha256.Sum256([]byte(parkToken))
-
 	err = s.repo.CreateDevice(ctx,
-		base64.RawURLEncoding.EncodeToString(parkTokenHash[:]),
-		base64.RawURLEncoding.EncodeToString(deviceTokenHash[:]),
+		parkToken,
+		deviceToken,
 	)
 	if err != nil {
 		return "", fmt.Errorf("failed to register device: %w", err)

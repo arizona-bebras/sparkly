@@ -34,15 +34,28 @@ func (r *ParkRepo) CreatePark(ctx context.Context, userID uuid.UUID, data domain
 		ID:          id,
 		Name:        data.Name,
 		Description: data.Description,
-		TokenHash:   data.TokenHash,
 	}
 
-	err = r.db.Transaction(func(tx *gorm.DB) error {
+	err = r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		if err := tx.Create(&park).Error; err != nil {
 			return fmt.Errorf("create park db error: %w", err)
 		}
 		if err := tx.Model(&models.User{ID: userID}).Association("Parks").Append(&park); err != nil {
 			return fmt.Errorf("failed to assign user to park: %w", err)
+		}
+
+		tokenId, err := uuid.NewV7()
+		if err != nil {
+			return fmt.Errorf("failed to gen token id: %w", err)
+		}
+
+		if err := tx.Create(&models.Token{
+			ID:        tokenId,
+			ParkID:    id,
+			IsDefault: true,
+			Token:     data.Token,
+		}).Error; err != nil {
+			return fmt.Errorf("failed to write token for park to db: %w", err)
 		}
 
 		return nil
@@ -64,7 +77,19 @@ func (r *ParkRepo) GetParkByID(ctx context.Context, userID, parkID uuid.UUID) (d
 		return domain.Park{}, fmt.Errorf("get park db error: %w", err)
 	}
 
-	return park.ToDomain(), nil
+	var parkTokens []models.Token
+	if err := r.db.WithContext(ctx).Model(&park).Association("Tokens").Find(&parkTokens, "is_default = true"); err != nil {
+		return domain.Park{}, fmt.Errorf("failed to find default park token in db: %w", err)
+	}
+
+	if len(parkTokens) == 0 {
+		return domain.Park{}, domain.ErrTokenNotFound
+	}
+
+	domainPark := park.ToDomain()
+	domainPark.Token = parkTokens[0].Token
+
+	return domainPark, nil
 }
 
 func (r *ParkRepo) GetAllParks(ctx context.Context, userID uuid.UUID) ([]domain.Park, error) {

@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log"
 	"time"
 
 	"sparkly/backend/internal/db/models"
@@ -24,28 +25,25 @@ func NewDevicesRepo(db *gorm.DB) *DevicesRepo {
 	}
 }
 
-func (r *DevicesRepo) CreateDevice(ctx context.Context, parkTokenHash, deviceTokenHash string) error {
-	var park models.Park
-
-	if err := r.db.WithContext(ctx).First(&park, "token_hash = ?", parkTokenHash).Error; err != nil {
+func (r *DevicesRepo) CreateDevice(ctx context.Context, connectToken, deviceToken string) error {
+	var token models.Token
+	if err := r.db.WithContext(ctx).Preload("Groups").First(&token, "token = ?", connectToken).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return domain.ErrParkNotFound
+			return domain.ErrTokenNotFound
 		}
 		return fmt.Errorf("failed to write device to db: %w", err)
 	}
-
 	id, err := uuid.NewV7()
 	if err != nil {
 		return fmt.Errorf("failed to generate id for device: %w", err)
 	}
 	device := models.Device{
-		ID:        id,
-		ParkID:    park.ID,
-		Name:      "device_" + id.String(),
-		TokenHash: deviceTokenHash,
-		JoinedAt:  time.Now(),
+		ID:       id,
+		ParkID:   token.ParkID,
+		Name:     "device_" + id.String(),
+		Token:    deviceToken,
+		JoinedAt: time.Now(),
 	}
-
 	if err := r.db.WithContext(ctx).Create(&device).Error; err != nil {
 		var pgErr *pgconn.PgError
 		if errors.Is(err, gorm.ErrDuplicatedKey) || (errors.As(err, &pgErr) && pgErr.Code == "23505") {
@@ -53,6 +51,12 @@ func (r *DevicesRepo) CreateDevice(ctx context.Context, parkTokenHash, deviceTok
 		}
 		return fmt.Errorf("failed to write new device to db: %w", err)
 	}
+	log.Println(token.Groups)
 
+	if len(token.Groups) > 0 {
+		if err := r.db.WithContext(ctx).Model(&device).Association("Groups").Append(token.Groups); err != nil {
+			return fmt.Errorf("failed to assign device to groups: %w", err)
+		}
+	}
 	return nil
 }

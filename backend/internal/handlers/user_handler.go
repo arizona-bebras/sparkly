@@ -124,26 +124,7 @@ func (h *UserHandler) GetToken(ctx context.Context, r *pb.GetTokenRequest) (*pb.
 	}, nil
 }
 
-func (h *UserHandler) RefreshToken(ctx context.Context, r *pb.RefreshTokenRequest) (*pb.RefreshTokenResponse, error) {
-	tokenID := r.GetTokenId()
-
-	user, token, err := h.service.RefreshToken(ctx, tokenID)
-	if err != nil {
-		if errors.Is(err, domain.ErrUserNotFound) {
-			return nil, connect.NewError(connect.CodeNotFound, "this user is not registered")
-		}
-		if errors.Is(err, domain.ErrTokenNotFound) {
-			return nil, connect.NewError(connect.CodeUnauthenticated, "invalid token")
-		}
-		if errors.Is(err, domain.ErrRevokedRefreshToken) {
-			return nil, connect.NewError(connect.CodeInvalidArgument, "token has been revoked")
-		}
-		if errors.Is(err, domain.ErrExpiredRefreshToken) {
-			return nil, connect.NewError(connect.CodeUnauthenticated, "token expired")
-		}
-		log.Printf("UserService/RefreshToken error: %v", err)
-		return nil, connect.NewError(connect.CodeInternal, "internal error")
-	}
+func (h *UserHandler) RevokeToken(ctx context.Context, r *pb.RevokeTokenRequest) (*pb.RevokeTokenResponse, error) {
 
 	callInfo, ok := connect.CallInfoForServerContext(ctx)
 	if !ok {
@@ -151,29 +132,28 @@ func (h *UserHandler) RefreshToken(ctx context.Context, r *pb.RefreshTokenReques
 		return nil, connect.NewError(connect.CodeInternal, "internal error")
 	}
 
-	accessCookie := &http.Cookie{
+	clearAccessCookie := &http.Cookie{
 		Name:     "access_token",
-		Value:    token.Access,
+		Value:    "",
 		Path:     "/",
+		MaxAge:   -1,
+		Expires:  time.Unix(0, 0),
 		HttpOnly: true,
 		SameSite: http.SameSiteLaxMode,
-		MaxAge:   int(domain.ACCESS_TOKEN_LIFETIME / time.Second),
-		// Secure: true,
 	}
+	clearRefreshCookie := &http.Cookie{
+		Name:     "refresh_token",
+		Value:    "",
+		Path:     "/",
+		MaxAge:   -1,
+		Expires:  time.Unix(0, 0),
+		HttpOnly: true,
+		SameSite: http.SameSiteLaxMode,
+	}
+	callInfo.ResponseHeader().Set("Set-Cookie", clearAccessCookie.String())
+	callInfo.ResponseHeader().Add("Set-Cookie", clearRefreshCookie.String())
 
-	callInfo.ResponseHeader().Add("Set-Cookie", accessCookie.String())
-
-	return &pb.RefreshTokenResponse{
-		Email:     user.Email,
-		Token:     token.Access,
-		ExpiresIn: time.Now().Add(time.Duration(accessCookie.MaxAge * int(time.Second))).Unix(),
-	}, nil
-}
-
-func (h *UserHandler) RevokeToken(ctx context.Context, r *pb.RevokeTokenRequest) (*pb.RevokeTokenResponse, error) {
-	tokenID := r.GetTokenId()
-
-	err := h.service.RevokeToken(ctx, tokenID)
+	err := h.service.RevokeSession(ctx)
 	if err != nil {
 		if errors.Is(err, domain.ErrTokenNotFound) {
 			return nil, connect.NewError(connect.CodeUnauthenticated, "invalid token")
