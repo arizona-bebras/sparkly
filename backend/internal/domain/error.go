@@ -21,4 +21,7 @@ var (
 	ErrGroupNotFound = errors.New("group with this ID doesnt exists")
 
 	ErrDuplicatedDevice = errors.New("this device is already registered")
+
+	ErrIssueNotFound        = errors.New("issue with this ID doesnt exists")
+	ErrIssueAlreadyResolved = errors.New("this issue already resolved")
 )

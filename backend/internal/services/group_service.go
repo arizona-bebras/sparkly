@@ -7,7 +7,6 @@ import (
 	"github.com/google/uuid"
 
 	"sparkly/backend/internal/domain"
-	"sparkly/backend/internal/metadata"
 )
 
 type GroupsRepo interface {
@@ -26,20 +25,6 @@ func NewGroupsService(repo GroupsRepo) *GroupsService {
 	return &GroupsService{
 		repo: repo,
 	}
-}
-
-func parseCtxUserIDValue(ctx context.Context) (uuid.UUID, error) {
-	userIDStr, err := metadata.UserIDFromContext(ctx)
-	if err != nil {
-		return uuid.UUID{}, err
-	}
-
-	userID, err := uuid.Parse(userIDStr)
-	if err != nil {
-		return uuid.UUID{}, domain.ErrInvalidID
-	}
-
-	return userID, nil
 }
 
 func (s *GroupsService) CreateGroup(ctx context.Context, parkIDStr, name, description string) (domain.Group, error) {

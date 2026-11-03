@@ -1009,10 +1009,11 @@ var DeviceService_ServiceDesc = grpc.ServiceDesc{
 }
 
 const (
-	IssueService_GetIssue_FullMethodName           = "/sparkly.backend.v1.IssueService/GetIssue"
-	IssueService_GetAllIssues_FullMethodName       = "/sparkly.backend.v1.IssueService/GetAllIssues"
-	IssueService_GetIssuesByFilters_FullMethodName = "/sparkly.backend.v1.IssueService/GetIssuesByFilters"
-	IssueService_ResolveIssue_FullMethodName       = "/sparkly.backend.v1.IssueService/ResolveIssue"
+	IssueService_GetIssue_FullMethodName     = "/sparkly.backend.v1.IssueService/GetIssue"
+	IssueService_GetIssues_FullMethodName    = "/sparkly.backend.v1.IssueService/GetIssues"
+	IssueService_ResolveIssue_FullMethodName = "/sparkly.backend.v1.IssueService/ResolveIssue"
+	IssueService_UpdateIssue_FullMethodName  = "/sparkly.backend.v1.IssueService/UpdateIssue"
+	IssueService_DeleteIssue_FullMethodName  = "/sparkly.backend.v1.IssueService/DeleteIssue"
 )
 
 // IssueServiceClient is the client API for IssueService service.
@@ -1020,9 +1021,10 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type IssueServiceClient interface {
 	GetIssue(ctx context.Context, in *GetIssueRequest, opts ...grpc.CallOption) (*GetIssueResponse, error)
-	GetAllIssues(ctx context.Context, in *GetAllIssuesRequest, opts ...grpc.CallOption) (*GetAllIssuesResponse, error)
-	GetIssuesByFilters(ctx context.Context, in *GetIssuesByFiltersRequest, opts ...grpc.CallOption) (*GetIssuesByFiltersResponse, error)
+	GetIssues(ctx context.Context, in *GetIssuesRequest, opts ...grpc.CallOption) (*GetIssuesResponse, error)
 	ResolveIssue(ctx context.Context, in *ResolveIssueRequest, opts ...grpc.CallOption) (*ResolveIssueResponse, error)
+	UpdateIssue(ctx context.Context, in *UpdateIssueRequest, opts ...grpc.CallOption) (*UpdateIssueResponse, error)
+	DeleteIssue(ctx context.Context, in *DeleteIssueRequest, opts ...grpc.CallOption) (*DeleteIssueResponse, error)
 }
 
 type issueServiceClient struct {
@@ -1043,20 +1045,10 @@ func (c *issueServiceClient) GetIssue(ctx context.Context, in *GetIssueRequest, 
 	return out, nil
 }
 
-func (c *issueServiceClient) GetAllIssues(ctx context.Context, in *GetAllIssuesRequest, opts ...grpc.CallOption) (*GetAllIssuesResponse, error) {
+func (c *issueServiceClient) GetIssues(ctx context.Context, in *GetIssuesRequest, opts ...grpc.CallOption) (*GetIssuesResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(GetAllIssuesResponse)
-	err := c.cc.Invoke(ctx, IssueService_GetAllIssues_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *issueServiceClient) GetIssuesByFilters(ctx context.Context, in *GetIssuesByFiltersRequest, opts ...grpc.CallOption) (*GetIssuesByFiltersResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(GetIssuesByFiltersResponse)
-	err := c.cc.Invoke(ctx, IssueService_GetIssuesByFilters_FullMethodName, in, out, cOpts...)
+	out := new(GetIssuesResponse)
+	err := c.cc.Invoke(ctx, IssueService_GetIssues_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1073,14 +1065,35 @@ func (c *issueServiceClient) ResolveIssue(ctx context.Context, in *ResolveIssueR
 	return out, nil
 }
 
+func (c *issueServiceClient) UpdateIssue(ctx context.Context, in *UpdateIssueRequest, opts ...grpc.CallOption) (*UpdateIssueResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UpdateIssueResponse)
+	err := c.cc.Invoke(ctx, IssueService_UpdateIssue_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *issueServiceClient) DeleteIssue(ctx context.Context, in *DeleteIssueRequest, opts ...grpc.CallOption) (*DeleteIssueResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DeleteIssueResponse)
+	err := c.cc.Invoke(ctx, IssueService_DeleteIssue_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // IssueServiceServer is the server API for IssueService service.
 // All implementations must embed UnimplementedIssueServiceServer
 // for forward compatibility.
 type IssueServiceServer interface {
 	GetIssue(context.Context, *GetIssueRequest) (*GetIssueResponse, error)
-	GetAllIssues(context.Context, *GetAllIssuesRequest) (*GetAllIssuesResponse, error)
-	GetIssuesByFilters(context.Context, *GetIssuesByFiltersRequest) (*GetIssuesByFiltersResponse, error)
+	GetIssues(context.Context, *GetIssuesRequest) (*GetIssuesResponse, error)
 	ResolveIssue(context.Context, *ResolveIssueRequest) (*ResolveIssueResponse, error)
+	UpdateIssue(context.Context, *UpdateIssueRequest) (*UpdateIssueResponse, error)
+	DeleteIssue(context.Context, *DeleteIssueRequest) (*DeleteIssueResponse, error)
 	mustEmbedUnimplementedIssueServiceServer()
 }
 
@@ -1094,14 +1107,17 @@ type UnimplementedIssueServiceServer struct{}
 func (UnimplementedIssueServiceServer) GetIssue(context.Context, *GetIssueRequest) (*GetIssueResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetIssue not implemented")
 }
-func (UnimplementedIssueServiceServer) GetAllIssues(context.Context, *GetAllIssuesRequest) (*GetAllIssuesResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method GetAllIssues not implemented")
-}
-func (UnimplementedIssueServiceServer) GetIssuesByFilters(context.Context, *GetIssuesByFiltersRequest) (*GetIssuesByFiltersResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method GetIssuesByFilters not implemented")
+func (UnimplementedIssueServiceServer) GetIssues(context.Context, *GetIssuesRequest) (*GetIssuesResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetIssues not implemented")
 }
 func (UnimplementedIssueServiceServer) ResolveIssue(context.Context, *ResolveIssueRequest) (*ResolveIssueResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ResolveIssue not implemented")
+}
+func (UnimplementedIssueServiceServer) UpdateIssue(context.Context, *UpdateIssueRequest) (*UpdateIssueResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method UpdateIssue not implemented")
+}
+func (UnimplementedIssueServiceServer) DeleteIssue(context.Context, *DeleteIssueRequest) (*DeleteIssueResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method DeleteIssue not implemented")
 }
 func (UnimplementedIssueServiceServer) mustEmbedUnimplementedIssueServiceServer() {}
 func (UnimplementedIssueServiceServer) testEmbeddedByValue()                      {}
@@ -1142,38 +1158,20 @@ func _IssueService_GetIssue_Handler(srv interface{}, ctx context.Context, dec fu
 	return interceptor(ctx, in, info, handler)
 }
 
-func _IssueService_GetAllIssues_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetAllIssuesRequest)
+func _IssueService_GetIssues_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetIssuesRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(IssueServiceServer).GetAllIssues(ctx, in)
+		return srv.(IssueServiceServer).GetIssues(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: IssueService_GetAllIssues_FullMethodName,
+		FullMethod: IssueService_GetIssues_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(IssueServiceServer).GetAllIssues(ctx, req.(*GetAllIssuesRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _IssueService_GetIssuesByFilters_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetIssuesByFiltersRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(IssueServiceServer).GetIssuesByFilters(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: IssueService_GetIssuesByFilters_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(IssueServiceServer).GetIssuesByFilters(ctx, req.(*GetIssuesByFiltersRequest))
+		return srv.(IssueServiceServer).GetIssues(ctx, req.(*GetIssuesRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1196,6 +1194,42 @@ func _IssueService_ResolveIssue_Handler(srv interface{}, ctx context.Context, de
 	return interceptor(ctx, in, info, handler)
 }
 
+func _IssueService_UpdateIssue_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateIssueRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(IssueServiceServer).UpdateIssue(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: IssueService_UpdateIssue_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(IssueServiceServer).UpdateIssue(ctx, req.(*UpdateIssueRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _IssueService_DeleteIssue_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteIssueRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(IssueServiceServer).DeleteIssue(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: IssueService_DeleteIssue_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(IssueServiceServer).DeleteIssue(ctx, req.(*DeleteIssueRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // IssueService_ServiceDesc is the grpc.ServiceDesc for IssueService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -1208,16 +1242,20 @@ var IssueService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _IssueService_GetIssue_Handler,
 		},
 		{
-			MethodName: "GetAllIssues",
-			Handler:    _IssueService_GetAllIssues_Handler,
-		},
-		{
-			MethodName: "GetIssuesByFilters",
-			Handler:    _IssueService_GetIssuesByFilters_Handler,
+			MethodName: "GetIssues",
+			Handler:    _IssueService_GetIssues_Handler,
 		},
 		{
 			MethodName: "ResolveIssue",
 			Handler:    _IssueService_ResolveIssue_Handler,
+		},
+		{
+			MethodName: "UpdateIssue",
+			Handler:    _IssueService_UpdateIssue_Handler,
+		},
+		{
+			MethodName: "DeleteIssue",
+			Handler:    _IssueService_DeleteIssue_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

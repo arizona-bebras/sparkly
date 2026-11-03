@@ -135,18 +135,32 @@ func (Token) TableName() string {
 }
 
 type Issue struct {
-	ID         uuid.UUID `gorm:"type:uuid;primaryKey"`
-	ParkID     uuid.UUID `gorm:"type:uuid;not null;index"`
-	Title      string    `gorm:"not null"`
-	Desc       string
-	Severity   IssueSeverity `gorm:"type:issue_severity;not null;default:'info'"`
-	ResolvedAt time.Time
-	FirstAt    time.Time
-	LastAt     time.Time
+	ID          uuid.UUID `gorm:"type:uuid;primaryKey"`
+	ParkID      uuid.UUID `gorm:"type:uuid;not null;index"`
+	Title       string    `gorm:"not null"`
+	Description string
+	Severity    IssueSeverity `gorm:"type:issue_severity;not null;default:'info'"`
+	IsResolved  bool
+	ResolvedAt  time.Time
+	FirstAt     time.Time
+	LastAt      time.Time
 }
 
 func (Issue) TableName() string {
 	return "issues"
+}
+
+func (i *Issue) ToDomain() domain.Issue {
+	return domain.Issue{
+		ID:          i.ID,
+		ParkID:      i.ParkID,
+		Title:       i.Title,
+		Description: i.Description,
+		Severity:    domain.IssueSeverity(i.Severity),
+		ResolvedAt:  i.ResolvedAt,
+		FirstAt:     i.FirstAt,
+		LastAt:      i.LastAt,
+	}
 }
 
 type Build struct {

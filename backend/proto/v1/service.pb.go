@@ -28,9 +28,10 @@ type IssueSeverity int32
 const (
 	IssueSeverity_ISSUE_SEVERITY_UNSPECIFIED IssueSeverity = 0
 	IssueSeverity_ISSUE_SEVERITY_INFO        IssueSeverity = 1
-	IssueSeverity_ISSUE_SEVERITY_WARNING     IssueSeverity = 2
-	IssueSeverity_ISSUE_SEVERITY_ERROR       IssueSeverity = 3
-	IssueSeverity_ISSUE_SEVERITY_CRITICAL    IssueSeverity = 4
+	IssueSeverity_ISSUE_SEVERITY_LOW         IssueSeverity = 2
+	IssueSeverity_ISSUE_SEVERITY_MEDIUM      IssueSeverity = 3
+	IssueSeverity_ISSUE_SEVERITY_HIGH        IssueSeverity = 4
+	IssueSeverity_ISSUE_SEVERITY_CRITICAL    IssueSeverity = 5
 )
 
 // Enum value maps for IssueSeverity.
@@ -38,16 +39,18 @@ var (
 	IssueSeverity_name = map[int32]string{
 		0: "ISSUE_SEVERITY_UNSPECIFIED",
 		1: "ISSUE_SEVERITY_INFO",
-		2: "ISSUE_SEVERITY_WARNING",
-		3: "ISSUE_SEVERITY_ERROR",
-		4: "ISSUE_SEVERITY_CRITICAL",
+		2: "ISSUE_SEVERITY_LOW",
+		3: "ISSUE_SEVERITY_MEDIUM",
+		4: "ISSUE_SEVERITY_HIGH",
+		5: "ISSUE_SEVERITY_CRITICAL",
 	}
 	IssueSeverity_value = map[string]int32{
 		"ISSUE_SEVERITY_UNSPECIFIED": 0,
 		"ISSUE_SEVERITY_INFO":        1,
-		"ISSUE_SEVERITY_WARNING":     2,
-		"ISSUE_SEVERITY_ERROR":       3,
-		"ISSUE_SEVERITY_CRITICAL":    4,
+		"ISSUE_SEVERITY_LOW":         2,
+		"ISSUE_SEVERITY_MEDIUM":      3,
+		"ISSUE_SEVERITY_HIGH":        4,
+		"ISSUE_SEVERITY_CRITICAL":    5,
 	}
 )
 
@@ -564,10 +567,11 @@ type Issue struct {
 	ParkId        string                 `protobuf:"bytes,2,opt,name=park_id,json=parkId,proto3" json:"park_id,omitempty"`
 	Title         string                 `protobuf:"bytes,3,opt,name=title,proto3" json:"title,omitempty"`
 	Description   string                 `protobuf:"bytes,4,opt,name=description,proto3" json:"description,omitempty"`
-	ResolvedAt    *timestamppb.Timestamp `protobuf:"bytes,5,opt,name=resolved_at,json=resolvedAt,proto3,oneof" json:"resolved_at,omitempty"`
-	Severity      IssueSeverity          `protobuf:"varint,6,opt,name=severity,proto3,enum=sparkly.backend.v1.IssueSeverity" json:"severity,omitempty"`
-	FirstAt       *timestamppb.Timestamp `protobuf:"bytes,7,opt,name=first_at,json=firstAt,proto3" json:"first_at,omitempty"`
-	LastAt        *timestamppb.Timestamp `protobuf:"bytes,8,opt,name=last_at,json=lastAt,proto3" json:"last_at,omitempty"`
+	IsResolved    bool                   `protobuf:"varint,5,opt,name=is_resolved,json=isResolved,proto3" json:"is_resolved,omitempty"`
+	ResolvedAt    *timestamppb.Timestamp `protobuf:"bytes,6,opt,name=resolved_at,json=resolvedAt,proto3,oneof" json:"resolved_at,omitempty"`
+	Severity      IssueSeverity          `protobuf:"varint,7,opt,name=severity,proto3,enum=sparkly.backend.v1.IssueSeverity" json:"severity,omitempty"`
+	FirstAt       *timestamppb.Timestamp `protobuf:"bytes,8,opt,name=first_at,json=firstAt,proto3" json:"first_at,omitempty"`
+	LastAt        *timestamppb.Timestamp `protobuf:"bytes,9,opt,name=last_at,json=lastAt,proto3" json:"last_at,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -628,6 +632,13 @@ func (x *Issue) GetDescription() string {
 		return x.Description
 	}
 	return ""
+}
+
+func (x *Issue) GetIsResolved() bool {
+	if x != nil {
+		return x.IsResolved
+	}
+	return false
 }
 
 func (x *Issue) GetResolvedAt() *timestamppb.Timestamp {
@@ -2959,28 +2970,33 @@ func (x *GetIssueResponse) GetIssue() *Issue {
 	return nil
 }
 
-type GetAllIssuesRequest struct {
+type GetIssuesRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	ParkId        string                 `protobuf:"bytes,1,opt,name=park_id,json=parkId,proto3" json:"park_id,omitempty"`
-	Pagination    *PaginationRequest     `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
+	Title         *string                `protobuf:"bytes,2,opt,name=title,proto3,oneof" json:"title,omitempty"`
+	Severity      *IssueSeverity         `protobuf:"varint,3,opt,name=severity,proto3,enum=sparkly.backend.v1.IssueSeverity,oneof" json:"severity,omitempty"`
+	IsResolved    *bool                  `protobuf:"varint,4,opt,name=is_resolved,json=isResolved,proto3,oneof" json:"is_resolved,omitempty"`
+	FromTime      *timestamppb.Timestamp `protobuf:"bytes,5,opt,name=from_time,json=fromTime,proto3,oneof" json:"from_time,omitempty"`
+	ToTime        *timestamppb.Timestamp `protobuf:"bytes,6,opt,name=to_time,json=toTime,proto3,oneof" json:"to_time,omitempty"`
+	Pagination    *PaginationRequest     `protobuf:"bytes,7,opt,name=pagination,proto3" json:"pagination,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *GetAllIssuesRequest) Reset() {
-	*x = GetAllIssuesRequest{}
+func (x *GetIssuesRequest) Reset() {
+	*x = GetIssuesRequest{}
 	mi := &file_backend_proto_service_proto_msgTypes[52]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *GetAllIssuesRequest) String() string {
+func (x *GetIssuesRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*GetAllIssuesRequest) ProtoMessage() {}
+func (*GetIssuesRequest) ProtoMessage() {}
 
-func (x *GetAllIssuesRequest) ProtoReflect() protoreflect.Message {
+func (x *GetIssuesRequest) ProtoReflect() protoreflect.Message {
 	mi := &file_backend_proto_service_proto_msgTypes[52]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -2992,162 +3008,61 @@ func (x *GetAllIssuesRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use GetAllIssuesRequest.ProtoReflect.Descriptor instead.
-func (*GetAllIssuesRequest) Descriptor() ([]byte, []int) {
+// Deprecated: Use GetIssuesRequest.ProtoReflect.Descriptor instead.
+func (*GetIssuesRequest) Descriptor() ([]byte, []int) {
 	return file_backend_proto_service_proto_rawDescGZIP(), []int{52}
 }
 
-func (x *GetAllIssuesRequest) GetParkId() string {
+func (x *GetIssuesRequest) GetParkId() string {
 	if x != nil {
 		return x.ParkId
 	}
 	return ""
 }
 
-func (x *GetAllIssuesRequest) GetPagination() *PaginationRequest {
-	if x != nil {
-		return x.Pagination
-	}
-	return nil
-}
-
-type GetAllIssuesResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Issues        []*Issue               `protobuf:"bytes,1,rep,name=issues,proto3" json:"issues,omitempty"`
-	Pagination    *PaginationResponse    `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *GetAllIssuesResponse) Reset() {
-	*x = GetAllIssuesResponse{}
-	mi := &file_backend_proto_service_proto_msgTypes[53]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *GetAllIssuesResponse) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*GetAllIssuesResponse) ProtoMessage() {}
-
-func (x *GetAllIssuesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_backend_proto_service_proto_msgTypes[53]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use GetAllIssuesResponse.ProtoReflect.Descriptor instead.
-func (*GetAllIssuesResponse) Descriptor() ([]byte, []int) {
-	return file_backend_proto_service_proto_rawDescGZIP(), []int{53}
-}
-
-func (x *GetAllIssuesResponse) GetIssues() []*Issue {
-	if x != nil {
-		return x.Issues
-	}
-	return nil
-}
-
-func (x *GetAllIssuesResponse) GetPagination() *PaginationResponse {
-	if x != nil {
-		return x.Pagination
-	}
-	return nil
-}
-
-type GetIssuesByFiltersRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	ParkId        string                 `protobuf:"bytes,1,opt,name=park_id,json=parkId,proto3" json:"park_id,omitempty"`
-	Severity      *IssueSeverity         `protobuf:"varint,2,opt,name=severity,proto3,enum=sparkly.backend.v1.IssueSeverity,oneof" json:"severity,omitempty"`
-	IsResolved    *bool                  `protobuf:"varint,3,opt,name=is_resolved,json=isResolved,proto3,oneof" json:"is_resolved,omitempty"`
-	FromTime      *timestamppb.Timestamp `protobuf:"bytes,4,opt,name=from_time,json=fromTime,proto3,oneof" json:"from_time,omitempty"`
-	ToTime        *timestamppb.Timestamp `protobuf:"bytes,5,opt,name=to_time,json=toTime,proto3,oneof" json:"to_time,omitempty"`
-	Pagination    *PaginationRequest     `protobuf:"bytes,6,opt,name=pagination,proto3" json:"pagination,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *GetIssuesByFiltersRequest) Reset() {
-	*x = GetIssuesByFiltersRequest{}
-	mi := &file_backend_proto_service_proto_msgTypes[54]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *GetIssuesByFiltersRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*GetIssuesByFiltersRequest) ProtoMessage() {}
-
-func (x *GetIssuesByFiltersRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_backend_proto_service_proto_msgTypes[54]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use GetIssuesByFiltersRequest.ProtoReflect.Descriptor instead.
-func (*GetIssuesByFiltersRequest) Descriptor() ([]byte, []int) {
-	return file_backend_proto_service_proto_rawDescGZIP(), []int{54}
-}
-
-func (x *GetIssuesByFiltersRequest) GetParkId() string {
-	if x != nil {
-		return x.ParkId
+func (x *GetIssuesRequest) GetTitle() string {
+	if x != nil && x.Title != nil {
+		return *x.Title
 	}
 	return ""
 }
 
-func (x *GetIssuesByFiltersRequest) GetSeverity() IssueSeverity {
+func (x *GetIssuesRequest) GetSeverity() IssueSeverity {
 	if x != nil && x.Severity != nil {
 		return *x.Severity
 	}
 	return IssueSeverity_ISSUE_SEVERITY_UNSPECIFIED
 }
 
-func (x *GetIssuesByFiltersRequest) GetIsResolved() bool {
+func (x *GetIssuesRequest) GetIsResolved() bool {
 	if x != nil && x.IsResolved != nil {
 		return *x.IsResolved
 	}
 	return false
 }
 
-func (x *GetIssuesByFiltersRequest) GetFromTime() *timestamppb.Timestamp {
+func (x *GetIssuesRequest) GetFromTime() *timestamppb.Timestamp {
 	if x != nil {
 		return x.FromTime
 	}
 	return nil
 }
 
-func (x *GetIssuesByFiltersRequest) GetToTime() *timestamppb.Timestamp {
+func (x *GetIssuesRequest) GetToTime() *timestamppb.Timestamp {
 	if x != nil {
 		return x.ToTime
 	}
 	return nil
 }
 
-func (x *GetIssuesByFiltersRequest) GetPagination() *PaginationRequest {
+func (x *GetIssuesRequest) GetPagination() *PaginationRequest {
 	if x != nil {
 		return x.Pagination
 	}
 	return nil
 }
 
-type GetIssuesByFiltersResponse struct {
+type GetIssuesResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Issues        []*Issue               `protobuf:"bytes,1,rep,name=issues,proto3" json:"issues,omitempty"`
 	Pagination    *PaginationResponse    `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
@@ -3155,21 +3070,21 @@ type GetIssuesByFiltersResponse struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *GetIssuesByFiltersResponse) Reset() {
-	*x = GetIssuesByFiltersResponse{}
-	mi := &file_backend_proto_service_proto_msgTypes[55]
+func (x *GetIssuesResponse) Reset() {
+	*x = GetIssuesResponse{}
+	mi := &file_backend_proto_service_proto_msgTypes[53]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *GetIssuesByFiltersResponse) String() string {
+func (x *GetIssuesResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*GetIssuesByFiltersResponse) ProtoMessage() {}
+func (*GetIssuesResponse) ProtoMessage() {}
 
-func (x *GetIssuesByFiltersResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_backend_proto_service_proto_msgTypes[55]
+func (x *GetIssuesResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_backend_proto_service_proto_msgTypes[53]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3180,19 +3095,19 @@ func (x *GetIssuesByFiltersResponse) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use GetIssuesByFiltersResponse.ProtoReflect.Descriptor instead.
-func (*GetIssuesByFiltersResponse) Descriptor() ([]byte, []int) {
-	return file_backend_proto_service_proto_rawDescGZIP(), []int{55}
+// Deprecated: Use GetIssuesResponse.ProtoReflect.Descriptor instead.
+func (*GetIssuesResponse) Descriptor() ([]byte, []int) {
+	return file_backend_proto_service_proto_rawDescGZIP(), []int{53}
 }
 
-func (x *GetIssuesByFiltersResponse) GetIssues() []*Issue {
+func (x *GetIssuesResponse) GetIssues() []*Issue {
 	if x != nil {
 		return x.Issues
 	}
 	return nil
 }
 
-func (x *GetIssuesByFiltersResponse) GetPagination() *PaginationResponse {
+func (x *GetIssuesResponse) GetPagination() *PaginationResponse {
 	if x != nil {
 		return x.Pagination
 	}
@@ -3208,7 +3123,7 @@ type ResolveIssueRequest struct {
 
 func (x *ResolveIssueRequest) Reset() {
 	*x = ResolveIssueRequest{}
-	mi := &file_backend_proto_service_proto_msgTypes[56]
+	mi := &file_backend_proto_service_proto_msgTypes[54]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3220,7 +3135,7 @@ func (x *ResolveIssueRequest) String() string {
 func (*ResolveIssueRequest) ProtoMessage() {}
 
 func (x *ResolveIssueRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_backend_proto_service_proto_msgTypes[56]
+	mi := &file_backend_proto_service_proto_msgTypes[54]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3233,7 +3148,7 @@ func (x *ResolveIssueRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ResolveIssueRequest.ProtoReflect.Descriptor instead.
 func (*ResolveIssueRequest) Descriptor() ([]byte, []int) {
-	return file_backend_proto_service_proto_rawDescGZIP(), []int{56}
+	return file_backend_proto_service_proto_rawDescGZIP(), []int{54}
 }
 
 func (x *ResolveIssueRequest) GetId() string {
@@ -3252,7 +3167,7 @@ type ResolveIssueResponse struct {
 
 func (x *ResolveIssueResponse) Reset() {
 	*x = ResolveIssueResponse{}
-	mi := &file_backend_proto_service_proto_msgTypes[57]
+	mi := &file_backend_proto_service_proto_msgTypes[55]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3264,7 +3179,7 @@ func (x *ResolveIssueResponse) String() string {
 func (*ResolveIssueResponse) ProtoMessage() {}
 
 func (x *ResolveIssueResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_backend_proto_service_proto_msgTypes[57]
+	mi := &file_backend_proto_service_proto_msgTypes[55]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3277,7 +3192,7 @@ func (x *ResolveIssueResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ResolveIssueResponse.ProtoReflect.Descriptor instead.
 func (*ResolveIssueResponse) Descriptor() ([]byte, []int) {
-	return file_backend_proto_service_proto_rawDescGZIP(), []int{57}
+	return file_backend_proto_service_proto_rawDescGZIP(), []int{55}
 }
 
 func (x *ResolveIssueResponse) GetIssue() *Issue {
@@ -3285,6 +3200,206 @@ func (x *ResolveIssueResponse) GetIssue() *Issue {
 		return x.Issue
 	}
 	return nil
+}
+
+type UpdateIssueRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Title         *string                `protobuf:"bytes,2,opt,name=title,proto3,oneof" json:"title,omitempty"`
+	Description   *string                `protobuf:"bytes,3,opt,name=description,proto3,oneof" json:"description,omitempty"`
+	Severity      *IssueSeverity         `protobuf:"varint,4,opt,name=severity,proto3,enum=sparkly.backend.v1.IssueSeverity,oneof" json:"severity,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdateIssueRequest) Reset() {
+	*x = UpdateIssueRequest{}
+	mi := &file_backend_proto_service_proto_msgTypes[56]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateIssueRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateIssueRequest) ProtoMessage() {}
+
+func (x *UpdateIssueRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_backend_proto_service_proto_msgTypes[56]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateIssueRequest.ProtoReflect.Descriptor instead.
+func (*UpdateIssueRequest) Descriptor() ([]byte, []int) {
+	return file_backend_proto_service_proto_rawDescGZIP(), []int{56}
+}
+
+func (x *UpdateIssueRequest) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *UpdateIssueRequest) GetTitle() string {
+	if x != nil && x.Title != nil {
+		return *x.Title
+	}
+	return ""
+}
+
+func (x *UpdateIssueRequest) GetDescription() string {
+	if x != nil && x.Description != nil {
+		return *x.Description
+	}
+	return ""
+}
+
+func (x *UpdateIssueRequest) GetSeverity() IssueSeverity {
+	if x != nil && x.Severity != nil {
+		return *x.Severity
+	}
+	return IssueSeverity_ISSUE_SEVERITY_UNSPECIFIED
+}
+
+type UpdateIssueResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Issue         *Issue                 `protobuf:"bytes,1,opt,name=issue,proto3" json:"issue,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdateIssueResponse) Reset() {
+	*x = UpdateIssueResponse{}
+	mi := &file_backend_proto_service_proto_msgTypes[57]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateIssueResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateIssueResponse) ProtoMessage() {}
+
+func (x *UpdateIssueResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_backend_proto_service_proto_msgTypes[57]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateIssueResponse.ProtoReflect.Descriptor instead.
+func (*UpdateIssueResponse) Descriptor() ([]byte, []int) {
+	return file_backend_proto_service_proto_rawDescGZIP(), []int{57}
+}
+
+func (x *UpdateIssueResponse) GetIssue() *Issue {
+	if x != nil {
+		return x.Issue
+	}
+	return nil
+}
+
+type DeleteIssueRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeleteIssueRequest) Reset() {
+	*x = DeleteIssueRequest{}
+	mi := &file_backend_proto_service_proto_msgTypes[58]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeleteIssueRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteIssueRequest) ProtoMessage() {}
+
+func (x *DeleteIssueRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_backend_proto_service_proto_msgTypes[58]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteIssueRequest.ProtoReflect.Descriptor instead.
+func (*DeleteIssueRequest) Descriptor() ([]byte, []int) {
+	return file_backend_proto_service_proto_rawDescGZIP(), []int{58}
+}
+
+func (x *DeleteIssueRequest) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+type DeleteIssueResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeleteIssueResponse) Reset() {
+	*x = DeleteIssueResponse{}
+	mi := &file_backend_proto_service_proto_msgTypes[59]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeleteIssueResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteIssueResponse) ProtoMessage() {}
+
+func (x *DeleteIssueResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_backend_proto_service_proto_msgTypes[59]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteIssueResponse.ProtoReflect.Descriptor instead.
+func (*DeleteIssueResponse) Descriptor() ([]byte, []int) {
+	return file_backend_proto_service_proto_rawDescGZIP(), []int{59}
+}
+
+func (x *DeleteIssueResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
 }
 
 var File_backend_proto_service_proto protoreflect.FileDescriptor
@@ -3344,17 +3459,19 @@ const file_backend_proto_service_proto_rawDesc = "" +
 	"\n" +
 	"created_at\x18\b \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x129\n" +
 	"\n" +
-	"updated_at\x18\t \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\"\xe5\x02\n" +
+	"updated_at\x18\t \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\"\x86\x03\n" +
 	"\x05Issue\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x17\n" +
 	"\apark_id\x18\x02 \x01(\tR\x06parkId\x12\x14\n" +
 	"\x05title\x18\x03 \x01(\tR\x05title\x12 \n" +
-	"\vdescription\x18\x04 \x01(\tR\vdescription\x12@\n" +
-	"\vresolved_at\x18\x05 \x01(\v2\x1a.google.protobuf.TimestampH\x00R\n" +
+	"\vdescription\x18\x04 \x01(\tR\vdescription\x12\x1f\n" +
+	"\vis_resolved\x18\x05 \x01(\bR\n" +
+	"isResolved\x12@\n" +
+	"\vresolved_at\x18\x06 \x01(\v2\x1a.google.protobuf.TimestampH\x00R\n" +
 	"resolvedAt\x88\x01\x01\x12=\n" +
-	"\bseverity\x18\x06 \x01(\x0e2!.sparkly.backend.v1.IssueSeverityR\bseverity\x125\n" +
-	"\bfirst_at\x18\a \x01(\v2\x1a.google.protobuf.TimestampR\afirstAt\x123\n" +
-	"\alast_at\x18\b \x01(\v2\x1a.google.protobuf.TimestampR\x06lastAtB\x0e\n" +
+	"\bseverity\x18\a \x01(\x0e2!.sparkly.backend.v1.IssueSeverityR\bseverity\x125\n" +
+	"\bfirst_at\x18\b \x01(\v2\x1a.google.protobuf.TimestampR\afirstAt\x123\n" +
+	"\alast_at\x18\t \x01(\v2\x1a.google.protobuf.TimestampR\x06lastAtB\x0e\n" +
 	"\f_resolved_at\"\xf6\x02\n" +
 	"\aRelease\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x17\n" +
@@ -3519,34 +3636,26 @@ const file_backend_proto_service_proto_rawDesc = "" +
 	"\x0fGetIssueRequest\x12\x18\n" +
 	"\x02id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x02id\"C\n" +
 	"\x10GetIssueResponse\x12/\n" +
-	"\x05issue\x18\x01 \x01(\v2\x19.sparkly.backend.v1.IssueR\x05issue\"\x7f\n" +
-	"\x13GetAllIssuesRequest\x12!\n" +
-	"\apark_id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x06parkId\x12E\n" +
-	"\n" +
-	"pagination\x18\x02 \x01(\v2%.sparkly.backend.v1.PaginationRequestR\n" +
-	"pagination\"\x91\x01\n" +
-	"\x14GetAllIssuesResponse\x121\n" +
-	"\x06issues\x18\x01 \x03(\v2\x19.sparkly.backend.v1.IssueR\x06issues\x12F\n" +
-	"\n" +
-	"pagination\x18\x02 \x01(\v2&.sparkly.backend.v1.PaginationResponseR\n" +
-	"pagination\"\xa8\x03\n" +
-	"\x19GetIssuesByFiltersRequest\x12!\n" +
-	"\apark_id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x06parkId\x12L\n" +
-	"\bseverity\x18\x02 \x01(\x0e2!.sparkly.backend.v1.IssueSeverityB\b\xbaH\x05\x82\x01\x02\x10\x01H\x00R\bseverity\x88\x01\x01\x12$\n" +
-	"\vis_resolved\x18\x03 \x01(\bH\x01R\n" +
+	"\x05issue\x18\x01 \x01(\v2\x19.sparkly.backend.v1.IssueR\x05issue\"\xc4\x03\n" +
+	"\x10GetIssuesRequest\x12!\n" +
+	"\apark_id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x06parkId\x12\x19\n" +
+	"\x05title\x18\x02 \x01(\tH\x00R\x05title\x88\x01\x01\x12L\n" +
+	"\bseverity\x18\x03 \x01(\x0e2!.sparkly.backend.v1.IssueSeverityB\b\xbaH\x05\x82\x01\x02\x10\x01H\x01R\bseverity\x88\x01\x01\x12$\n" +
+	"\vis_resolved\x18\x04 \x01(\bH\x02R\n" +
 	"isResolved\x88\x01\x01\x12<\n" +
-	"\tfrom_time\x18\x04 \x01(\v2\x1a.google.protobuf.TimestampH\x02R\bfromTime\x88\x01\x01\x128\n" +
-	"\ato_time\x18\x05 \x01(\v2\x1a.google.protobuf.TimestampH\x03R\x06toTime\x88\x01\x01\x12E\n" +
+	"\tfrom_time\x18\x05 \x01(\v2\x1a.google.protobuf.TimestampH\x03R\bfromTime\x88\x01\x01\x128\n" +
+	"\ato_time\x18\x06 \x01(\v2\x1a.google.protobuf.TimestampH\x04R\x06toTime\x88\x01\x01\x12E\n" +
 	"\n" +
-	"pagination\x18\x06 \x01(\v2%.sparkly.backend.v1.PaginationRequestR\n" +
-	"paginationB\v\n" +
+	"pagination\x18\a \x01(\v2%.sparkly.backend.v1.PaginationRequestR\n" +
+	"paginationB\b\n" +
+	"\x06_titleB\v\n" +
 	"\t_severityB\x0e\n" +
 	"\f_is_resolvedB\f\n" +
 	"\n" +
 	"_from_timeB\n" +
 	"\n" +
-	"\b_to_time\"\x97\x01\n" +
-	"\x1aGetIssuesByFiltersResponse\x121\n" +
+	"\b_to_time\"\x8e\x01\n" +
+	"\x11GetIssuesResponse\x121\n" +
 	"\x06issues\x18\x01 \x03(\v2\x19.sparkly.backend.v1.IssueR\x06issues\x12F\n" +
 	"\n" +
 	"pagination\x18\x02 \x01(\v2&.sparkly.backend.v1.PaginationResponseR\n" +
@@ -3554,13 +3663,28 @@ const file_backend_proto_service_proto_rawDesc = "" +
 	"\x13ResolveIssueRequest\x12\x18\n" +
 	"\x02id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x02id\"G\n" +
 	"\x14ResolveIssueResponse\x12/\n" +
-	"\x05issue\x18\x01 \x01(\v2\x19.sparkly.backend.v1.IssueR\x05issue*\x9b\x01\n" +
+	"\x05issue\x18\x01 \x01(\v2\x19.sparkly.backend.v1.IssueR\x05issue\"\xf7\x01\n" +
+	"\x12UpdateIssueRequest\x12\x18\n" +
+	"\x02id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x02id\x12\"\n" +
+	"\x05title\x18\x02 \x01(\tB\a\xbaH\x04r\x02\x10\x01H\x00R\x05title\x88\x01\x01\x12.\n" +
+	"\vdescription\x18\x03 \x01(\tB\a\xbaH\x04r\x02\x10\x01H\x01R\vdescription\x88\x01\x01\x12L\n" +
+	"\bseverity\x18\x04 \x01(\x0e2!.sparkly.backend.v1.IssueSeverityB\b\xbaH\x05\x82\x01\x02\x10\x01H\x02R\bseverity\x88\x01\x01B\b\n" +
+	"\x06_titleB\x0e\n" +
+	"\f_descriptionB\v\n" +
+	"\t_severity\"F\n" +
+	"\x13UpdateIssueResponse\x12/\n" +
+	"\x05issue\x18\x01 \x01(\v2\x19.sparkly.backend.v1.IssueR\x05issue\".\n" +
+	"\x12DeleteIssueRequest\x12\x18\n" +
+	"\x02id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x02id\"/\n" +
+	"\x13DeleteIssueResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess*\xb1\x01\n" +
 	"\rIssueSeverity\x12\x1e\n" +
 	"\x1aISSUE_SEVERITY_UNSPECIFIED\x10\x00\x12\x17\n" +
-	"\x13ISSUE_SEVERITY_INFO\x10\x01\x12\x1a\n" +
-	"\x16ISSUE_SEVERITY_WARNING\x10\x02\x12\x18\n" +
-	"\x14ISSUE_SEVERITY_ERROR\x10\x03\x12\x1b\n" +
-	"\x17ISSUE_SEVERITY_CRITICAL\x10\x042\xa0\x04\n" +
+	"\x13ISSUE_SEVERITY_INFO\x10\x01\x12\x16\n" +
+	"\x12ISSUE_SEVERITY_LOW\x10\x02\x12\x19\n" +
+	"\x15ISSUE_SEVERITY_MEDIUM\x10\x03\x12\x17\n" +
+	"\x13ISSUE_SEVERITY_HIGH\x10\x04\x12\x1b\n" +
+	"\x17ISSUE_SEVERITY_CRITICAL\x10\x052\xa0\x04\n" +
 	"\vUserService\x12F\n" +
 	"\x03Reg\x12\x1e.sparkly.backend.v1.RegRequest\x1a\x1f.sparkly.backend.v1.RegResponse\x12U\n" +
 	"\bGetToken\x12#.sparkly.backend.v1.GetTokenRequest\x1a$.sparkly.backend.v1.GetTokenResponse\x12X\n" +
@@ -3589,12 +3713,13 @@ const file_backend_proto_service_proto_rawDesc = "" +
 	"\rDeviceService\x12X\n" +
 	"\tGetDevice\x12$.sparkly.backend.v1.GetDeviceRequest\x1a%.sparkly.backend.v1.GetDeviceResponse\x12d\n" +
 	"\rGetAllDevices\x12(.sparkly.backend.v1.GetAllDevicesRequest\x1a).sparkly.backend.v1.GetAllDevicesResponse\x12v\n" +
-	"\x13GetDevicesByFilters\x12..sparkly.backend.v1.GetDevicesByFiltersRequest\x1a/.sparkly.backend.v1.GetDevicesByFiltersResponse2\xa0\x03\n" +
+	"\x13GetDevicesByFilters\x12..sparkly.backend.v1.GetDevicesByFiltersRequest\x1a/.sparkly.backend.v1.GetDevicesByFiltersResponse2\xe2\x03\n" +
 	"\fIssueService\x12U\n" +
-	"\bGetIssue\x12#.sparkly.backend.v1.GetIssueRequest\x1a$.sparkly.backend.v1.GetIssueResponse\x12a\n" +
-	"\fGetAllIssues\x12'.sparkly.backend.v1.GetAllIssuesRequest\x1a(.sparkly.backend.v1.GetAllIssuesResponse\x12s\n" +
-	"\x12GetIssuesByFilters\x12-.sparkly.backend.v1.GetIssuesByFiltersRequest\x1a..sparkly.backend.v1.GetIssuesByFiltersResponse\x12a\n" +
-	"\fResolveIssue\x12'.sparkly.backend.v1.ResolveIssueRequest\x1a(.sparkly.backend.v1.ResolveIssueResponseB$Z\"sparkly/backend/proto/v1;backendv1b\x06proto3"
+	"\bGetIssue\x12#.sparkly.backend.v1.GetIssueRequest\x1a$.sparkly.backend.v1.GetIssueResponse\x12X\n" +
+	"\tGetIssues\x12$.sparkly.backend.v1.GetIssuesRequest\x1a%.sparkly.backend.v1.GetIssuesResponse\x12a\n" +
+	"\fResolveIssue\x12'.sparkly.backend.v1.ResolveIssueRequest\x1a(.sparkly.backend.v1.ResolveIssueResponse\x12^\n" +
+	"\vUpdateIssue\x12&.sparkly.backend.v1.UpdateIssueRequest\x1a'.sparkly.backend.v1.UpdateIssueResponse\x12^\n" +
+	"\vDeleteIssue\x12&.sparkly.backend.v1.DeleteIssueRequest\x1a'.sparkly.backend.v1.DeleteIssueResponseB$Z\"sparkly/backend/proto/v1;backendv1b\x06proto3"
 
 var (
 	file_backend_proto_service_proto_rawDescOnce sync.Once
@@ -3609,7 +3734,7 @@ func file_backend_proto_service_proto_rawDescGZIP() []byte {
 }
 
 var file_backend_proto_service_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_backend_proto_service_proto_msgTypes = make([]protoimpl.MessageInfo, 58)
+var file_backend_proto_service_proto_msgTypes = make([]protoimpl.MessageInfo, 60)
 var file_backend_proto_service_proto_goTypes = []any{
 	(IssueSeverity)(0),                    // 0: sparkly.backend.v1.IssueSeverity
 	(*PaginationRequest)(nil),             // 1: sparkly.backend.v1.PaginationRequest
@@ -3664,30 +3789,32 @@ var file_backend_proto_service_proto_goTypes = []any{
 	(*GetDevicesByFiltersResponse)(nil),   // 50: sparkly.backend.v1.GetDevicesByFiltersResponse
 	(*GetIssueRequest)(nil),               // 51: sparkly.backend.v1.GetIssueRequest
 	(*GetIssueResponse)(nil),              // 52: sparkly.backend.v1.GetIssueResponse
-	(*GetAllIssuesRequest)(nil),           // 53: sparkly.backend.v1.GetAllIssuesRequest
-	(*GetAllIssuesResponse)(nil),          // 54: sparkly.backend.v1.GetAllIssuesResponse
-	(*GetIssuesByFiltersRequest)(nil),     // 55: sparkly.backend.v1.GetIssuesByFiltersRequest
-	(*GetIssuesByFiltersResponse)(nil),    // 56: sparkly.backend.v1.GetIssuesByFiltersResponse
-	(*ResolveIssueRequest)(nil),           // 57: sparkly.backend.v1.ResolveIssueRequest
-	(*ResolveIssueResponse)(nil),          // 58: sparkly.backend.v1.ResolveIssueResponse
-	(*timestamppb.Timestamp)(nil),         // 59: google.protobuf.Timestamp
+	(*GetIssuesRequest)(nil),              // 53: sparkly.backend.v1.GetIssuesRequest
+	(*GetIssuesResponse)(nil),             // 54: sparkly.backend.v1.GetIssuesResponse
+	(*ResolveIssueRequest)(nil),           // 55: sparkly.backend.v1.ResolveIssueRequest
+	(*ResolveIssueResponse)(nil),          // 56: sparkly.backend.v1.ResolveIssueResponse
+	(*UpdateIssueRequest)(nil),            // 57: sparkly.backend.v1.UpdateIssueRequest
+	(*UpdateIssueResponse)(nil),           // 58: sparkly.backend.v1.UpdateIssueResponse
+	(*DeleteIssueRequest)(nil),            // 59: sparkly.backend.v1.DeleteIssueRequest
+	(*DeleteIssueResponse)(nil),           // 60: sparkly.backend.v1.DeleteIssueResponse
+	(*timestamppb.Timestamp)(nil),         // 61: google.protobuf.Timestamp
 }
 var file_backend_proto_service_proto_depIdxs = []int32{
-	59, // 0: sparkly.backend.v1.User.created_at:type_name -> google.protobuf.Timestamp
-	59, // 1: sparkly.backend.v1.User.updated_at:type_name -> google.protobuf.Timestamp
-	59, // 2: sparkly.backend.v1.Park.created_at:type_name -> google.protobuf.Timestamp
-	59, // 3: sparkly.backend.v1.Park.updated_at:type_name -> google.protobuf.Timestamp
-	59, // 4: sparkly.backend.v1.DeviceGroup.created_at:type_name -> google.protobuf.Timestamp
-	59, // 5: sparkly.backend.v1.DeviceGroup.updated_at:type_name -> google.protobuf.Timestamp
-	59, // 6: sparkly.backend.v1.Device.joined_at:type_name -> google.protobuf.Timestamp
-	59, // 7: sparkly.backend.v1.Device.last_seen_at:type_name -> google.protobuf.Timestamp
-	59, // 8: sparkly.backend.v1.Device.created_at:type_name -> google.protobuf.Timestamp
-	59, // 9: sparkly.backend.v1.Device.updated_at:type_name -> google.protobuf.Timestamp
-	59, // 10: sparkly.backend.v1.Issue.resolved_at:type_name -> google.protobuf.Timestamp
+	61, // 0: sparkly.backend.v1.User.created_at:type_name -> google.protobuf.Timestamp
+	61, // 1: sparkly.backend.v1.User.updated_at:type_name -> google.protobuf.Timestamp
+	61, // 2: sparkly.backend.v1.Park.created_at:type_name -> google.protobuf.Timestamp
+	61, // 3: sparkly.backend.v1.Park.updated_at:type_name -> google.protobuf.Timestamp
+	61, // 4: sparkly.backend.v1.DeviceGroup.created_at:type_name -> google.protobuf.Timestamp
+	61, // 5: sparkly.backend.v1.DeviceGroup.updated_at:type_name -> google.protobuf.Timestamp
+	61, // 6: sparkly.backend.v1.Device.joined_at:type_name -> google.protobuf.Timestamp
+	61, // 7: sparkly.backend.v1.Device.last_seen_at:type_name -> google.protobuf.Timestamp
+	61, // 8: sparkly.backend.v1.Device.created_at:type_name -> google.protobuf.Timestamp
+	61, // 9: sparkly.backend.v1.Device.updated_at:type_name -> google.protobuf.Timestamp
+	61, // 10: sparkly.backend.v1.Issue.resolved_at:type_name -> google.protobuf.Timestamp
 	0,  // 11: sparkly.backend.v1.Issue.severity:type_name -> sparkly.backend.v1.IssueSeverity
-	59, // 12: sparkly.backend.v1.Issue.first_at:type_name -> google.protobuf.Timestamp
-	59, // 13: sparkly.backend.v1.Issue.last_at:type_name -> google.protobuf.Timestamp
-	59, // 14: sparkly.backend.v1.Release.created_at:type_name -> google.protobuf.Timestamp
+	61, // 12: sparkly.backend.v1.Issue.first_at:type_name -> google.protobuf.Timestamp
+	61, // 13: sparkly.backend.v1.Issue.last_at:type_name -> google.protobuf.Timestamp
+	61, // 14: sparkly.backend.v1.Release.created_at:type_name -> google.protobuf.Timestamp
 	3,  // 15: sparkly.backend.v1.UpdateUserResponse.user:type_name -> sparkly.backend.v1.User
 	4,  // 16: sparkly.backend.v1.CreateParkResponse.park:type_name -> sparkly.backend.v1.Park
 	4,  // 17: sparkly.backend.v1.GetParkResponse.park:type_name -> sparkly.backend.v1.Park
@@ -3709,41 +3836,41 @@ var file_backend_proto_service_proto_depIdxs = []int32{
 	6,  // 33: sparkly.backend.v1.GetDevicesByFiltersResponse.devices:type_name -> sparkly.backend.v1.Device
 	2,  // 34: sparkly.backend.v1.GetDevicesByFiltersResponse.pagination:type_name -> sparkly.backend.v1.PaginationResponse
 	7,  // 35: sparkly.backend.v1.GetIssueResponse.issue:type_name -> sparkly.backend.v1.Issue
-	1,  // 36: sparkly.backend.v1.GetAllIssuesRequest.pagination:type_name -> sparkly.backend.v1.PaginationRequest
-	7,  // 37: sparkly.backend.v1.GetAllIssuesResponse.issues:type_name -> sparkly.backend.v1.Issue
-	2,  // 38: sparkly.backend.v1.GetAllIssuesResponse.pagination:type_name -> sparkly.backend.v1.PaginationResponse
-	0,  // 39: sparkly.backend.v1.GetIssuesByFiltersRequest.severity:type_name -> sparkly.backend.v1.IssueSeverity
-	59, // 40: sparkly.backend.v1.GetIssuesByFiltersRequest.from_time:type_name -> google.protobuf.Timestamp
-	59, // 41: sparkly.backend.v1.GetIssuesByFiltersRequest.to_time:type_name -> google.protobuf.Timestamp
-	1,  // 42: sparkly.backend.v1.GetIssuesByFiltersRequest.pagination:type_name -> sparkly.backend.v1.PaginationRequest
-	7,  // 43: sparkly.backend.v1.GetIssuesByFiltersResponse.issues:type_name -> sparkly.backend.v1.Issue
-	2,  // 44: sparkly.backend.v1.GetIssuesByFiltersResponse.pagination:type_name -> sparkly.backend.v1.PaginationResponse
-	7,  // 45: sparkly.backend.v1.ResolveIssueResponse.issue:type_name -> sparkly.backend.v1.Issue
-	9,  // 46: sparkly.backend.v1.UserService.Reg:input_type -> sparkly.backend.v1.RegRequest
-	11, // 47: sparkly.backend.v1.UserService.GetToken:input_type -> sparkly.backend.v1.GetTokenRequest
-	15, // 48: sparkly.backend.v1.UserService.CheckAuth:input_type -> sparkly.backend.v1.CheckAuthRequest
-	13, // 49: sparkly.backend.v1.UserService.RevokeToken:input_type -> sparkly.backend.v1.RevokeTokenRequest
-	17, // 50: sparkly.backend.v1.UserService.UpdateUser:input_type -> sparkly.backend.v1.UpdateUserRequest
-	19, // 51: sparkly.backend.v1.UserService.DeleteUser:input_type -> sparkly.backend.v1.DeleteUserRequest
-	21, // 52: sparkly.backend.v1.ParkService.CreatePark:input_type -> sparkly.backend.v1.CreateParkRequest
-	23, // 53: sparkly.backend.v1.ParkService.GetPark:input_type -> sparkly.backend.v1.GetParkRequest
-	25, // 54: sparkly.backend.v1.ParkService.GetAllParks:input_type -> sparkly.backend.v1.GetAllParksRequest
-	27, // 55: sparkly.backend.v1.ParkService.UpdatePark:input_type -> sparkly.backend.v1.UpdateParkRequest
-	29, // 56: sparkly.backend.v1.ParkService.DeletePark:input_type -> sparkly.backend.v1.DeleteParkRequest
-	31, // 57: sparkly.backend.v1.ParkService.CreateGroup:input_type -> sparkly.backend.v1.CreateGroupRequest
-	33, // 58: sparkly.backend.v1.ParkService.GetGroup:input_type -> sparkly.backend.v1.GetGroupRequest
-	35, // 59: sparkly.backend.v1.ParkService.GetGroups:input_type -> sparkly.backend.v1.GetGroupsRequest
-	37, // 60: sparkly.backend.v1.ParkService.UpdateGroup:input_type -> sparkly.backend.v1.UpdateGroupRequest
-	39, // 61: sparkly.backend.v1.ParkService.DeleteGroup:input_type -> sparkly.backend.v1.DeleteGroupRequest
-	41, // 62: sparkly.backend.v1.ParkService.AddDeviceToGroup:input_type -> sparkly.backend.v1.AddDeviceToGroupRequest
-	43, // 63: sparkly.backend.v1.ParkService.RemoveDeviceFromGroup:input_type -> sparkly.backend.v1.RemoveDeviceFromGroupRequest
-	45, // 64: sparkly.backend.v1.DeviceService.GetDevice:input_type -> sparkly.backend.v1.GetDeviceRequest
-	47, // 65: sparkly.backend.v1.DeviceService.GetAllDevices:input_type -> sparkly.backend.v1.GetAllDevicesRequest
-	49, // 66: sparkly.backend.v1.DeviceService.GetDevicesByFilters:input_type -> sparkly.backend.v1.GetDevicesByFiltersRequest
-	51, // 67: sparkly.backend.v1.IssueService.GetIssue:input_type -> sparkly.backend.v1.GetIssueRequest
-	53, // 68: sparkly.backend.v1.IssueService.GetAllIssues:input_type -> sparkly.backend.v1.GetAllIssuesRequest
-	55, // 69: sparkly.backend.v1.IssueService.GetIssuesByFilters:input_type -> sparkly.backend.v1.GetIssuesByFiltersRequest
-	57, // 70: sparkly.backend.v1.IssueService.ResolveIssue:input_type -> sparkly.backend.v1.ResolveIssueRequest
+	0,  // 36: sparkly.backend.v1.GetIssuesRequest.severity:type_name -> sparkly.backend.v1.IssueSeverity
+	61, // 37: sparkly.backend.v1.GetIssuesRequest.from_time:type_name -> google.protobuf.Timestamp
+	61, // 38: sparkly.backend.v1.GetIssuesRequest.to_time:type_name -> google.protobuf.Timestamp
+	1,  // 39: sparkly.backend.v1.GetIssuesRequest.pagination:type_name -> sparkly.backend.v1.PaginationRequest
+	7,  // 40: sparkly.backend.v1.GetIssuesResponse.issues:type_name -> sparkly.backend.v1.Issue
+	2,  // 41: sparkly.backend.v1.GetIssuesResponse.pagination:type_name -> sparkly.backend.v1.PaginationResponse
+	7,  // 42: sparkly.backend.v1.ResolveIssueResponse.issue:type_name -> sparkly.backend.v1.Issue
+	0,  // 43: sparkly.backend.v1.UpdateIssueRequest.severity:type_name -> sparkly.backend.v1.IssueSeverity
+	7,  // 44: sparkly.backend.v1.UpdateIssueResponse.issue:type_name -> sparkly.backend.v1.Issue
+	9,  // 45: sparkly.backend.v1.UserService.Reg:input_type -> sparkly.backend.v1.RegRequest
+	11, // 46: sparkly.backend.v1.UserService.GetToken:input_type -> sparkly.backend.v1.GetTokenRequest
+	15, // 47: sparkly.backend.v1.UserService.CheckAuth:input_type -> sparkly.backend.v1.CheckAuthRequest
+	13, // 48: sparkly.backend.v1.UserService.RevokeToken:input_type -> sparkly.backend.v1.RevokeTokenRequest
+	17, // 49: sparkly.backend.v1.UserService.UpdateUser:input_type -> sparkly.backend.v1.UpdateUserRequest
+	19, // 50: sparkly.backend.v1.UserService.DeleteUser:input_type -> sparkly.backend.v1.DeleteUserRequest
+	21, // 51: sparkly.backend.v1.ParkService.CreatePark:input_type -> sparkly.backend.v1.CreateParkRequest
+	23, // 52: sparkly.backend.v1.ParkService.GetPark:input_type -> sparkly.backend.v1.GetParkRequest
+	25, // 53: sparkly.backend.v1.ParkService.GetAllParks:input_type -> sparkly.backend.v1.GetAllParksRequest
+	27, // 54: sparkly.backend.v1.ParkService.UpdatePark:input_type -> sparkly.backend.v1.UpdateParkRequest
+	29, // 55: sparkly.backend.v1.ParkService.DeletePark:input_type -> sparkly.backend.v1.DeleteParkRequest
+	31, // 56: sparkly.backend.v1.ParkService.CreateGroup:input_type -> sparkly.backend.v1.CreateGroupRequest
+	33, // 57: sparkly.backend.v1.ParkService.GetGroup:input_type -> sparkly.backend.v1.GetGroupRequest
+	35, // 58: sparkly.backend.v1.ParkService.GetGroups:input_type -> sparkly.backend.v1.GetGroupsRequest
+	37, // 59: sparkly.backend.v1.ParkService.UpdateGroup:input_type -> sparkly.backend.v1.UpdateGroupRequest
+	39, // 60: sparkly.backend.v1.ParkService.DeleteGroup:input_type -> sparkly.backend.v1.DeleteGroupRequest
+	41, // 61: sparkly.backend.v1.ParkService.AddDeviceToGroup:input_type -> sparkly.backend.v1.AddDeviceToGroupRequest
+	43, // 62: sparkly.backend.v1.ParkService.RemoveDeviceFromGroup:input_type -> sparkly.backend.v1.RemoveDeviceFromGroupRequest
+	45, // 63: sparkly.backend.v1.DeviceService.GetDevice:input_type -> sparkly.backend.v1.GetDeviceRequest
+	47, // 64: sparkly.backend.v1.DeviceService.GetAllDevices:input_type -> sparkly.backend.v1.GetAllDevicesRequest
+	49, // 65: sparkly.backend.v1.DeviceService.GetDevicesByFilters:input_type -> sparkly.backend.v1.GetDevicesByFiltersRequest
+	51, // 66: sparkly.backend.v1.IssueService.GetIssue:input_type -> sparkly.backend.v1.GetIssueRequest
+	53, // 67: sparkly.backend.v1.IssueService.GetIssues:input_type -> sparkly.backend.v1.GetIssuesRequest
+	55, // 68: sparkly.backend.v1.IssueService.ResolveIssue:input_type -> sparkly.backend.v1.ResolveIssueRequest
+	57, // 69: sparkly.backend.v1.IssueService.UpdateIssue:input_type -> sparkly.backend.v1.UpdateIssueRequest
+	59, // 70: sparkly.backend.v1.IssueService.DeleteIssue:input_type -> sparkly.backend.v1.DeleteIssueRequest
 	10, // 71: sparkly.backend.v1.UserService.Reg:output_type -> sparkly.backend.v1.RegResponse
 	12, // 72: sparkly.backend.v1.UserService.GetToken:output_type -> sparkly.backend.v1.GetTokenResponse
 	16, // 73: sparkly.backend.v1.UserService.CheckAuth:output_type -> sparkly.backend.v1.CheckAuthResponse
@@ -3766,14 +3893,15 @@ var file_backend_proto_service_proto_depIdxs = []int32{
 	48, // 90: sparkly.backend.v1.DeviceService.GetAllDevices:output_type -> sparkly.backend.v1.GetAllDevicesResponse
 	50, // 91: sparkly.backend.v1.DeviceService.GetDevicesByFilters:output_type -> sparkly.backend.v1.GetDevicesByFiltersResponse
 	52, // 92: sparkly.backend.v1.IssueService.GetIssue:output_type -> sparkly.backend.v1.GetIssueResponse
-	54, // 93: sparkly.backend.v1.IssueService.GetAllIssues:output_type -> sparkly.backend.v1.GetAllIssuesResponse
-	56, // 94: sparkly.backend.v1.IssueService.GetIssuesByFilters:output_type -> sparkly.backend.v1.GetIssuesByFiltersResponse
-	58, // 95: sparkly.backend.v1.IssueService.ResolveIssue:output_type -> sparkly.backend.v1.ResolveIssueResponse
-	71, // [71:96] is the sub-list for method output_type
-	46, // [46:71] is the sub-list for method input_type
-	46, // [46:46] is the sub-list for extension type_name
-	46, // [46:46] is the sub-list for extension extendee
-	0,  // [0:46] is the sub-list for field type_name
+	54, // 93: sparkly.backend.v1.IssueService.GetIssues:output_type -> sparkly.backend.v1.GetIssuesResponse
+	56, // 94: sparkly.backend.v1.IssueService.ResolveIssue:output_type -> sparkly.backend.v1.ResolveIssueResponse
+	58, // 95: sparkly.backend.v1.IssueService.UpdateIssue:output_type -> sparkly.backend.v1.UpdateIssueResponse
+	60, // 96: sparkly.backend.v1.IssueService.DeleteIssue:output_type -> sparkly.backend.v1.DeleteIssueResponse
+	71, // [71:97] is the sub-list for method output_type
+	45, // [45:71] is the sub-list for method input_type
+	45, // [45:45] is the sub-list for extension type_name
+	45, // [45:45] is the sub-list for extension extendee
+	0,  // [0:45] is the sub-list for field type_name
 }
 
 func init() { file_backend_proto_service_proto_init() }
@@ -3788,14 +3916,15 @@ func file_backend_proto_service_proto_init() {
 	file_backend_proto_service_proto_msgTypes[26].OneofWrappers = []any{}
 	file_backend_proto_service_proto_msgTypes[36].OneofWrappers = []any{}
 	file_backend_proto_service_proto_msgTypes[48].OneofWrappers = []any{}
-	file_backend_proto_service_proto_msgTypes[54].OneofWrappers = []any{}
+	file_backend_proto_service_proto_msgTypes[52].OneofWrappers = []any{}
+	file_backend_proto_service_proto_msgTypes[56].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_backend_proto_service_proto_rawDesc), len(file_backend_proto_service_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   58,
+			NumMessages:   60,
 			NumExtensions: 0,
 			NumServices:   4,
 		},
