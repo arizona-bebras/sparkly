@@ -5,6 +5,7 @@
 		createTable,
 		FlexRender,
 	} from "@tanstack/svelte-table";
+	import type { Snippet } from "svelte";
 	import * as Table from "$lib/components/ui/table/index.js";
 	import { Button } from "$lib/components/ui/button/index.js";
 	import { Input } from "$lib/components/ui/input/index.js";
@@ -16,9 +17,22 @@
 	type DataTableProps<TData extends RowData> = {
 		columns: ColumnDef<DataTableFeatures, TData>[];
 		data: TData[];
+		searchColumn?: string;
+		searchPlaceholder?: string;
+		emptyMessage?: string;
+		searchValue?: string;
+		toolbar?: Snippet;
 	};
 
-	let { data, columns }: DataTableProps<TData> = $props();
+	let {
+		data,
+		columns,
+		searchColumn = "name",
+		searchPlaceholder = "Поиск по названию...",
+		emptyMessage = "Устройства не найдены.",
+		searchValue = $bindable(""),
+		toolbar,
+	}: DataTableProps<TData> = $props();
 
 	const table = createTable({
 		features,
@@ -30,23 +44,29 @@
 		},
 	});
 
+	$effect(() => {
+		table.getColumn(searchColumn)?.setFilterValue(searchValue);
+	});
+
 	const pagination = $derived(table.atoms.pagination.get());
 </script>
 
 <div class="flex flex-col gap-4">
-	<div class="flex items-center justify-between">
-		<div class="relative w-full max-w-sm">
-			<SearchIcon class="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground pointer-events-none" />
-			<Input
-				placeholder="Поиск по названию..."
-				value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
-				oninput={(e) => {
-					table.getColumn("name")?.setFilterValue(e.currentTarget.value);
-				}}
-				class="pl-9"
-			/>
+	<div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+		<div class="flex flex-1 flex-wrap items-center gap-2">
+			<div class="relative w-full sm:w-64">
+				<SearchIcon class="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground pointer-events-none" />
+				<Input
+					placeholder={searchPlaceholder}
+					bind:value={searchValue}
+					class="pl-9 h-9"
+				/>
+			</div>
+
+			{@render toolbar?.()}
 		</div>
-		<div class="text-xs text-muted-foreground">
+
+		<div class="text-xs text-muted-foreground whitespace-nowrap">
 			Всего строк: <span class="font-medium text-foreground">{table.getFilteredRowModel().rows.length}</span>
 		</div>
 	</div>
@@ -78,7 +98,7 @@
 				{:else}
 					<Table.Row>
 						<Table.Cell colspan={columns.length} class="h-24 text-center text-muted-foreground">
-							Устройства не найдены.
+							{emptyMessage}
 						</Table.Cell>
 					</Table.Row>
 				{/each}

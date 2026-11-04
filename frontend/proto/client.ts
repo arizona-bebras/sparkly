@@ -3,10 +3,15 @@ import { Code, ConnectError, createClient, createRouterTransport } from '@connec
 import { createConnectTransport } from '@connectrpc/connect-web';
 // import { PUBLIC_API_BASE_URL } from "$env/static/public";
 import {
+  DeviceSchema,
   DeviceService,
+  IssueSchema,
+  IssueService,
   ParkService,
   UserService,
   type Device,
+  type Issue,
+  IssueSeverity,
 } from './gen/backend/proto/service_pb';
 
 // Тип для элементов мока парка
@@ -373,6 +378,8 @@ export const client = {
   user: createClient(UserService, transport),
   park: createClient(ParkService, transport),
   device: createClient(DeviceService, transport),
+  issue: createClient(IssueService, transport),
 };
 
-export type { Device };
+export type { Device, Issue };
+export { IssueSeverity, DeviceSchema, IssueSchema };

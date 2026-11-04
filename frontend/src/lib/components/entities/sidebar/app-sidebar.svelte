@@ -9,6 +9,7 @@
 	import CpuIcon from "@lucide/svelte/icons/cpu";
 	import CircleAlertIcon from "@lucide/svelte/icons/circle-alert";
 	import BoxesIcon from "@lucide/svelte/icons/boxes";
+	import RocketIcon from "@lucide/svelte/icons/rocket";
 	import SettingsIcon from "@lucide/svelte/icons/settings";
 	import ArrowLeftIcon from "@lucide/svelte/icons/arrow-left";
 
@@ -40,16 +41,22 @@
 			isActive: currentPath.startsWith(`${basePath}/devices`),
 		},
 		{
+			title: "Группы",
+			url: `${basePath}/groups`,
+			icon: BoxesIcon,
+			isActive: currentPath.startsWith(`${basePath}/groups`),
+		},
+		{
+			title: "Релизы",
+			url: `${basePath}/releases`,
+			icon: RocketIcon,
+			isActive: currentPath.startsWith(`${basePath}/releases`),
+		},
+		{
 			title: "Проблемы",
 			url: `${basePath}/issues`,
 			icon: CircleAlertIcon,
 			isActive: currentPath.startsWith(`${basePath}/issues`),
-		},
-		{
-			title: "Группы и релизы",
-			url: `${basePath}/groups`,
-			icon: BoxesIcon,
-			isActive: currentPath.startsWith(`${basePath}/groups`),
 		},
 	]);
 

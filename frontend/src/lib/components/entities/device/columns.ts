@@ -21,6 +21,15 @@ function formatTimestamp(ts?: { seconds: bigint; nanos: number }): string {
 export const columns = columnHelper.columns([
   columnHelper.accessor('name', {
     header: 'Устройство',
+    filterFn: (row, _columnId, filterValue) => {
+      const q = String(filterValue ?? '')
+        .toLowerCase()
+        .trim();
+      if (!q) return true;
+      return (
+        row.original.name.toLowerCase().includes(q) || row.original.id.toLowerCase().includes(q)
+      );
+    },
     cell: ({ row }) => {
       const snippet = createRawSnippet<[{ name: string; id: string }]>((getData) => {
         const { name, id } = getData();
@@ -45,25 +54,6 @@ export const columns = columnHelper.columns([
         };
       });
       return renderSnippet(snippet, { ip: row.original.ipAddress });
-    },
-  }),
-  columnHelper.display({
-    id: 'status',
-    header: 'Статус',
-    cell: ({ row }) => {
-      const lastSeen = row.original.lastSeenAt;
-      const ms = lastSeen ? Number(lastSeen.seconds) * 1000 : 0;
-      const online = Date.now() - ms < 10 * 60 * 1000;
-      const statusSnippet = createRawSnippet<[{ online: boolean }]>((get) => {
-        const { online } = get();
-        return {
-          render: () =>
-            online
-              ? `<span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium bg-primary text-primary-foreground"><span class="size-1.5 rounded-full bg-emerald-400"></span>Онлайн</span>`
-              : `<span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium bg-secondary text-secondary-foreground"><span class="size-1.5 rounded-full bg-zinc-400"></span>Офлайн</span>`,
-        };
-      });
-      return renderSnippet(statusSnippet, { online });
     },
   }),
   columnHelper.accessor('lastSeenAt', {
