@@ -8,9 +8,11 @@ import {
   IssueSchema,
   IssueService,
   ParkService,
+  ReleaseSchema,
   UserService,
   type Device,
   type Issue,
+  type Release,
   IssueSeverity,
 } from './gen/backend/proto/service_pb';
 
@@ -381,5 +383,5 @@ export const client = {
   issue: createClient(IssueService, transport),
 };
 
-export type { Device, Issue };
-export { IssueSeverity, DeviceSchema, IssueSchema };
+export type { Device, Issue, Release };
+export { IssueSeverity, DeviceSchema, IssueSchema, ReleaseSchema };
