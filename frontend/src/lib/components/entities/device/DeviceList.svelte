@@ -74,16 +74,37 @@
 			try {
 				const response = await client.park.getGroups({ parkId });
 				if (response.groups && response.groups.length > 0) {
-					return response.groups.map((g) => ({
-						id: g.id,
-						name: g.name,
-					}));
+					return response;
 				}
 			} catch {}
-			return defaultGroups;
+			return {
+				groups: defaultGroups.map((g) => ({
+					id: g.id,
+					name: g.name,
+					description: "",
+					deviceCount: 0,
+					parkId,
+				})),
+			};
 		},
 		enabled: !!parkId,
 	}));
+
+	const availableGroups = $derived.by(() => {
+		const raw = groupsQuery.data;
+		const list = Array.isArray(raw)
+			? raw
+			: Array.isArray(raw?.groups)
+				? raw.groups
+				: [];
+		if (list.length > 0) {
+			return list.map((g) => ({
+				id: g.id,
+				name: g.name,
+			}));
+		}
+		return defaultGroups;
+	});
 
 	const devicesQuery = createQuery(() => ({
 		queryKey: ["devices", parkId],
@@ -134,7 +155,7 @@
 		bind:selectedGroupIds
 		bind:selectedBuildIds
 		bind:searchQuery
-		groups={groupsQuery.data ?? defaultGroups}
+		groups={availableGroups}
 		builds={defaultBuilds}
 	/>
 {/snippet}

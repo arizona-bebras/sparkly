@@ -45,6 +45,13 @@ const groupsQuery = createQuery(() => ({
 	enabled: !!parkId,
 }));
 
+const groupsList = $derived.by(() => {
+	const raw = groupsQuery.data;
+	if (Array.isArray(raw)) return raw;
+	if (Array.isArray(raw?.groups)) return raw.groups;
+	return [];
+});
+
 const deleteMutation = createMutation(() => ({
 	mutationKey: ["deleteGroup", parkId],
 	mutationFn: async (id: string) => {
@@ -59,7 +66,7 @@ const deleteMutation = createMutation(() => ({
 <div class={cn("flex flex-col gap-6", className)}>
 	<div class="flex items-center justify-between">
 		<div class="text-sm text-muted-foreground">
-			Всего групп: {groupsQuery.data?.groups.length ?? 0}
+			Всего групп: {groupsList.length}
 		</div>
 		<Button
 			variant="outline"
@@ -113,7 +120,7 @@ const deleteMutation = createMutation(() => ({
 				</div>
 			</button>
 
-			{#each groupsQuery.data.groups as group (group.id)}
+			{#each groupsList as group (group.id)}
 				<Card.Root
 					size="sm"
 					class="relative group/card transition-all hover:ring-foreground/20 cursor-pointer"
