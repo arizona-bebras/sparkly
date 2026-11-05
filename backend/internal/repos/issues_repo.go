@@ -93,14 +93,13 @@ func (r *IssuesRepo) UpdateIssue(ctx context.Context, newData domain.UpdateIssue
 		ID: issueID,
 	}
 
-	if err := r.db.WithContext(ctx).Scopes(scope.UserIssueScope(userID)).
+	if upd := r.db.WithContext(ctx).Scopes(scope.UserIssueScope(userID)).
 		Model(&issue).
 		Clauses(clause.Returning{}).
-		Updates(&newData).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return domain.Issue{}, domain.ErrIssueNotFound
-		}
-		return domain.Issue{}, fmt.Errorf("failed to update issue in db: %w", err)
+		Updates(&newData); upd.Error != nil {
+		return domain.Issue{}, fmt.Errorf("failed to update issue in db: %w", upd.Error)
+	} else if upd.RowsAffected == 0 {
+		return domain.Issue{}, domain.ErrIssueNotFound
 	}
 
 	return issue.ToDomain(), nil
