@@ -14,6 +14,7 @@ const image = (await readFile(join(directory, 'Dockerfile'), 'utf8')).match(/^FR
 const { privateKey, publicKey } = generateKeyPairSync('rsa', { modulusLength: 2048 });
 const jwk = { ...publicKey.export({ format: 'jwk' }), kid: 'test-key', alg: 'RS256', use: 'sig' };
 const now = () => Math.floor(Date.now() / 1000);
+const tokenID = '01930231-1234-7000-8000-000000000001';
 
 function token(overrides = {}) {
   const header = Buffer.from(JSON.stringify({ alg: 'RS256', kid: jwk.kid })).toString('base64url');
@@ -23,6 +24,10 @@ function token(overrides = {}) {
   const input = `${header}.${payload}`;
   return `${input}.${sign('RSA-SHA256', Buffer.from(input), privateKey).toString('base64url')}`;
 }
+
+const refreshToken = (overrides = {}) => token({
+  id: undefined, type: 'refresh', token_id: tokenID, user_id: 'user-123', ...overrides,
+});
 
 async function listen(server) {
   await new Promise((resolve, reject) => {
@@ -63,7 +68,10 @@ test('Envoy routing and cookie authentication', { timeout: 90000 }, async (t) =>
         'content-type': 'application/json',
         'set-cookie': 'fixture=value; Path=/; HttpOnly',
       });
-      res.end(JSON.stringify({ service, path: req.url, user: req.headers['x-user-id'] ?? null }));
+      res.end(JSON.stringify({
+        service, path: req.url, user: req.headers['x-user-id'] ?? null,
+        token: req.headers['x-token-id'] ?? null,
+      }));
     });
     fixtures.push(server);
     const port = await listen(server);
@@ -110,21 +118,28 @@ test('Envoy routing and cookie authentication', { timeout: 90000 }, async (t) =>
 
   const auth = (value = token()) => ({ cookie: `access_token=${value}` });
   const rpc = '/sparkly.backend.v1.ParkService/GetAllParks';
-  await t.test('JWKS failure returns 401', async () => {
-    assert.equal((await request(rpc, auth())).status, 401);
+  await t.test('JWKS failure denies backend access', async () => {
+    assert.equal((await request(rpc, auth())).status, 403);
+    assert.equal((await request(rpc, { cookie: `refresh_token=${refreshToken()}` })).status, 403);
     jwksAvailable = true;
   });
   for (const path of ['/', '/auth/signin', '/auth/signup', '/_app/immutable/app.js',
     '/sparkly.backend.v1.UserService/Reg', '/sparkly.backend.v1.UserService/GetToken',
     '/api/backend/health', '/api/analytics/health', '/api/ml/health']) {
-    await t.test(`public ${path} ignores invalid cookies and strips spoofed identity`, async () => {
-      const response = await request(path, { ...auth('invalid'), 'x-user-id': 'attacker' });
-      assert.equal(response.status, 200);
-      const body = await response.json();
-      assert.equal(body.service, path.startsWith('/sparkly.') ? 'backend' : 'frontend');
-      assert.equal(body.user, null);
-      assert.match(response.headers.get('set-cookie'), /fixture=value/);
-    });
+    for (const cookie of ['access_token=invalid; refresh_token=invalid',
+      `access_token=${token()}; refresh_token=${refreshToken()}`]) {
+      await t.test(`public ${path} ignores cookies and strips spoofed identity`, async () => {
+        const response = await request(path, {
+          cookie, 'x-user-id': 'attacker', 'x-token-id': 'attacker',
+        });
+        assert.equal(response.status, 200);
+        const body = await response.json();
+        assert.equal(body.service, path.startsWith('/sparkly.') ? 'backend' : 'frontend');
+        assert.equal(body.user, null);
+        assert.equal(body.token, null);
+        assert.match(response.headers.get('set-cookie'), /fixture=value/);
+      });
+    }
   }
   const protectedRoutes = [
     [rpc, 'backend', rpc],
@@ -136,34 +151,85 @@ test('Envoy routing and cookie authentication', { timeout: 90000 }, async (t) =>
   ];
   for (const [path, service, upstreamPath] of protectedRoutes) {
     await t.test(`protected ${path}`, async () => {
-      assert.equal((await request(path, { 'x-user-id': 'attacker' })).status, 401);
-      const response = await request(path, { ...auth(), 'x-user-id': 'attacker' });
+      assert.equal((await request(path, { 'x-user-id': 'attacker', 'x-token-id': 'attacker' })).status,
+        service === 'backend' ? 403 : 401);
+      const response = await request(path, { ...auth(), 'x-user-id': 'attacker', 'x-token-id': 'attacker' });
       assert.equal(response.status, 200);
-      assert.deepEqual(await response.json(), { service, path: upstreamPath, user: 'user-123' });
+      assert.deepEqual(await response.json(), { service, path: upstreamPath, user: 'user-123', token: null });
     });
   }
   const invalidCredentials = [
-    ['malformed', 401, auth('invalid')],
-    ['forged signature', 401, auth(`${token().split('.').slice(0, 2).join('.')}.AAAA`)],
-    ['expired', 401, auth(token({ exp: now() - 10 }))],
-    ['not yet valid', 401, auth(token({ nbf: now() + 300 }))],
-    ['missing expiration', 401, auth(token({ exp: undefined }))],
+    ['malformed', 403, auth('invalid')],
+    ['forged signature', 403, auth(`${token().split('.').slice(0, 2).join('.')}.AAAA`)],
+    ['expired', 403, auth(token({ exp: now() - 10 }))],
+    ['not yet valid', 403, auth(token({ nbf: now() + 300 }))],
+    ['missing expiration', 403, auth(token({ exp: undefined }))],
     ['missing id', 403, auth(token({ id: undefined }))],
     ['empty id', 403, auth(token({ id: '' }))],
     ['non-string id', 403, auth(token({ id: 123 }))],
     ['unsafe id', 403, auth(token({ id: 'user\r\nspoof: yes' }))],
     ['refresh token in access cookie', 403, auth(token({ type: 'refresh' }))],
-    ['refresh cookie only', 401, { cookie: `refresh_token=${token()}` }],
-    ['Authorization header only', 401, { authorization: `Bearer ${token()}` }],
+    ['access token in refresh cookie', 403, { cookie: `refresh_token=${token()}` }],
+    ['Authorization header only', 403, { authorization: `Bearer ${token()}` }],
   ];
   for (const [label, status, headers] of invalidCredentials) {
     await t.test(`${label} returns ${status}`, async () => {
-      assert.equal((await request(rpc, { ...headers, 'x-user-id': 'attacker' })).status, status);
+      assert.equal((await request(rpc, {
+        ...headers, 'x-user-id': 'attacker', 'x-token-id': 'attacker',
+      })).status, status);
     });
   }
   await t.test('query parameter token is not accepted', async () => {
-    assert.equal((await request(`${rpc}?access_token=${token()}`)).status, 401);
+    assert.equal((await request(`${rpc}?access_token=${token()}`)).status, 403);
   });
+  for (const [label, access] of [
+    ['absent', undefined], ['expired', token({ exp: now() - 10 })], ['malformed', 'invalid'],
+    ['wrong type', token({ type: 'refresh' })], ['empty id', token({ id: '' })],
+    ['non-string id', token({ id: 123 })], ['unsafe id', token({ id: 'user\r\nspoof: yes' })],
+  ]) {
+    await t.test(`refresh fallback with ${label} access cookie`, async () => {
+      const response = await request(rpc, {
+        cookie: `${access === undefined ? '' : `access_token=${access}; `}refresh_token=${refreshToken()}`,
+        'x-user-id': 'attacker', 'x-token-id': 'attacker',
+      });
+      assert.equal(response.status, 200);
+      assert.deepEqual(await response.json(), { service: 'backend', path: rpc, user: null, token: tokenID });
+      assert.match(response.headers.get('set-cookie'), /fixture=value/);
+    });
+  }
+  await t.test('both valid cookies forward user and session for revocation', async () => {
+    const path = '/sparkly.backend.v1.UserService/RevokeToken';
+    const response = await request(path, {
+      cookie: `access_token=${token()}; refresh_token=${refreshToken()}`,
+      'x-user-id': 'attacker', 'x-token-id': 'attacker',
+    });
+    assert.equal(response.status, 200);
+    assert.deepEqual(await response.json(), { service: 'backend', path, user: 'user-123', token: tokenID });
+  });
+  for (const invalid of ['invalid', `${refreshToken().split('.').slice(0, 2).join('.')}.AAAA`,
+    refreshToken({ exp: now() - 10 }), refreshToken({ nbf: now() + 300 }),
+    refreshToken({ exp: undefined }), refreshToken({ type: 'access' }),
+    refreshToken({ token_id: undefined }), refreshToken({ token_id: '' }),
+    refreshToken({ token_id: 123 }), refreshToken({ token_id: 'session\r\nspoof: yes' })]) {
+    await t.test('invalid refresh cannot authorize or supply a session header', async () => {
+      const cookie = `refresh_token=${invalid}`;
+      assert.equal((await request(rpc, {
+        cookie: `access_token=${token({ exp: now() - 10 })}; ${cookie}`,
+        'x-user-id': 'attacker', 'x-token-id': 'attacker',
+      })).status, 403);
+      const response = await request(rpc, { cookie: `access_token=${token()}; ${cookie}` });
+      assert.equal(response.status, 200);
+      assert.equal((await response.json()).token, null);
+    });
+  }
+  for (const path of ['/sparkly.analytics.v1.AnalyticsService/GetSummary', '/sparkly.ml.v1.FutureService/Call']) {
+    await t.test(`refresh cookie cannot authenticate ${path}`, async () => {
+      const response = await request(path, {
+        cookie: `access_token=${token({ exp: now() - 10 })}; refresh_token=${refreshToken()}`,
+      });
+      assert.equal(response.status, 401);
+    });
+  }
   await t.test('unknown RPC namespace requires auth then returns 404', async () => {
     for (const path of ['/sparkly.future.v1.Service/Call']) {
       assert.equal((await request(path)).status, 401);
