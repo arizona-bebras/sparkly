@@ -111,7 +111,7 @@ func (r *IssuesRepo) ResolveIssue(ctx context.Context, issueID, userID uuid.UUID
 	}
 
 	err := r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		if err := r.db.Scopes(scope.UserIssueScope(userID)).First(&issue).Error; err != nil {
+		if err := tx.Scopes(scope.UserIssueScope(userID)).First(&issue).Error; err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
 				return domain.ErrIssueNotFound
 			}
@@ -122,7 +122,7 @@ func (r *IssuesRepo) ResolveIssue(ctx context.Context, issueID, userID uuid.UUID
 			return domain.ErrIssueAlreadyResolved
 		}
 
-		if err := r.db.WithContext(ctx).Scopes(scope.UserIssueScope(userID)).
+		if err := tx.WithContext(ctx).Scopes(scope.UserIssueScope(userID)).
 			Model(&issue).
 			Clauses(clause.Returning{}).
 			Updates(&models.Issue{IsResolved: true, ResolvedAt: time.Now()}).Error; err != nil {
