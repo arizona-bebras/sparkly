@@ -1,35 +1,33 @@
 <script>
-import GalleryVerticalEndIcon from "@lucide/svelte/icons/gallery-vertical-end";
-import { createQuery } from "@tanstack/svelte-query";
-import SignupForm from "$lib/components/forms/signup/Signup.svelte";
-import { client } from "$proto";
+  import GalleryVerticalEndIcon from '@lucide/svelte/icons/gallery-vertical-end';
+  import { createQuery } from '@tanstack/svelte-query';
+  import SignupForm from '$lib/components/forms/signup/Signup.svelte';
+  import { client } from '$proto';
 
-// const query = createQuery(() => ({
-// 	queryKey: ["say"],
-// 	queryFn: async () =>
-// 		await client.say({
-// 			sentence: "I feel happy. Tell me about yourself",
-// 		}),
-// })); 
-let a =25  
-</script>  
-
+  // const query = createQuery(() => ({
+  // 	queryKey: ["say"],
+  // 	queryFn: async () =>
+  // 		await client.say({
+  // 			sentence: "I feel happy. Tell me about yourself",
+  // 		}),
+  // }));
+  let a = 25;
+</script>
 
 <svelte:head>
-    <title>Sparkly</title>
+  <title>Sparkly</title>
 </svelte:head>
 
 <div class="flex min-h-svh flex-col items-center justify-center gap-6 bg-muted p-6 md:p-10">
-	<div class="flex w-full max-w-sm flex-col gap-6">
-		<div class="flex items-center gap-2 self-center font-medium">
-			<div
-				class="flex size-6 items-center justify-center rounded-md bg-primary text-primary-foreground"
-			>
-				<GalleryVerticalEndIcon class="size-4" />
-			</div>
-			Sparkly
-		</div>
-		<SignupForm />
-	</div>
+  <div class="flex w-full max-w-sm flex-col gap-6">
+    <div class="flex items-center gap-2 self-center font-medium">
+      <div
+        class="flex size-6 items-center justify-center rounded-md bg-primary text-primary-foreground"
+      >
+        <GalleryVerticalEndIcon class="size-4" />
+      </div>
+      Sparkly
+    </div>
+    <SignupForm />
+  </div>
 </div>
-
