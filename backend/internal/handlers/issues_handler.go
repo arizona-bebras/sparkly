@@ -15,6 +15,10 @@ import (
 )
 
 func pbSeverityToDomain(is *pb.IssueSeverity) *domain.IssueSeverity {
+	if is == nil {
+		return nil
+	}
+
 	var s domain.IssueSeverity
 	switch *is {
 	case pb.IssueSeverity_ISSUE_SEVERITY_UNSPECIFIED:
@@ -34,12 +38,31 @@ func pbSeverityToDomain(is *pb.IssueSeverity) *domain.IssueSeverity {
 	return &s
 }
 
+func domainSeverityToPB(is domain.IssueSeverity) pb.IssueSeverity {
+
+	switch is {
+	case domain.IssueSeverityInfo:
+		return pb.IssueSeverity_ISSUE_SEVERITY_INFO
+	case domain.IssueSeverityLow:
+		return pb.IssueSeverity_ISSUE_SEVERITY_LOW
+	case domain.IssueSeverityMedium:
+		return pb.IssueSeverity_ISSUE_SEVERITY_MEDIUM
+	case domain.IssueSeverityHigh:
+		return pb.IssueSeverity_ISSUE_SEVERITY_HIGH
+	case domain.IssueSeverityCritical:
+		return pb.IssueSeverity_ISSUE_SEVERITY_CRITICAL
+	}
+
+	return pb.IssueSeverity_ISSUE_SEVERITY_UNSPECIFIED
+}
+
 func fromDomainToResp(issue domain.Issue) *pb.Issue {
 	return &pb.Issue{
 		Id:          issue.ID.String(),
 		ParkId:      issue.ParkID.String(),
 		Title:       issue.Title,
 		Description: issue.Description,
+		Severity:    domainSeverityToPB(issue.Severity),
 		IsResolved:  issue.IsResolved,
 		ResolvedAt:  timestamppb.New(issue.ResolvedAt),
 		FirstAt:     timestamppb.New(issue.FirstAt),
@@ -69,16 +92,7 @@ func (h *IssuesHandler) GetIssue(ctx context.Context, req *pb.GetIssueRequest) (
 	}
 
 	return &pb.GetIssueResponse{
-		Issue: &pb.Issue{
-			Id:          issue.ID.String(),
-			ParkId:      issue.ParkID.String(),
-			Title:       issue.Title,
-			Description: issue.Description,
-			IsResolved:  issue.IsResolved,
-			ResolvedAt:  timestamppb.New(issue.ResolvedAt),
-			FirstAt:     timestamppb.New(issue.FirstAt),
-			LastAt:      timestamppb.New(issue.LastAt),
-		},
+		Issue: fromDomainToResp(issue),
 	}, nil
 }
 

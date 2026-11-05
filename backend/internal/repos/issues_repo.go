@@ -43,21 +43,27 @@ func (r *IssuesRepo) GetIssueByID(ctx context.Context, issueID, userID uuid.UUID
 const SIMILARITY_THRESHOLD = 0.3
 
 func (r *IssuesRepo) GetIssues(ctx context.Context, filters domain.IssueFilters, parkID, userID uuid.UUID) ([]domain.Issue, error) {
-	severity := models.IssueSeverity(*filters.Severity)
+	var severity *models.IssueSeverity
+	if filters.Severity == nil {
+		severity = nil
+	} else {
+		tmpS := models.IssueSeverity(*filters.Severity)
+		severity = &tmpS
+	}
 	strictFilters := &struct {
 		ParkID     *uuid.UUID
 		Severity   *models.IssueSeverity
 		IsResolved *bool
 	}{
 		ParkID:     &parkID,
-		Severity:   &severity,
+		Severity:   severity,
 		IsResolved: filters.IsResolved,
 	}
 
 	query := r.db.WithContext(ctx).Scopes(scope.UserIssueScope(userID)).Where(&strictFilters)
 	
 	if filters.FromTime != nil {
-    	query = query.Where("first_at <= ?", filters.FromTime)
+    	query = query.Where("first_at >= ?", filters.FromTime)
 	}
 	
 	if filters.ToTime != nil {

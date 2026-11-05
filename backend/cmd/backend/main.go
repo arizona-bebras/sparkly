@@ -91,6 +91,11 @@ func main() {
 	parkHandler := handlers.NewParkHandler(parkService, groupsService)
 	backendv1connect.RegisterParkServiceHandler(server, parkHandler)
 
+	issuesRepo := repos.NewIssuesRepo(db)
+	issueService := services.NewIssueService(issuesRepo)
+	issuesHandler := handlers.NewIssuesHandler(issueService)
+	backendv1connect.RegisterIssueServiceHandler(server, issuesHandler)
+
 	devicesRepo := repos.NewDevicesRepo(db)
 	devicesService := services.NewDeviceService(devicesRepo)
 	devicesHandler := handlers.NewDeviceHandler(devicesService)

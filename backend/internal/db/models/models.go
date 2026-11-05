@@ -157,6 +157,7 @@ func (i *Issue) ToDomain() domain.Issue {
 		Title:       i.Title,
 		Description: i.Description,
 		Severity:    domain.IssueSeverity(i.Severity),
+		IsResolved:  i.IsResolved,
 		ResolvedAt:  i.ResolvedAt,
 		FirstAt:     i.FirstAt,
 		LastAt:      i.LastAt,
