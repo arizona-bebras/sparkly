@@ -360,22 +360,22 @@ message ResolveIssueResponse {
 }
 
 message UpdateIssueRequest {
-    string id = 1 [(buf.validate.field).string.uuid = true];
-    optional string title = 2  [(buf.validate.field).string.min_len = 1];
-    optional string description = 3 [(buf.validate.field).string.min_len = 1];
-    optional IssueSeverity severity = 4 [(buf.validate.field).enum.defined_only = true];
+  string id = 1 [(buf.validate.field).string.uuid = true];
+  optional string title = 2 [(buf.validate.field).string.min_len = 1];
+  optional string description = 3 [(buf.validate.field).string.min_len = 1];
+  optional IssueSeverity severity = 4 [(buf.validate.field).enum.defined_only = true];
 }
 
 message UpdateIssueResponse {
-    Issue issue = 1;
+  Issue issue = 1;
 }
 
 message DeleteIssueRequest {
-    string id = 1 [(buf.validate.field).string.uuid = true];
+  string id = 1 [(buf.validate.field).string.uuid = true];
 }
 
 message DeleteIssueResponse {
-    bool success = 1;
+  bool success = 1;
 }
 
 // ============================================================================
