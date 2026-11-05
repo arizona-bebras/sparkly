@@ -35,8 +35,9 @@
 		mutationFn: async (id: string) => {
 			return await client.park.deletePark({ id });
 		},
-		onSuccess: () => {
-			queryClient.refetchQueries({ queryKey: ["parks"] });
+		onSuccess: (_, id) => {
+			queryClient.removeQueries({ queryKey: ["park", id] });
+			queryClient.invalidateQueries({ queryKey: ["parks"] });
 		},
 	}));
 </script>

@@ -11,6 +11,14 @@ const config = {
       '@/*': './src/lib/*',
     },
   },
+  vitePlugin: {
+    inspector: {
+      toggleKeyCombo: 'alt-x',
+      holdMode: false,
+      showToggleButton: 'always',
+      toggleButtonPos: 'bottom-right',
+    },
+  },
 };
 
 export default config;

@@ -1,5 +1,5 @@
 <script lang="ts">
-import { createMutation } from "@tanstack/svelte-query";
+import { createMutation, useQueryClient } from "@tanstack/svelte-query";
 import { onMount } from "svelte";
 import type { HTMLAttributes } from "svelte/elements";
 import SubmitBtn from "$lib/components/forms/SubmitBtn.svelte";
@@ -22,6 +22,8 @@ let {
 	park?: Park;
 } = $props();
 
+const queryClient = useQueryClient();
+
 const createParkMutation = createMutation(() => ({
 	mutationKey: ["createPark"],
 	mutationFn: async (data: { name: string; description: string }) => {
@@ -30,7 +32,14 @@ const createParkMutation = createMutation(() => ({
 			description: data.description,
 		});
 	},
-	onSuccess: (response) => { onSuccess?.(response.park); },
+	onSuccess: (response) => {
+		if (response.park) {
+			queryClient.setQueryData(["park", response.park.id], { park: response.park });
+			queryClient.invalidateQueries({ queryKey: ["park", response.park.id] });
+		}
+		queryClient.invalidateQueries({ queryKey: ["parks"] });
+		onSuccess?.(response.park);
+	},
 }));
 
 const updateParkMutation = createMutation(() => ({
@@ -42,7 +51,14 @@ const updateParkMutation = createMutation(() => ({
 			description: data.description,
 		});
 	},
-	onSuccess: (response) => { onSuccess?.(response.park); },
+	onSuccess: (response) => {
+		if (response.park) {
+			queryClient.setQueryData(["park", response.park.id], { park: response.park });
+			queryClient.invalidateQueries({ queryKey: ["park", response.park.id] });
+		}
+		queryClient.invalidateQueries({ queryKey: ["parks"] });
+		onSuccess?.(response.park);
+	},
 }));
 
 let currentAction = $derived(park ? updateParkMutation : createParkMutation);
