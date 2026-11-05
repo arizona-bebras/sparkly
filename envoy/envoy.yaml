@@ -23,6 +23,9 @@ static_resources:
                         envoy.filters.http.jwt_authn:
                           "@type": type.googleapis.com/envoy.extensions.filters.http.jwt_authn.v3.PerRouteConfig
                           requirement_name: access_token
+                        envoy.filters.http.jwt_refresh:
+                          "@type": type.googleapis.com/envoy.extensions.filters.http.jwt_authn.v3.PerRouteConfig
+                          disabled: true
                       routes:
                         - match: { path: /sparkly.backend.v1.UserService/Reg }
                           route: { cluster: backend }
@@ -38,6 +41,13 @@ static_resources:
                           typed_per_filter_config: *public
                         - match: { prefix: /sparkly.backend. }
                           route: { cluster: backend }
+                          typed_per_filter_config:
+                            envoy.filters.http.jwt_authn:
+                              "@type": type.googleapis.com/envoy.extensions.filters.http.jwt_authn.v3.PerRouteConfig
+                              requirement_name: backend_session
+                            envoy.filters.http.jwt_refresh:
+                              "@type": type.googleapis.com/envoy.extensions.filters.http.jwt_authn.v3.PerRouteConfig
+                              requirement_name: backend_session
                         - match: { prefix: /sparkly.analytics. }
                           route: { cluster: analytics }
                         - match: { prefix: /sparkly.ml. }
@@ -60,19 +70,52 @@ static_resources:
                           require_expiration: true
                           # Envoy interprets 0 as the default 60-second skew.
                           clock_skew_seconds: 1
-                          remote_jwks:
+                          remote_jwks: &backend_jwks
                             http_uri:
                               uri: http://backend:8080/.well-known/jwks.json
                               cluster: backend
                               timeout: 2s
                             cache_duration: 300s
                           payload_in_metadata: access_token
-                          # Envoy 1.40 strips this header even on public routes.
-                          claim_to_headers:
-                            - header_name: x-user-id
-                              claim_name: id
                       requirement_map:
                         access_token: { provider_name: backend }
+                        # RBAC requires a verified identity after both filters run.
+                        backend_session: { allow_missing_or_failed: {} }
+                  # Separate filters verify the cookies independently even though
+                  # both token types share the same issuer and signing keys.
+                  - name: envoy.filters.http.jwt_refresh
+                    typed_config:
+                      "@type": type.googleapis.com/envoy.extensions.filters.http.jwt_authn.v3.JwtAuthentication
+                      providers:
+                        refresh:
+                          from_cookies: [refresh_token]
+                          require_expiration: true
+                          clock_skew_seconds: 1
+                          remote_jwks: *backend_jwks
+                          payload_in_metadata: refresh_token
+                      requirement_map:
+                        backend_session: { allow_missing_or_failed: {} }
+                  - name: envoy.filters.http.lua
+                    typed_config:
+                      "@type": type.googleapis.com/envoy.extensions.filters.http.lua.v3.Lua
+                      inline_code: |
+                        function envoy_on_request(handle)
+                          local headers = handle:headers()
+                          headers:remove("x-user-id")
+                          headers:remove("x-token-id")
+                          local metadata = handle:streamInfo():dynamicMetadata():get("envoy.filters.http.jwt_authn") or {}
+                          local function identity(payload, kind, claim, header)
+                            if type(payload) ~= "table" or payload.type ~= kind then
+                              return
+                            end
+                            local id = payload[claim]
+                            if type(id) == "string" and #id > 0 and not id:find("[%z\1-\31\127]") then
+                              headers:add(header, id)
+                            end
+                          end
+                          identity(metadata.access_token, "access", "id", "x-user-id")
+                          identity(metadata.refresh_token, "refresh", "token_id", "x-token-id")
+                        end
                   - name: envoy.filters.http.rbac
                     typed_config:
                       "@type": type.googleapis.com/envoy.extensions.filters.http.rbac.v3.RBAC
@@ -106,6 +149,33 @@ static_resources:
                                             ]
                                           value:
                                             string_match: { exact: access }
+                          refresh_identity:
+                            # Only the backend has an interceptor that resolves
+                            # the session in the database and issues a new cookie.
+                            permissions:
+                              - url_path:
+                                  path: { prefix: /sparkly.backend. }
+                            principals:
+                              - and_ids:
+                                  ids:
+                                    - sourced_metadata:
+                                        metadata_source: DYNAMIC
+                                        metadata_matcher:
+                                          filter: envoy.filters.http.jwt_authn
+                                          path:
+                                            [{ key: refresh_token }, { key: token_id }]
+                                          value:
+                                            string_match:
+                                              safe_regex:
+                                                regex: '[^\x00-\x1f\x7f]+'
+                                    - sourced_metadata:
+                                        metadata_source: DYNAMIC
+                                        metadata_matcher:
+                                          filter: envoy.filters.http.jwt_authn
+                                          path:
+                                            [{ key: refresh_token }, { key: type }]
+                                          value:
+                                            string_match: { exact: refresh }
                   - name: envoy.filters.http.router
                     typed_config:
                       "@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
