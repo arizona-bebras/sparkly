@@ -35,9 +35,9 @@ type UpdateIssueParams struct {
 }
 
 type IssueFilters struct {
-	Title       *string
-	Severity    *IssueSeverity
-	IsResolved  *bool
-	FromTime    *time.Time
-	ToTime      *time.Time
+	Title      *string
+	Severity   *IssueSeverity
+	IsResolved *bool
+	FromTime   *time.Time
+	ToTime     *time.Time
 }

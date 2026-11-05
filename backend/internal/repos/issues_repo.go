@@ -61,24 +61,24 @@ func (r *IssuesRepo) GetIssues(ctx context.Context, filters domain.IssueFilters,
 	}
 
 	query := r.db.WithContext(ctx).Scopes(scope.UserIssueScope(userID)).Where(&strictFilters)
-	
+
 	if filters.FromTime != nil {
-    	query = query.Where("first_at >= ?", filters.FromTime)
+		query = query.Where("first_at >= ?", filters.FromTime)
 	}
-	
+
 	if filters.ToTime != nil {
-    	query = query.Where("last_at <= ?", filters.ToTime) 
+		query = query.Where("last_at <= ?", filters.ToTime)
 	}
-	
+
 	if filters.Title != nil {
-	    query = query.Select("*, similarity(title, ?) as sim", filters.Title).
-	        Where("similarity(title, ?) >= ?", filters.Title, SIMILARITY_THRESHOLD).
-	        Order("sim DESC")
+		query = query.Select("*, similarity(title, ?) as sim", filters.Title).
+			Where("similarity(title, ?) >= ?", filters.Title, SIMILARITY_THRESHOLD).
+			Order("sim DESC")
 	}
-	
+
 	var issues []models.Issue
 	if err := query.Find(&issues).Error; err != nil {
-    	return []domain.Issue{}, fmt.Errorf("failed to get issues from db: %w", err)
+		return []domain.Issue{}, fmt.Errorf("failed to get issues from db: %w", err)
 	}
 
 	domainIssues := make([]domain.Issue, 0, len(issues))
@@ -144,7 +144,7 @@ func (r *IssuesRepo) DeleteIssue(ctx context.Context, issueID, userID uuid.UUID)
 	issue := models.Issue{
 		ID: issueID,
 	}
-	
+
 	if del := r.db.WithContext(ctx).Scopes(scope.UserIssueScope(userID)).Delete(&issue); del.Error != nil {
 		return fmt.Errorf("failed to delete issue from db: %w", del.Error)
 	} else if del.RowsAffected == 0 {

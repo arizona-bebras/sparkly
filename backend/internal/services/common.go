@@ -4,8 +4,8 @@ import (
 	"context"
 	"github.com/google/uuid"
 
-	"sparkly/backend/internal/metadata"
 	"sparkly/backend/internal/domain"
+	"sparkly/backend/internal/metadata"
 )
 
 func parseCtxUserIDValue(ctx context.Context) (uuid.UUID, error) {
