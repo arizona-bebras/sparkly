@@ -3,3 +3,7 @@
 .env
 .env.*
 !.env.example
+
+# Persisted host-example device identity
+.sparkly-host/
+root_ca.crt

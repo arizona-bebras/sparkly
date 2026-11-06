@@ -22,6 +22,14 @@ func (f deviceRepositoryFunc) CreateDevice(ctx context.Context, hash string, enr
 	return f(ctx, hash, enroll)
 }
 
+func (f deviceRepositoryFunc) GetDevice(context.Context, uuid.UUID, uuid.UUID) (domain.Device, error) {
+	panic("unexpected GetDevice call")
+}
+
+func (f deviceRepositoryFunc) GetDevices(context.Context, domain.GetDevicesFilters, uuid.UUID) ([]domain.Device, error) {
+	panic("unexpected GetDevices call")
+}
+
 type certificateIssuerFunc func(context.Context, domain.DeviceIdentity, domain.DeviceCertificateRequest) (domain.DeviceCertificate, error)
 
 func (f certificateIssuerFunc) Issue(ctx context.Context, identity domain.DeviceIdentity, request domain.DeviceCertificateRequest) (domain.DeviceCertificate, error) {

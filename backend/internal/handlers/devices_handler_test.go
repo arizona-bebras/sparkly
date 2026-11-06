@@ -27,6 +27,14 @@ type enrollmentRepo struct {
 	t         *testing.T
 }
 
+func (r *enrollmentRepo) GetDevice(context.Context, uuid.UUID, uuid.UUID) (domain.Device, error) {
+	panic("unexpected GetDevice call")
+}
+
+func (r *enrollmentRepo) GetDevices(context.Context, domain.GetDevicesFilters, uuid.UUID) ([]domain.Device, error) {
+	panic("unexpected GetDevices call")
+}
+
 func (r *enrollmentRepo) CreateDevice(_ context.Context, token string, issue func(domain.Device) error) error {
 	r.called = true
 	if token != "park-secret" {
@@ -86,7 +94,7 @@ func TestDeviceEnrollment(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			repo := &enrollmentRepo{device: domain.Device{ID: uuid.New(), ParkID: uuid.New()}, err: test.repoError, t: t}
 			issuer := &enrollmentIssuer{err: test.issuerError}
-			handler := NewDeviceHandler(services.NewDeviceService(repo, issuer))
+			handler := NewDeviceRegHandler(services.NewDeviceService(repo, issuer))
 			recorder := httptest.NewRecorder()
 			handler.RegDevice(recorder, httptest.NewRequest(http.MethodPost, "/devices/reg", strings.NewReader(test.body)))
 			if recorder.Code != test.status {

@@ -7,7 +7,8 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
-	"time"
+
+	"sparkly/analytics/internal/domain"
 )
 
 func TestRoutes(t *testing.T) {
@@ -28,7 +29,10 @@ func TestRoutes(t *testing.T) {
 	}
 
 	response = httptest.NewRecorder()
-	mux.ServeHTTP(response, httptest.NewRequest(http.MethodPost, "/ingest", bytes.NewReader([]byte{0x0a, 1, 1})))
+	request = httptest.NewRequest(http.MethodPost, "/ingest", bytes.NewReader([]byte{0x0a, 1, 1}))
+	request.Header.Set("X-Device-Id", "01900000-0000-7000-8000-000000000001")
+	request.Header.Set("X-Park-Id", "01900000-0000-7000-8000-000000000002")
+	mux.ServeHTTP(response, request)
 	if response.Code != http.StatusNoContent || len(store.payload) == 0 {
 		t.Fatalf("POST /ingest status = %d, payload = %q", response.Code, store.payload)
 	}
@@ -36,7 +40,7 @@ func TestRoutes(t *testing.T) {
 
 type routeStore struct{ payload []byte }
 
-func (s *routeStore) StoreRawBatch(_ context.Context, payload []byte, _ time.Time) error {
-	s.payload = append([]byte(nil), payload...)
+func (s *routeStore) StoreRawBatch(_ context.Context, batch domain.RawBatch) error {
+	s.payload = append([]byte(nil), batch.Payload...)
 	return nil
 }

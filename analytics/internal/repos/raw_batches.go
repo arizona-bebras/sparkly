@@ -4,10 +4,11 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"time"
 
 	"github.com/ClickHouse/clickhouse-go/v2"
 	"github.com/google/uuid"
+
+	"sparkly/analytics/internal/domain"
 )
 
 type RawBatchesRepo struct {
@@ -19,8 +20,11 @@ func NewRawBatchesRepo(db *sql.DB) *RawBatchesRepo {
 }
 
 // StoreRawBatch queues the protobuf JSON representation of a device parcel.
-// Device and park ownership will be populated once device authentication exists.
-func (r *RawBatchesRepo) StoreRawBatch(ctx context.Context, payload []byte, receivedAt time.Time) error {
+// Device and park ownership comes from the authenticated gateway identity.
+func (r *RawBatchesRepo) StoreRawBatch(ctx context.Context, batch domain.RawBatch) error {
+	if err := batch.Identity.Validate(); err != nil {
+		return fmt.Errorf("store raw batch: %w", err)
+	}
 	id, err := uuid.NewV7()
 	if err != nil {
 		return fmt.Errorf("generate batch ID: %w", err)
@@ -30,7 +34,7 @@ func (r *RawBatchesRepo) StoreRawBatch(ctx context.Context, payload []byte, rece
 	_, err = r.db.ExecContext(ctx, `
 		INSERT INTO raw_batches (batch_id, device_id, park_id, group_ids, received_at, payload_raw)
 		VALUES (toUUID(?), toUUID(?), toUUID(?), CAST([], 'Array(UUID)'), fromUnixTimestamp64Milli(?, 'UTC'), CAST(? AS JSON))`,
-		id.String(), uuid.Nil.String(), uuid.Nil.String(), receivedAt.UnixMilli(), string(payload))
+		id.String(), batch.Identity.DeviceID().String(), batch.Identity.ParkID().String(), batch.ReceivedAt.UnixMilli(), string(batch.Payload))
 	if err != nil {
 		return fmt.Errorf("insert raw batch: %w", err)
 	}

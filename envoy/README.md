@@ -37,7 +37,7 @@ Envoy removes inbound `x-device-id`, `x-park-id`, `x-user-id`, and `x-forwarded-
 
 TLS session resumption is disabled on the device listener because Envoy's Lua `peerCertificateValidated()` reports false on resumed sessions. See the [Envoy Lua TLS API](https://www.envoyproxy.io/docs/envoy/v1.40.0/configuration/http/http_filters/lua_filter#peercertificatevalidated).
 
-The analytics handler currently accepts parcels without using these identity headers to populate stored batch ownership. That storage integration remains separate from gateway authentication.
+The analytics ingest handler requires both forwarded identity headers and stores them in `raw_batches.device_id` and `raw_batches.park_id`. It rejects missing, invalid, or duplicate values before writing a batch. The gateway verifies device/park membership through the signed certificate; analytics relies on that trusted identity and must be protected from direct untrusted requests.
 
 ## Local Compose credentials
 

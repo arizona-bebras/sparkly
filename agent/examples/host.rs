@@ -1,4 +1,7 @@
-//! Simulated IoT sensor: runs until interrupted, exporting to SPARKLY_INGEST_URL.
+//! Simulated IoT sensor: enrolls once, then exports over mTLS until interrupted.
+#[path = "host/identity.rs"]
+mod identity;
+
 use sparkly_agent::*;
 use std::{
     io,
@@ -7,6 +10,8 @@ use std::{
     time::{Duration, Instant},
 };
 
+const ROOT_CA_PEM: &[u8] = include_bytes!(env!("SPARKLY_CA_CERT"));
+
 struct HostClock(Instant);
 impl Clock for HostClock {
     fn now_us(&self) -> u64 {
@@ -14,23 +19,16 @@ impl Clock for HostClock {
     }
 }
 
-/// Development transport: ingest prints parcels without persisting them, so its
-/// 204 response is only a demo acknowledgment, not durable delivery.
+/// A 204 acknowledges ClickHouse buffering, not durable delivery.
+/// The TLS client authenticates using the locally persisted device identity.
 struct HttpTransport {
     endpoint: String,
     client: ureq::Agent,
 }
 
 impl HttpTransport {
-    fn new(endpoint: String) -> Self {
-        let config = ureq::Agent::config_builder()
-            .timeout_global(Some(Duration::from_secs(10)))
-            .max_redirects(0)
-            .build();
-        Self {
-            endpoint,
-            client: config.into(),
-        }
+    fn new(endpoint: String, client: ureq::Agent) -> Self {
+        Self { endpoint, client }
     }
 }
 
@@ -171,10 +169,20 @@ impl Device {
     }
 }
 
-fn main() {
+fn main() -> io::Result<()> {
     let endpoint = std::env::var("SPARKLY_INGEST_URL")
-        .expect("set SPARKLY_INGEST_URL, e.g. http://localhost:8081/ingest");
+        .expect("set SPARKLY_INGEST_URL, e.g. https://localhost:10001/ingest");
+    let enrollment_token = std::env::var("SPARKLY_ENROLLMENT_TOKEN").unwrap_or_else(|_| "".into());
     let build_id = build_id().expect("build this example using sparkly-link");
+    let enrollment_url = std::env::var("SPARKLY_ENROLLMENT_URL")
+        .unwrap_or_else(|_| "https://localhost:10002/devices/reg".into());
+    let directory = std::env::var_os("SPARKLY_DEVICE_DIR")
+        .map(std::path::PathBuf::from)
+        .unwrap_or_else(|| ".sparkly-host".into());
+    identity::require_https(&endpoint)?;
+    identity::require_https(&enrollment_url)?;
+    let client =
+        identity::load_or_enroll(&enrollment_url, &directory, ROOT_CA_PEM, &enrollment_token)?;
     let mut boot_id = [0; 16];
     std::io::Read::read_exact(
         &mut std::fs::File::open("/dev/urandom").unwrap(),
@@ -196,7 +204,7 @@ fn main() {
     let mut device = Device::new(u64::from_le_bytes(boot_id[..8].try_into().unwrap()));
     let mut exporter = Exporter::<_, _, 8192>::new(
         recorder,
-        HttpTransport::new(endpoint),
+        HttpTransport::new(endpoint, client),
         ProtobufEncoder,
         1_000_000,
     );
