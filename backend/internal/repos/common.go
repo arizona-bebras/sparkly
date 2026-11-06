@@ -1,3 +1,3 @@
 package repos
 
-const SIMILARITY_THRESHHOLD = 0.3
+const SIMILARITY_THRESHOLD = 0.3
