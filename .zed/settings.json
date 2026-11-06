@@ -1,0 +1,166 @@
+{
+  "languages": {
+    "JavaScript": {
+      "format_on_save": "on",
+      "prettier": {
+        "allowed": false
+      },
+      "formatter": {
+        "external": {
+          "command": "./frontend/node_modules/.bin/vp",
+          "arguments": [
+            "fmt",
+            "--config",
+            "frontend/vite.config.ts",
+            "--stdin-filepath",
+            "{buffer_path}"
+          ]
+        }
+      }
+    },
+    "JSX": {
+      "format_on_save": "on",
+      "prettier": {
+        "allowed": false
+      },
+      "formatter": {
+        "external": {
+          "command": "./frontend/node_modules/.bin/vp",
+          "arguments": [
+            "fmt",
+            "--config",
+            "frontend/vite.config.ts",
+            "--stdin-filepath",
+            "{buffer_path}"
+          ]
+        }
+      }
+    },
+    "TypeScript": {
+      "format_on_save": "on",
+      "prettier": {
+        "allowed": false
+      },
+      "formatter": {
+        "external": {
+          "command": "./frontend/node_modules/.bin/vp",
+          "arguments": [
+            "fmt",
+            "--config",
+            "frontend/vite.config.ts",
+            "--stdin-filepath",
+            "{buffer_path}"
+          ]
+        }
+      }
+    },
+    "TSX": {
+      "format_on_save": "on",
+      "prettier": {
+        "allowed": false
+      },
+      "formatter": {
+        "external": {
+          "command": "./frontend/node_modules/.bin/vp",
+          "arguments": [
+            "fmt",
+            "--config",
+            "frontend/vite.config.ts",
+            "--stdin-filepath",
+            "{buffer_path}"
+          ]
+        }
+      }
+    },
+    "Svelte": {
+      "format_on_save": "on",
+      "prettier": {
+        "allowed": false
+      },
+      "formatter": {
+        "external": {
+          "command": "./frontend/node_modules/.bin/vp",
+          "arguments": [
+            "fmt",
+            "--config",
+            "frontend/vite.config.ts",
+            "--stdin-filepath",
+            "{buffer_path}"
+          ]
+        }
+      }
+    },
+    "CSS": {
+      "format_on_save": "on",
+      "prettier": {
+        "allowed": false
+      },
+      "formatter": {
+        "external": {
+          "command": "./frontend/node_modules/.bin/vp",
+          "arguments": [
+            "fmt",
+            "--config",
+            "frontend/vite.config.ts",
+            "--stdin-filepath",
+            "{buffer_path}"
+          ]
+        }
+      }
+    },
+    "HTML": {
+      "format_on_save": "on",
+      "prettier": {
+        "allowed": false
+      },
+      "formatter": {
+        "external": {
+          "command": "./frontend/node_modules/.bin/vp",
+          "arguments": [
+            "fmt",
+            "--config",
+            "frontend/vite.config.ts",
+            "--stdin-filepath",
+            "{buffer_path}"
+          ]
+        }
+      }
+    },
+    "JSON": {
+      "format_on_save": "on",
+      "prettier": {
+        "allowed": false
+      },
+      "formatter": {
+        "external": {
+          "command": "./frontend/node_modules/.bin/vp",
+          "arguments": [
+            "fmt",
+            "--config",
+            "frontend/vite.config.ts",
+            "--stdin-filepath",
+            "{buffer_path}"
+          ]
+        }
+      }
+    },
+    "JSONC": {
+      "format_on_save": "on",
+      "prettier": {
+        "allowed": false
+      },
+      "formatter": {
+        "external": {
+          "command": "./frontend/node_modules/.bin/vp",
+          "arguments": [
+            "fmt",
+            "--config",
+            "frontend/vite.config.ts",
+            "--stdin-filepath",
+            "{buffer_path}"
+          ]
+        }
+      }
+    }
+  }
+}

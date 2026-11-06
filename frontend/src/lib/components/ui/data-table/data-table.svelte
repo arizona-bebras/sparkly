@@ -34,15 +34,15 @@
 		toolbar,
 	}: DataTableProps<TData> = $props();
 
-	const table = createTable({
-		features,
-		get data() {
-			return data;
-		},
-		get columns() {
-			return columns;
-		},
-	});
+  const table = createTable({
+    features,
+    get data() {
+      return data;
+    },
+    get columns() {
+      return columns;
+    },
+  });
 
 	$effect(() => {
 		table.getColumn(searchColumn)?.setFilterValue(searchValue);

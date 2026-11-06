@@ -6,7 +6,7 @@
 </script>
 
 <svelte:head>
-	<title>Устройства | Sparkly</title>
+  <title>Устройства | Sparkly</title>
 </svelte:head>
 
 <div class="flex flex-col gap-6">

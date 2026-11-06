@@ -16,6 +16,7 @@ export default defineConfig({
   },
   fmt: {
     singleQuote: true,
+    svelte: true,
     ignorePatterns: ['.svelte-kit/**', 'build/**', 'dist/**'],
   },
 });
