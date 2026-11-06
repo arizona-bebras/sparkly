@@ -7,10 +7,14 @@ import (
 
 	"crypto/rand"
 	"fmt"
+
+	"github.com/google/uuid"
 )
 
 type DevicesRepo interface {
 	CreateDevice(ctx context.Context, parkToken, deviceToken string) error
+	GetDevice(ctx context.Context, deviceID, userID uuid.UUID) (domain.Device, error)
+	GetDevices(ctx context.Context, filters domain.GetDevicesFilters, userID uuid.UUID) ([]domain.Device, error)
 }
 
 type DeviceService struct {
@@ -48,4 +52,37 @@ func (s *DeviceService) RegDevice(ctx context.Context, parkToken string) (string
 	}
 
 	return deviceToken, nil
+}
+
+func (s *DeviceService) GetDevice(ctx context.Context, devicesIDStr string) (domain.Device, error) {
+	userID, err := parseCtxUserIDValue(ctx)
+	if err != nil {
+		return domain.Device{}, fmt.Errorf("failed to define user: %w", err)
+	}
+
+	deviceID, err := uuid.Parse(devicesIDStr)
+	if err != nil {
+		return domain.Device{}, fmt.Errorf("failed to parse device id: %w", err)
+	}
+
+	device, err := s.repo.GetDevice(ctx, deviceID, userID)
+	if err != nil {
+		return domain.Device{}, fmt.Errorf("failed to get devices: %w", err)
+	}
+
+	return device, nil
+}
+
+func (s *DeviceService) GetDevices(ctx context.Context, filters domain.GetDevicesFilters) ([]domain.Device, error) {
+	userID, err := parseCtxUserIDValue(ctx)
+	if err != nil {
+		return []domain.Device{}, fmt.Errorf("failed to define user: %w", err)
+	}
+
+	devices, err := s.repo.GetDevices(ctx, filters, userID)
+	if err != nil {
+		return []domain.Device{}, fmt.Errorf("failed to get devices: %w", err)
+	}
+
+	return devices, err
 }

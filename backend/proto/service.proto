@@ -297,17 +297,7 @@ message GetDeviceResponse {
   Device device = 1;
 }
 
-message GetAllDevicesRequest {
-  string park_id = 1 [(buf.validate.field).string.uuid = true];
-  PaginationRequest pagination = 2;
-}
-
-message GetAllDevicesResponse {
-  repeated Device devices = 1;
-  PaginationResponse pagination = 2;
-}
-
-message GetDevicesByFiltersRequest {
+message GetDevicesRequest {
   string park_id = 1 [(buf.validate.field).string.uuid = true];
   repeated string device_ids = 2 [(buf.validate.field).repeated.items.string.uuid = true];
   repeated string group_ids = 3 [(buf.validate.field).repeated.items.string.uuid = true];
@@ -319,7 +309,7 @@ message GetDevicesByFiltersRequest {
   PaginationRequest pagination = 6;
 }
 
-message GetDevicesByFiltersResponse {
+message GetDevicesResponse {
   repeated Device devices = 1;
   PaginationResponse pagination = 2;
 }
@@ -410,8 +400,7 @@ service ParkService {
 
 service DeviceService {
   rpc GetDevice(GetDeviceRequest) returns (GetDeviceResponse);
-  rpc GetAllDevices(GetAllDevicesRequest) returns (GetAllDevicesResponse);
-  rpc GetDevicesByFilters(GetDevicesByFiltersRequest) returns (GetDevicesByFiltersResponse);
+  rpc GetDevices(GetDevicesRequest) returns (GetDevicesResponse);
 }
 
 service IssueService {

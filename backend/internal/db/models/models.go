@@ -122,6 +122,14 @@ func (Device) TableName() string {
 	return "devices"
 }
 
+func (d *Device) ToDomain() domain.Device {
+	return domain.Device{
+		ID: d.ID,
+		Name: d.Name,
+		ParkID: d.ParkID,
+	}
+}
+
 type Token struct {
 	ID        uuid.UUID `gorm:"type:uuid;primaryKey"`
 	ParkID    uuid.UUID `gorm:"type:uuid;not null;index"`
