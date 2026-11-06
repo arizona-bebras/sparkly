@@ -831,9 +831,8 @@ var ParkService_ServiceDesc = grpc.ServiceDesc{
 }
 
 const (
-	DeviceService_GetDevice_FullMethodName           = "/sparkly.backend.v1.DeviceService/GetDevice"
-	DeviceService_GetAllDevices_FullMethodName       = "/sparkly.backend.v1.DeviceService/GetAllDevices"
-	DeviceService_GetDevicesByFilters_FullMethodName = "/sparkly.backend.v1.DeviceService/GetDevicesByFilters"
+	DeviceService_GetDevice_FullMethodName  = "/sparkly.backend.v1.DeviceService/GetDevice"
+	DeviceService_GetDevices_FullMethodName = "/sparkly.backend.v1.DeviceService/GetDevices"
 )
 
 // DeviceServiceClient is the client API for DeviceService service.
@@ -841,8 +840,7 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type DeviceServiceClient interface {
 	GetDevice(ctx context.Context, in *GetDeviceRequest, opts ...grpc.CallOption) (*GetDeviceResponse, error)
-	GetAllDevices(ctx context.Context, in *GetAllDevicesRequest, opts ...grpc.CallOption) (*GetAllDevicesResponse, error)
-	GetDevicesByFilters(ctx context.Context, in *GetDevicesByFiltersRequest, opts ...grpc.CallOption) (*GetDevicesByFiltersResponse, error)
+	GetDevices(ctx context.Context, in *GetDevicesRequest, opts ...grpc.CallOption) (*GetDevicesResponse, error)
 }
 
 type deviceServiceClient struct {
@@ -863,20 +861,10 @@ func (c *deviceServiceClient) GetDevice(ctx context.Context, in *GetDeviceReques
 	return out, nil
 }
 
-func (c *deviceServiceClient) GetAllDevices(ctx context.Context, in *GetAllDevicesRequest, opts ...grpc.CallOption) (*GetAllDevicesResponse, error) {
+func (c *deviceServiceClient) GetDevices(ctx context.Context, in *GetDevicesRequest, opts ...grpc.CallOption) (*GetDevicesResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(GetAllDevicesResponse)
-	err := c.cc.Invoke(ctx, DeviceService_GetAllDevices_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *deviceServiceClient) GetDevicesByFilters(ctx context.Context, in *GetDevicesByFiltersRequest, opts ...grpc.CallOption) (*GetDevicesByFiltersResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(GetDevicesByFiltersResponse)
-	err := c.cc.Invoke(ctx, DeviceService_GetDevicesByFilters_FullMethodName, in, out, cOpts...)
+	out := new(GetDevicesResponse)
+	err := c.cc.Invoke(ctx, DeviceService_GetDevices_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -888,8 +876,7 @@ func (c *deviceServiceClient) GetDevicesByFilters(ctx context.Context, in *GetDe
 // for forward compatibility.
 type DeviceServiceServer interface {
 	GetDevice(context.Context, *GetDeviceRequest) (*GetDeviceResponse, error)
-	GetAllDevices(context.Context, *GetAllDevicesRequest) (*GetAllDevicesResponse, error)
-	GetDevicesByFilters(context.Context, *GetDevicesByFiltersRequest) (*GetDevicesByFiltersResponse, error)
+	GetDevices(context.Context, *GetDevicesRequest) (*GetDevicesResponse, error)
 	mustEmbedUnimplementedDeviceServiceServer()
 }
 
@@ -903,11 +890,8 @@ type UnimplementedDeviceServiceServer struct{}
 func (UnimplementedDeviceServiceServer) GetDevice(context.Context, *GetDeviceRequest) (*GetDeviceResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetDevice not implemented")
 }
-func (UnimplementedDeviceServiceServer) GetAllDevices(context.Context, *GetAllDevicesRequest) (*GetAllDevicesResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method GetAllDevices not implemented")
-}
-func (UnimplementedDeviceServiceServer) GetDevicesByFilters(context.Context, *GetDevicesByFiltersRequest) (*GetDevicesByFiltersResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method GetDevicesByFilters not implemented")
+func (UnimplementedDeviceServiceServer) GetDevices(context.Context, *GetDevicesRequest) (*GetDevicesResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetDevices not implemented")
 }
 func (UnimplementedDeviceServiceServer) mustEmbedUnimplementedDeviceServiceServer() {}
 func (UnimplementedDeviceServiceServer) testEmbeddedByValue()                       {}
@@ -948,38 +932,20 @@ func _DeviceService_GetDevice_Handler(srv interface{}, ctx context.Context, dec 
 	return interceptor(ctx, in, info, handler)
 }
 
-func _DeviceService_GetAllDevices_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetAllDevicesRequest)
+func _DeviceService_GetDevices_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetDevicesRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(DeviceServiceServer).GetAllDevices(ctx, in)
+		return srv.(DeviceServiceServer).GetDevices(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: DeviceService_GetAllDevices_FullMethodName,
+		FullMethod: DeviceService_GetDevices_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(DeviceServiceServer).GetAllDevices(ctx, req.(*GetAllDevicesRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _DeviceService_GetDevicesByFilters_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetDevicesByFiltersRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(DeviceServiceServer).GetDevicesByFilters(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: DeviceService_GetDevicesByFilters_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(DeviceServiceServer).GetDevicesByFilters(ctx, req.(*GetDevicesByFiltersRequest))
+		return srv.(DeviceServiceServer).GetDevices(ctx, req.(*GetDevicesRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -996,12 +962,8 @@ var DeviceService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _DeviceService_GetDevice_Handler,
 		},
 		{
-			MethodName: "GetAllDevices",
-			Handler:    _DeviceService_GetAllDevices_Handler,
-		},
-		{
-			MethodName: "GetDevicesByFilters",
-			Handler:    _DeviceService_GetDevicesByFilters_Handler,
+			MethodName: "GetDevices",
+			Handler:    _DeviceService_GetDevices_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

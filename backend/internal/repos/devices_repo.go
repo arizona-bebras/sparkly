@@ -67,7 +67,7 @@ func (r *DevicesRepo) GetDevice(ctx context.Context, deviceID, userID uuid.UUID)
 		ID: deviceID,
 	}
 
-	if err := r.db.WithContext(ctx).Scopes(scope.UserDeviceScope(userID)).First(&device).Error; err != nil {
+	if err := r.db.WithContext(ctx).Scopes(scope.UserDeviceScope(userID)).Preload("Groups").First(&device).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return domain.Device{}, domain.ErrDeviceNotFound
 		}
@@ -78,28 +78,24 @@ func (r *DevicesRepo) GetDevice(ctx context.Context, deviceID, userID uuid.UUID)
 }
 
 func (r *DevicesRepo) GetDevices(ctx context.Context, filters domain.GetDevicesFilters, userID uuid.UUID) ([]domain.Device, error) {
-	if filters.ParkID == nil {
-		return []domain.Device{}, nil
-	}
-
-	query := r.db.WithContext(ctx).Scopes(scope.UserDeviceScope(userID)).Where("park_id = ?", *filters.ParkID)
+	query := r.db.WithContext(ctx).Scopes(scope.UserDeviceScope(userID)).Preload("Groups").Where("devices.park_id = ?", filters.ParkID)
 
 	if filters.DeviceIDs != nil {
-		query = query.Where("id IN ?", filters.DeviceIDs)
+		query = query.Where("devices.id IN ?", *filters.DeviceIDs)
 	}
 
 	if filters.GroupIDs != nil {
-		groupsSubQuery := r.db.WithContext(ctx).Table("group_devices").Select("device_id").Where("group_id IN ?", filters.GroupIDs)
-		query = query.Where("id IN ?", groupsSubQuery)
+		groupsSubQuery := r.db.WithContext(ctx).Table("group_devices").Select("device_id").Where("group_id IN ?", *filters.GroupIDs)
+		query = query.Where("devices.id IN (?)", groupsSubQuery)
 	}
 
-	if filters.DeviceIDs != nil {
-		query = query.Where("build_id IN ?", filters.BuildIDs)
+	if filters.BuildIDs != nil {
+		query = query.Where("devices.build_id IN ?", *filters.BuildIDs)
 	}
 
 	if filters.Name != nil {
-		query = query.Select("*, similarity(name, ?) as sim", filters.Name).
-			Where("similarity(title, ?) >= ?", filters.Name, SIMILARITY_THRESHOLD).
+		query = query.Select("*, similarity(name, ?) as sim", *filters.Name).
+			Where("similarity(name, ?) >= ?", *filters.Name, SIMILARITY_THRESHOLD).
 			Order("sim DESC")
 	}
 

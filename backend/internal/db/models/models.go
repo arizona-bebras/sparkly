@@ -110,11 +110,12 @@ func (_ Group) FromDomain(g domain.Group) Group {
 }
 
 type Device struct {
-	ID       uuid.UUID `gorm:"type:uuid;primaryKey"`
-	Name     string    `gorm:"not null"`
-	ParkID   uuid.UUID `gorm:"type:uuid;not null;index"`
-	Token    string    `gorm:"not null"`
-	Groups   []Group   `gorm:"many2many:group_devices"`
+	ID       uuid.UUID  `gorm:"type:uuid;primaryKey"`
+	Name     string     `gorm:"not null"`
+	ParkID   uuid.UUID  `gorm:"type:uuid;not null;index"`
+	Token    string     `gorm:"not null"`
+	Groups   []Group    `gorm:"many2many:group_devices"`
+	BuildID  *uuid.UUID `gorm:"type:uuid;index"`
 	JoinedAt time.Time
 }
 
@@ -123,10 +124,15 @@ func (Device) TableName() string {
 }
 
 func (d *Device) ToDomain() domain.Device {
+	groups := make([]domain.Group, 0, len(d.Groups))
+	for _, g := range d.Groups {
+		groups = append(groups, g.ToDomain())
+	}
 	return domain.Device{
-		ID: d.ID,
-		Name: d.Name,
+		ID:     d.ID,
+		Name:   d.Name,
 		ParkID: d.ParkID,
+		Groups: groups,
 	}
 }
 

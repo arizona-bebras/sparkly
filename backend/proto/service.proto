@@ -57,7 +57,7 @@ message Device {
   string id = 1;
   string name = 2;
   string park_id = 3;
-  repeated string group_ids = 4;
+  repeated DeviceGroup groups = 4;
   string ip_address = 5;
   google.protobuf.Timestamp joined_at = 6;
   google.protobuf.Timestamp last_seen_at = 7;

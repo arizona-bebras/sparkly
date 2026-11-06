@@ -70,12 +70,8 @@ const (
 	ParkServiceRemoveDeviceFromGroupProcedure = "/sparkly.backend.v1.ParkService/RemoveDeviceFromGroup"
 	// DeviceServiceGetDeviceProcedure is the procedure name of the DeviceService's GetDevice RPC.
 	DeviceServiceGetDeviceProcedure = "/sparkly.backend.v1.DeviceService/GetDevice"
-	// DeviceServiceGetAllDevicesProcedure is the procedure name of the DeviceService's GetAllDevices
-	// RPC.
-	DeviceServiceGetAllDevicesProcedure = "/sparkly.backend.v1.DeviceService/GetAllDevices"
-	// DeviceServiceGetDevicesByFiltersProcedure is the procedure name of the DeviceService's
-	// GetDevicesByFilters RPC.
-	DeviceServiceGetDevicesByFiltersProcedure = "/sparkly.backend.v1.DeviceService/GetDevicesByFilters"
+	// DeviceServiceGetDevicesProcedure is the procedure name of the DeviceService's GetDevices RPC.
+	DeviceServiceGetDevicesProcedure = "/sparkly.backend.v1.DeviceService/GetDevices"
 	// IssueServiceGetIssueProcedure is the procedure name of the IssueService's GetIssue RPC.
 	IssueServiceGetIssueProcedure = "/sparkly.backend.v1.IssueService/GetIssue"
 	// IssueServiceGetIssuesProcedure is the procedure name of the IssueService's GetIssues RPC.
@@ -776,18 +772,11 @@ var (
 			Procedure:  DeviceServiceGetDeviceProcedure,
 		}
 	})
-	deviceServiceGetAllDevicesSpec = sync.OnceValue(func() connect.Spec {
+	deviceServiceGetDevicesSpec = sync.OnceValue(func() connect.Spec {
 		return connect.Spec{
 			StreamType: connect.StreamTypeUnary,
-			Schema:     v1.File_backend_proto_service_proto.Services().ByName("DeviceService").Methods().ByName("GetAllDevices"),
-			Procedure:  DeviceServiceGetAllDevicesProcedure,
-		}
-	})
-	deviceServiceGetDevicesByFiltersSpec = sync.OnceValue(func() connect.Spec {
-		return connect.Spec{
-			StreamType: connect.StreamTypeUnary,
-			Schema:     v1.File_backend_proto_service_proto.Services().ByName("DeviceService").Methods().ByName("GetDevicesByFilters"),
-			Procedure:  DeviceServiceGetDevicesByFiltersProcedure,
+			Schema:     v1.File_backend_proto_service_proto.Services().ByName("DeviceService").Methods().ByName("GetDevices"),
+			Procedure:  DeviceServiceGetDevicesProcedure,
 		}
 	})
 )
@@ -795,8 +784,7 @@ var (
 // DeviceServiceClient is a client for the sparkly.backend.v1.DeviceService service.
 type DeviceServiceClient interface {
 	GetDevice(context.Context, *v1.GetDeviceRequest) (*v1.GetDeviceResponse, error)
-	GetAllDevices(context.Context, *v1.GetAllDevicesRequest) (*v1.GetAllDevicesResponse, error)
-	GetDevicesByFilters(context.Context, *v1.GetDevicesByFiltersRequest) (*v1.GetDevicesByFiltersResponse, error)
+	GetDevices(context.Context, *v1.GetDevicesRequest) (*v1.GetDevicesResponse, error)
 }
 
 // NewDeviceServiceClient constructs a client for the sparkly.backend.v1.DeviceService service.
@@ -808,8 +796,7 @@ func NewDeviceServiceClient(client *connect.Client) DeviceServiceClient {
 // DeviceServiceHandler is an implementation of the sparkly.backend.v1.DeviceService service.
 type DeviceServiceHandler interface {
 	GetDevice(context.Context, *v1.GetDeviceRequest) (*v1.GetDeviceResponse, error)
-	GetAllDevices(context.Context, *v1.GetAllDevicesRequest) (*v1.GetAllDevicesResponse, error)
-	GetDevicesByFilters(context.Context, *v1.GetDevicesByFiltersRequest) (*v1.GetDevicesByFiltersResponse, error)
+	GetDevices(context.Context, *v1.GetDevicesRequest) (*v1.GetDevicesResponse, error)
 }
 
 // RegisterDeviceServiceHandler registers svc as the sparkly.backend.v1.DeviceService implementation
@@ -818,8 +805,7 @@ func RegisterDeviceServiceHandler(server *connect.Server, svc DeviceServiceHandl
 	adapter := deviceServiceHandler{svc: svc}
 	server.Register(
 		connect.Method{Spec: deviceServiceGetDeviceSpec(), Handler: adapter.getDevice},
-		connect.Method{Spec: deviceServiceGetAllDevicesSpec(), Handler: adapter.getAllDevices},
-		connect.Method{Spec: deviceServiceGetDevicesByFiltersSpec(), Handler: adapter.getDevicesByFilters},
+		connect.Method{Spec: deviceServiceGetDevicesSpec(), Handler: adapter.getDevices},
 	)
 }
 
@@ -830,12 +816,8 @@ func (UnimplementedDeviceServiceHandler) GetDevice(context.Context, *v1.GetDevic
 	return nil, connect.NewError(connect.CodeUnimplemented, "sparkly.backend.v1.DeviceService.GetDevice is not implemented")
 }
 
-func (UnimplementedDeviceServiceHandler) GetAllDevices(context.Context, *v1.GetAllDevicesRequest) (*v1.GetAllDevicesResponse, error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, "sparkly.backend.v1.DeviceService.GetAllDevices is not implemented")
-}
-
-func (UnimplementedDeviceServiceHandler) GetDevicesByFilters(context.Context, *v1.GetDevicesByFiltersRequest) (*v1.GetDevicesByFiltersResponse, error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, "sparkly.backend.v1.DeviceService.GetDevicesByFilters is not implemented")
+func (UnimplementedDeviceServiceHandler) GetDevices(context.Context, *v1.GetDevicesRequest) (*v1.GetDevicesResponse, error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, "sparkly.backend.v1.DeviceService.GetDevices is not implemented")
 }
 
 type deviceServiceClient struct {
@@ -850,17 +832,9 @@ func (c *deviceServiceClient) GetDevice(ctx context.Context, req *v1.GetDeviceRe
 	return &res, nil
 }
 
-func (c *deviceServiceClient) GetAllDevices(ctx context.Context, req *v1.GetAllDevicesRequest) (*v1.GetAllDevicesResponse, error) {
-	var res v1.GetAllDevicesResponse
-	if err := c.client.CallUnary(ctx, deviceServiceGetAllDevicesSpec(), req, &res); err != nil {
-		return nil, err
-	}
-	return &res, nil
-}
-
-func (c *deviceServiceClient) GetDevicesByFilters(ctx context.Context, req *v1.GetDevicesByFiltersRequest) (*v1.GetDevicesByFiltersResponse, error) {
-	var res v1.GetDevicesByFiltersResponse
-	if err := c.client.CallUnary(ctx, deviceServiceGetDevicesByFiltersSpec(), req, &res); err != nil {
+func (c *deviceServiceClient) GetDevices(ctx context.Context, req *v1.GetDevicesRequest) (*v1.GetDevicesResponse, error) {
+	var res v1.GetDevicesResponse
+	if err := c.client.CallUnary(ctx, deviceServiceGetDevicesSpec(), req, &res); err != nil {
 		return nil, err
 	}
 	return &res, nil
@@ -880,24 +854,12 @@ func (h deviceServiceHandler) getDevice(ctx context.Context, _ connect.Spec, str
 	return stream.Send(res)
 }
 
-func (h deviceServiceHandler) getAllDevices(ctx context.Context, _ connect.Spec, stream connect.ServerStream) error {
-	var req v1.GetAllDevicesRequest
+func (h deviceServiceHandler) getDevices(ctx context.Context, _ connect.Spec, stream connect.ServerStream) error {
+	var req v1.GetDevicesRequest
 	if err := stream.Receive(&req); err != nil {
 		return err
 	}
-	res, err := h.svc.GetAllDevices(ctx, &req)
-	if err != nil {
-		return err
-	}
-	return stream.Send(res)
-}
-
-func (h deviceServiceHandler) getDevicesByFilters(ctx context.Context, _ connect.Spec, stream connect.ServerStream) error {
-	var req v1.GetDevicesByFiltersRequest
-	if err := stream.Receive(&req); err != nil {
-		return err
-	}
-	res, err := h.svc.GetDevicesByFilters(ctx, &req)
+	res, err := h.svc.GetDevices(ctx, &req)
 	if err != nil {
 		return err
 	}

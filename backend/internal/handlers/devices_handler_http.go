@@ -13,7 +13,7 @@ type DevicesRegHandler struct {
 	service *services.DeviceService
 }
 
-func NewDeviceHandler(s *services.DeviceService) *DevicesRegHandler {
+func NewDeviceRegHandler(s *services.DeviceService) *DevicesRegHandler {
 	return &DevicesRegHandler{
 		service: s,
 	}
