@@ -2,56 +2,62 @@ package services
 
 import (
 	"context"
-	"encoding/base64"
-	"sparkly/backend/internal/domain"
-
-	"crypto/rand"
 	"fmt"
 
 	"github.com/google/uuid"
+	"sparkly/backend/internal/domain"
 )
 
 type DevicesRepo interface {
-	CreateDevice(ctx context.Context, parkToken, deviceToken string) error
+	CreateDevice(ctx context.Context, connectToken string, enroll func(domain.Device) error) error
 	GetDevice(ctx context.Context, deviceID, userID uuid.UUID) (domain.Device, error)
 	GetDevices(ctx context.Context, filters domain.GetDevicesFilters, userID uuid.UUID) ([]domain.Device, error)
 }
 
+type DeviceCertificateIssuer interface {
+	Issue(context.Context, domain.DeviceIdentity, domain.DeviceCertificateRequest) (domain.DeviceCertificate, error)
+}
+
+type DeviceEnrollment struct {
+	Identity    domain.DeviceIdentity
+	Certificate domain.DeviceCertificate
+}
+
 type DeviceService struct {
-	repo DevicesRepo
+	repo   DevicesRepo
+	issuer DeviceCertificateIssuer
 }
 
-func NewDeviceService(repo DevicesRepo) *DeviceService {
-	return &DeviceService{
-		repo: repo,
+func NewDeviceService(repo DevicesRepo, issuer DeviceCertificateIssuer) *DeviceService {
+	return &DeviceService{repo: repo, issuer: issuer}
+}
+
+func (s *DeviceService) RegDevice(ctx context.Context, parkToken, csrPEM string) (DeviceEnrollment, error) {
+	if parkToken == "" {
+		return DeviceEnrollment{}, domain.ErrInvalidEnrollment
 	}
-}
-
-func (s *DeviceService) genDeviceToken() (string, error) {
-	bytes := make([]byte, domain.DEVICE_TOKEN_LENGTH)
-	if _, err := rand.Read(bytes); err != nil {
-		return "", fmt.Errorf("failed to read secure random bytes: %w", err)
-	}
-
-	token := base64.RawURLEncoding.EncodeToString(bytes)
-	return token, nil
-}
-
-func (s *DeviceService) RegDevice(ctx context.Context, parkToken string) (string, error) {
-	deviceToken, err := s.genDeviceToken()
+	request, err := domain.NewDeviceCertificateRequest(csrPEM)
 	if err != nil {
-		return "", fmt.Errorf("failed to generate device token: %w", err)
+		return DeviceEnrollment{}, fmt.Errorf("%w: %w", domain.ErrInvalidEnrollment, err)
 	}
 
-	err = s.repo.CreateDevice(ctx,
-		parkToken,
-		deviceToken,
-	)
+	var enrollment DeviceEnrollment
+	err = s.repo.CreateDevice(ctx, parkToken, func(device domain.Device) error {
+		identity, err := device.Identity()
+		if err != nil {
+			return fmt.Errorf("resolve registered device identity: %w", err)
+		}
+		certificate, err := s.issuer.Issue(ctx, identity, request)
+		if err != nil {
+			return fmt.Errorf("%w: %w", domain.ErrCertificateIssuance, err)
+		}
+		enrollment = DeviceEnrollment{Identity: identity, Certificate: certificate}
+		return nil
+	})
 	if err != nil {
-		return "", fmt.Errorf("failed to register device: %w", err)
+		return DeviceEnrollment{}, fmt.Errorf("register device: %w", err)
 	}
-
-	return deviceToken, nil
+	return enrollment, nil
 }
 
 func (s *DeviceService) GetDevice(ctx context.Context, devicesIDStr string) (domain.Device, error) {

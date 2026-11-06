@@ -1,3 +1,6 @@
+node:
+  id: sparkly-gateway
+  cluster: sparkly-gateway
 static_resources:
   listeners:
     - name: ingress
@@ -15,6 +18,7 @@ static_resources:
                 codec_type: AUTO
                 route_config:
                   name: services
+                  max_direct_response_body_size_bytes: 65536
                   virtual_hosts:
                     - name: sparkly
                       domains: ["*"]
@@ -54,13 +58,50 @@ static_resources:
                           route: { cluster: ml }
                         - match: { prefix: /sparkly. }
                           direct_response: { status: 404 }
-                        - match: { prefix: /devices/reg }
-                          route: { cluster: backend }
+                        - match:
+                            path: /.well-known/root-ca.crt
+                            headers: [{ name: ":method", string_match: { safe_regex: { regex: "GET|HEAD" } } }]
+                          direct_response: &root_ca_download
+                            status: 200
+                            body: { filename: /run/envoy-pki/root_ca.crt }
+                          response_headers_to_add: &root_ca_headers
+                            - header: { key: content-type, value: application/x-pem-file }
+                              append_action: OVERWRITE_IF_EXISTS_OR_ADD
+                            - header: { key: content-disposition, value: 'attachment; filename="root_ca.crt"' }
+                              append_action: OVERWRITE_IF_EXISTS_OR_ADD
+                            - header: { key: cache-control, value: "public, max-age=300" }
+                              append_action: OVERWRITE_IF_EXISTS_OR_ADD
+                          typed_per_filter_config: *public
+                        - match: { path: /.well-known/root-ca.crt }
+                          direct_response: { status: 405 }
+                          response_headers_to_add: &root_ca_methods
+                            - header: { key: allow, value: "GET, HEAD" }
+                          typed_per_filter_config: *public
+                        # Device endpoints must use their dedicated TLS listeners.
+                        - match: { path: /devices/reg }
+                          direct_response: { status: 404 }
+                          typed_per_filter_config: *public
+                        - match: { path: /ingest }
+                          direct_response: { status: 404 }
                           typed_per_filter_config: *public
                         - match: { prefix: / }
                           route: { cluster: frontend }
                           typed_per_filter_config: *public
+                forward_client_cert_details: SANITIZE
                 http_filters:
+                  - &strip_identity
+                    name: envoy.filters.http.lua
+                    typed_config:
+                      "@type": type.googleapis.com/envoy.extensions.filters.http.lua.v3.Lua
+                      default_source_code:
+                        inline_string: |
+                          function envoy_on_request(request)
+                            local headers = request:headers()
+                            headers:remove("x-device-id")
+                            headers:remove("x-park-id")
+                            headers:remove("x-user-id")
+                            headers:remove("x-forwarded-client-cert")
+                          end
                   - name: envoy.filters.http.jwt_authn
                     typed_config:
                       "@type": type.googleapis.com/envoy.extensions.filters.http.jwt_authn.v3.JwtAuthentication
@@ -176,6 +217,108 @@ static_resources:
                                             [{ key: refresh_token }, { key: type }]
                                           value:
                                             string_match: { exact: refresh }
+                  - name: envoy.filters.http.router
+                    typed_config:
+                      "@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
+    - name: device_mtls
+      address:
+        socket_address: { address: 0.0.0.0, port_value: 10001 }
+      filter_chains:
+        - transport_socket:
+            name: envoy.transport_sockets.tls
+            typed_config:
+              "@type": type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.DownstreamTlsContext
+              require_client_certificate: true
+              # Lua's peerCertificateValidated() is false for resumed sessions.
+              disable_stateless_session_resumption: true
+              disable_stateful_session_resumption: true
+              common_tls_context:
+                tls_params: { tls_minimum_protocol_version: TLSv1_2 }
+                alpn_protocols: [h2, http/1.1]
+                tls_certificate_sds_secret_configs: &gateway_certificate
+                  - name: gateway-server
+                    sds_config:
+                      path_config_source: { path: /etc/envoy/server-secret.yaml }
+                validation_context_sds_secret_config:
+                  name: device-trust
+                  sds_config:
+                    path_config_source: { path: /etc/envoy/device-trust-secret.yaml }
+          filters:
+            - name: envoy.filters.network.http_connection_manager
+              typed_config:
+                "@type": type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager
+                stat_prefix: device_mtls
+                codec_type: AUTO
+                normalize_path: true
+                merge_slashes: true
+                path_with_escaped_slashes_action: REJECT_REQUEST
+                forward_client_cert_details: SANITIZE
+                route_config:
+                  name: device_routes
+                  virtual_hosts:
+                    - name: devices
+                      domains: ["*"]
+                      routes:
+                        - match:
+                            path: /ingest
+                            headers: [{ name: ":method", string_match: { exact: POST } }]
+                          route: { cluster: analytics }
+                        - match: { prefix: / }
+                          direct_response: { status: 404 }
+                http_filters:
+                  - name: envoy.filters.http.lua
+                    typed_config:
+                      "@type": type.googleapis.com/envoy.extensions.filters.http.lua.v3.Lua
+                      default_source_code:
+                        filename: /etc/envoy/device_identity.lua
+                  - name: envoy.filters.http.router
+                    typed_config:
+                      "@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
+    - name: device_enrollment
+      address:
+        socket_address: { address: 0.0.0.0, port_value: 10002 }
+      filter_chains:
+        - transport_socket:
+            name: envoy.transport_sockets.tls
+            typed_config:
+              "@type": type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.DownstreamTlsContext
+              common_tls_context:
+                tls_params: { tls_minimum_protocol_version: TLSv1_2 }
+                alpn_protocols: [h2, http/1.1]
+                tls_certificate_sds_secret_configs: *gateway_certificate
+          filters:
+            - name: envoy.filters.network.http_connection_manager
+              typed_config:
+                "@type": type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager
+                stat_prefix: device_enrollment
+                codec_type: AUTO
+                normalize_path: true
+                merge_slashes: true
+                path_with_escaped_slashes_action: REJECT_REQUEST
+                forward_client_cert_details: SANITIZE
+                route_config:
+                  name: enrollment_routes
+                  max_direct_response_body_size_bytes: 65536
+                  virtual_hosts:
+                    - name: enrollment
+                      domains: ["*"]
+                      routes:
+                        - match:
+                            path: /.well-known/root-ca.crt
+                            headers: [{ name: ":method", string_match: { safe_regex: { regex: "GET|HEAD" } } }]
+                          direct_response: *root_ca_download
+                          response_headers_to_add: *root_ca_headers
+                        - match: { path: /.well-known/root-ca.crt }
+                          direct_response: { status: 405 }
+                          response_headers_to_add: *root_ca_methods
+                        - match:
+                            path: /devices/reg
+                            headers: [{ name: ":method", string_match: { exact: POST } }]
+                          route: { cluster: backend }
+                        - match: { prefix: / }
+                          direct_response: { status: 404 }
+                http_filters:
+                  - *strip_identity
                   - name: envoy.filters.http.router
                     typed_config:
                       "@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router

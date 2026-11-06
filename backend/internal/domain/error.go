@@ -20,6 +20,12 @@ var (
 
 	ErrGroupNotFound = errors.New("group with this ID doesnt exists")
 
+	ErrInvalidCertificateRequest = errors.New("invalid device certificate request")
+	ErrInvalidDeviceIdentity     = errors.New("device and park IDs must be nonzero UUIDs")
+
+	ErrInvalidEnrollment   = errors.New("park_token and a valid PEM CSR are required")
+	ErrCertificateIssuance = errors.New("certificate issuance failed")
+
 	ErrDuplicatedDevice = errors.New("this device is already registered")
 	ErrDeviceNotFound   = errors.New("device not found")
 
