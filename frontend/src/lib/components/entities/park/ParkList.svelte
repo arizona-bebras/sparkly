@@ -26,15 +26,16 @@
     queryFn: () => client.park.getAllParks({}),
   }));
 
-  const deleteMutation = createMutation(() => ({
-    mutationKey: ['deletePark'],
-    mutationFn: async (id: string) => {
-      return await client.park.deletePark({ id });
-    },
-    onSuccess: () => {
-      queryClient.refetchQueries({ queryKey: ['parks'] });
-    },
-  }));
+	const deleteMutation = createMutation(() => ({
+		mutationKey: ["deletePark"],
+		mutationFn: async (id: string) => {
+			return await client.park.deletePark({ id });
+		},
+		onSuccess: (_, id) => {
+			queryClient.removeQueries({ queryKey: ["park", id] });
+			queryClient.invalidateQueries({ queryKey: ["parks"] });
+		},
+	}));
 </script>
 
 <div class={cn('w-full flex flex-col gap-4', className)}>
