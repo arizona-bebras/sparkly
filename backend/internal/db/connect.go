@@ -54,6 +54,8 @@ func NewPostgresConn(dsnParams DSN) (*gorm.DB, error) {
     	WHEN duplicate_object THEN null;
 	END $$;`)
 
+	db.Exec(`CREATE EXTENSION IF NOT EXISTS pg_trgm;`)
+
 	err = db.AutoMigrate(
 		&models.User{},
 		&models.Park{},

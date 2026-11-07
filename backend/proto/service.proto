@@ -57,7 +57,7 @@ message Device {
   string id = 1;
   string name = 2;
   string park_id = 3;
-  repeated string group_ids = 4;
+  repeated DeviceGroup groups = 4;
   string ip_address = 5;
   google.protobuf.Timestamp joined_at = 6;
   google.protobuf.Timestamp last_seen_at = 7;
@@ -68,9 +68,10 @@ message Device {
 enum IssueSeverity {
   ISSUE_SEVERITY_UNSPECIFIED = 0;
   ISSUE_SEVERITY_INFO = 1;
-  ISSUE_SEVERITY_WARNING = 2;
-  ISSUE_SEVERITY_ERROR = 3;
-  ISSUE_SEVERITY_CRITICAL = 4;
+  ISSUE_SEVERITY_LOW = 2;
+  ISSUE_SEVERITY_MEDIUM = 3;
+  ISSUE_SEVERITY_HIGH = 4;
+  ISSUE_SEVERITY_CRITICAL = 5;
 }
 
 message Issue {
@@ -78,10 +79,11 @@ message Issue {
   string park_id = 2;
   string title = 3;
   string description = 4;
-  optional google.protobuf.Timestamp resolved_at = 5;
-  IssueSeverity severity = 6;
-  google.protobuf.Timestamp first_at = 7;
-  google.protobuf.Timestamp last_at = 8;
+  bool is_resolved = 5;
+  optional google.protobuf.Timestamp resolved_at = 6;
+  IssueSeverity severity = 7;
+  google.protobuf.Timestamp first_at = 8;
+  google.protobuf.Timestamp last_at = 9;
 }
 
 message Release {
@@ -295,17 +297,7 @@ message GetDeviceResponse {
   Device device = 1;
 }
 
-message GetAllDevicesRequest {
-  string park_id = 1 [(buf.validate.field).string.uuid = true];
-  PaginationRequest pagination = 2;
-}
-
-message GetAllDevicesResponse {
-  repeated Device devices = 1;
-  PaginationResponse pagination = 2;
-}
-
-message GetDevicesByFiltersRequest {
+message GetDevicesRequest {
   string park_id = 1 [(buf.validate.field).string.uuid = true];
   repeated string device_ids = 2 [(buf.validate.field).repeated.items.string.uuid = true];
   repeated string group_ids = 3 [(buf.validate.field).repeated.items.string.uuid = true];
@@ -317,7 +309,7 @@ message GetDevicesByFiltersRequest {
   PaginationRequest pagination = 6;
 }
 
-message GetDevicesByFiltersResponse {
+message GetDevicesResponse {
   repeated Device devices = 1;
   PaginationResponse pagination = 2;
 }
@@ -334,26 +326,17 @@ message GetIssueResponse {
   Issue issue = 1;
 }
 
-message GetAllIssuesRequest {
+message GetIssuesRequest {
   string park_id = 1 [(buf.validate.field).string.uuid = true];
-  PaginationRequest pagination = 2;
+  optional string title = 2;
+  optional IssueSeverity severity = 3 [(buf.validate.field).enum.defined_only = true];
+  optional bool is_resolved = 4;
+  optional google.protobuf.Timestamp from_time = 5;
+  optional google.protobuf.Timestamp to_time = 6;
+  PaginationRequest pagination = 7;
 }
 
-message GetAllIssuesResponse {
-  repeated Issue issues = 1;
-  PaginationResponse pagination = 2;
-}
-
-message GetIssuesByFiltersRequest {
-  string park_id = 1 [(buf.validate.field).string.uuid = true];
-  optional IssueSeverity severity = 2 [(buf.validate.field).enum.defined_only = true];
-  optional bool is_resolved = 3;
-  optional google.protobuf.Timestamp from_time = 4;
-  optional google.protobuf.Timestamp to_time = 5;
-  PaginationRequest pagination = 6;
-}
-
-message GetIssuesByFiltersResponse {
+message GetIssuesResponse {
   repeated Issue issues = 1;
   PaginationResponse pagination = 2;
 }
@@ -364,6 +347,25 @@ message ResolveIssueRequest {
 
 message ResolveIssueResponse {
   Issue issue = 1;
+}
+
+message UpdateIssueRequest {
+  string id = 1 [(buf.validate.field).string.uuid = true];
+  optional string title = 2 [(buf.validate.field).string.min_len = 1];
+  optional string description = 3 [(buf.validate.field).string.min_len = 1];
+  optional IssueSeverity severity = 4 [(buf.validate.field).enum.defined_only = true];
+}
+
+message UpdateIssueResponse {
+  Issue issue = 1;
+}
+
+message DeleteIssueRequest {
+  string id = 1 [(buf.validate.field).string.uuid = true];
+}
+
+message DeleteIssueResponse {
+  bool success = 1;
 }
 
 // ============================================================================
@@ -398,13 +400,13 @@ service ParkService {
 
 service DeviceService {
   rpc GetDevice(GetDeviceRequest) returns (GetDeviceResponse);
-  rpc GetAllDevices(GetAllDevicesRequest) returns (GetAllDevicesResponse);
-  rpc GetDevicesByFilters(GetDevicesByFiltersRequest) returns (GetDevicesByFiltersResponse);
+  rpc GetDevices(GetDevicesRequest) returns (GetDevicesResponse);
 }
 
 service IssueService {
   rpc GetIssue(GetIssueRequest) returns (GetIssueResponse);
-  rpc GetAllIssues(GetAllIssuesRequest) returns (GetAllIssuesResponse);
-  rpc GetIssuesByFilters(GetIssuesByFiltersRequest) returns (GetIssuesByFiltersResponse);
+  rpc GetIssues(GetIssuesRequest) returns (GetIssuesResponse);
   rpc ResolveIssue(ResolveIssueRequest) returns (ResolveIssueResponse);
+  rpc UpdateIssue(UpdateIssueRequest) returns (UpdateIssueResponse);
+  rpc DeleteIssue(DeleteIssueRequest) returns (DeleteIssueResponse);
 }

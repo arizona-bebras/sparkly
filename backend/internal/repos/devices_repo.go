@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"sparkly/backend/internal/db/models"
+	"sparkly/backend/internal/db/scope"
 	"sparkly/backend/internal/domain"
 
 	"github.com/google/uuid"
@@ -59,4 +60,54 @@ func (r *DevicesRepo) CreateDevice(ctx context.Context, connectToken, deviceToke
 		}
 	}
 	return nil
+}
+
+func (r *DevicesRepo) GetDevice(ctx context.Context, deviceID, userID uuid.UUID) (domain.Device, error) {
+	device := models.Device{
+		ID: deviceID,
+	}
+
+	if err := r.db.WithContext(ctx).Scopes(scope.UserDeviceScope(userID)).Preload("Groups").First(&device).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return domain.Device{}, domain.ErrDeviceNotFound
+		}
+		return domain.Device{}, fmt.Errorf("failed to get device from db: %w", err)
+	}
+
+	return device.ToDomain(), nil
+}
+
+func (r *DevicesRepo) GetDevices(ctx context.Context, filters domain.GetDevicesFilters, userID uuid.UUID) ([]domain.Device, error) {
+	query := r.db.WithContext(ctx).Scopes(scope.UserDeviceScope(userID)).Preload("Groups").Where("devices.park_id = ?", filters.ParkID)
+
+	if filters.DeviceIDs != nil {
+		query = query.Where("devices.id IN ?", *filters.DeviceIDs)
+	}
+
+	if filters.GroupIDs != nil {
+		groupsSubQuery := r.db.WithContext(ctx).Table("group_devices").Select("device_id").Where("group_id IN ?", *filters.GroupIDs)
+		query = query.Where("devices.id IN (?)", groupsSubQuery)
+	}
+
+	if filters.BuildIDs != nil {
+		query = query.Where("devices.build_id IN ?", *filters.BuildIDs)
+	}
+
+	if filters.Name != nil {
+		query = query.Select("*, similarity(name, ?) as sim", *filters.Name).
+			Where("similarity(name, ?) >= ?", *filters.Name, SIMILARITY_THRESHOLD).
+			Order("sim DESC")
+	}
+
+	var devices []models.Device
+	if err := query.Find(&devices).Error; err != nil {
+		return []domain.Device{}, fmt.Errorf("failed to get devices from db by filters: %w", err)
+	}
+
+	domainDevices := make([]domain.Device, 0, len(devices))
+	for _, device := range devices {
+		domainDevices = append(domainDevices, device.ToDomain())
+	}
+
+	return domainDevices, nil
 }

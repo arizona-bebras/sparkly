@@ -110,16 +110,30 @@ func (_ Group) FromDomain(g domain.Group) Group {
 }
 
 type Device struct {
-	ID       uuid.UUID `gorm:"type:uuid;primaryKey"`
-	Name     string    `gorm:"not null"`
-	ParkID   uuid.UUID `gorm:"type:uuid;not null;index"`
-	Token    string    `gorm:"not null"`
-	Groups   []Group   `gorm:"many2many:group_devices"`
+	ID       uuid.UUID  `gorm:"type:uuid;primaryKey"`
+	Name     string     `gorm:"not null"`
+	ParkID   uuid.UUID  `gorm:"type:uuid;not null;index"`
+	Token    string     `gorm:"not null"`
+	Groups   []Group    `gorm:"many2many:group_devices"`
+	BuildID  *uuid.UUID `gorm:"type:uuid;index"`
 	JoinedAt time.Time
 }
 
 func (Device) TableName() string {
 	return "devices"
+}
+
+func (d *Device) ToDomain() domain.Device {
+	groups := make([]domain.Group, 0, len(d.Groups))
+	for _, g := range d.Groups {
+		groups = append(groups, g.ToDomain())
+	}
+	return domain.Device{
+		ID:     d.ID,
+		Name:   d.Name,
+		ParkID: d.ParkID,
+		Groups: groups,
+	}
 }
 
 type Token struct {
@@ -135,18 +149,33 @@ func (Token) TableName() string {
 }
 
 type Issue struct {
-	ID         uuid.UUID `gorm:"type:uuid;primaryKey"`
-	ParkID     uuid.UUID `gorm:"type:uuid;not null;index"`
-	Title      string    `gorm:"not null"`
-	Desc       string
-	Severity   IssueSeverity `gorm:"type:issue_severity;not null;default:'info'"`
-	ResolvedAt time.Time
-	FirstAt    time.Time
-	LastAt     time.Time
+	ID          uuid.UUID `gorm:"type:uuid;primaryKey"`
+	ParkID      uuid.UUID `gorm:"type:uuid;not null;index"`
+	Title       string    `gorm:"not null"`
+	Description string
+	Severity    IssueSeverity `gorm:"type:issue_severity;not null;default:'info'"`
+	IsResolved  bool
+	ResolvedAt  time.Time
+	FirstAt     time.Time
+	LastAt      time.Time
 }
 
 func (Issue) TableName() string {
 	return "issues"
+}
+
+func (i *Issue) ToDomain() domain.Issue {
+	return domain.Issue{
+		ID:          i.ID,
+		ParkID:      i.ParkID,
+		Title:       i.Title,
+		Description: i.Description,
+		Severity:    domain.IssueSeverity(i.Severity),
+		IsResolved:  i.IsResolved,
+		ResolvedAt:  i.ResolvedAt,
+		FirstAt:     i.FirstAt,
+		LastAt:      i.LastAt,
+	}
 }
 
 type Build struct {

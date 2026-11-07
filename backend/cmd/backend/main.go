@@ -91,15 +91,22 @@ func main() {
 	parkHandler := handlers.NewParkHandler(parkService, groupsService)
 	backendv1connect.RegisterParkServiceHandler(server, parkHandler)
 
+	issuesRepo := repos.NewIssuesRepo(db)
+	issueService := services.NewIssueService(issuesRepo)
+	issuesHandler := handlers.NewIssuesHandler(issueService)
+	backendv1connect.RegisterIssueServiceHandler(server, issuesHandler)
+
 	devicesRepo := repos.NewDevicesRepo(db)
 	devicesService := services.NewDeviceService(devicesRepo)
-	devicesHandler := handlers.NewDeviceHandler(devicesService)
+	devicesRegHandler := handlers.NewDeviceRegHandler(devicesService)
+	devicesHandler := handlers.NewDevicesHandler(devicesService)
+	backendv1connect.RegisterDeviceServiceHandler(server, devicesHandler)
 
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("GET /.well-known/jwks.json", jwksHandler.GetJWKS)
 	connecthttp.Mount(mux, server)
-	mux.HandleFunc("POST /devices/reg", devicesHandler.RegDevice)
+	mux.HandleFunc("POST /devices/reg", devicesRegHandler.RegDevice)
 
 	log.Printf("Connect server listening on :%s", env.MAIN_PORT)
 	log.Fatalf("server failed: %v", http.ListenAndServe(":"+env.MAIN_PORT, mux))

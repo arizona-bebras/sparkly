@@ -70,21 +70,18 @@ const (
 	ParkServiceRemoveDeviceFromGroupProcedure = "/sparkly.backend.v1.ParkService/RemoveDeviceFromGroup"
 	// DeviceServiceGetDeviceProcedure is the procedure name of the DeviceService's GetDevice RPC.
 	DeviceServiceGetDeviceProcedure = "/sparkly.backend.v1.DeviceService/GetDevice"
-	// DeviceServiceGetAllDevicesProcedure is the procedure name of the DeviceService's GetAllDevices
-	// RPC.
-	DeviceServiceGetAllDevicesProcedure = "/sparkly.backend.v1.DeviceService/GetAllDevices"
-	// DeviceServiceGetDevicesByFiltersProcedure is the procedure name of the DeviceService's
-	// GetDevicesByFilters RPC.
-	DeviceServiceGetDevicesByFiltersProcedure = "/sparkly.backend.v1.DeviceService/GetDevicesByFilters"
+	// DeviceServiceGetDevicesProcedure is the procedure name of the DeviceService's GetDevices RPC.
+	DeviceServiceGetDevicesProcedure = "/sparkly.backend.v1.DeviceService/GetDevices"
 	// IssueServiceGetIssueProcedure is the procedure name of the IssueService's GetIssue RPC.
 	IssueServiceGetIssueProcedure = "/sparkly.backend.v1.IssueService/GetIssue"
-	// IssueServiceGetAllIssuesProcedure is the procedure name of the IssueService's GetAllIssues RPC.
-	IssueServiceGetAllIssuesProcedure = "/sparkly.backend.v1.IssueService/GetAllIssues"
-	// IssueServiceGetIssuesByFiltersProcedure is the procedure name of the IssueService's
-	// GetIssuesByFilters RPC.
-	IssueServiceGetIssuesByFiltersProcedure = "/sparkly.backend.v1.IssueService/GetIssuesByFilters"
+	// IssueServiceGetIssuesProcedure is the procedure name of the IssueService's GetIssues RPC.
+	IssueServiceGetIssuesProcedure = "/sparkly.backend.v1.IssueService/GetIssues"
 	// IssueServiceResolveIssueProcedure is the procedure name of the IssueService's ResolveIssue RPC.
 	IssueServiceResolveIssueProcedure = "/sparkly.backend.v1.IssueService/ResolveIssue"
+	// IssueServiceUpdateIssueProcedure is the procedure name of the IssueService's UpdateIssue RPC.
+	IssueServiceUpdateIssueProcedure = "/sparkly.backend.v1.IssueService/UpdateIssue"
+	// IssueServiceDeleteIssueProcedure is the procedure name of the IssueService's DeleteIssue RPC.
+	IssueServiceDeleteIssueProcedure = "/sparkly.backend.v1.IssueService/DeleteIssue"
 )
 
 var (
@@ -775,18 +772,11 @@ var (
 			Procedure:  DeviceServiceGetDeviceProcedure,
 		}
 	})
-	deviceServiceGetAllDevicesSpec = sync.OnceValue(func() connect.Spec {
+	deviceServiceGetDevicesSpec = sync.OnceValue(func() connect.Spec {
 		return connect.Spec{
 			StreamType: connect.StreamTypeUnary,
-			Schema:     v1.File_backend_proto_service_proto.Services().ByName("DeviceService").Methods().ByName("GetAllDevices"),
-			Procedure:  DeviceServiceGetAllDevicesProcedure,
-		}
-	})
-	deviceServiceGetDevicesByFiltersSpec = sync.OnceValue(func() connect.Spec {
-		return connect.Spec{
-			StreamType: connect.StreamTypeUnary,
-			Schema:     v1.File_backend_proto_service_proto.Services().ByName("DeviceService").Methods().ByName("GetDevicesByFilters"),
-			Procedure:  DeviceServiceGetDevicesByFiltersProcedure,
+			Schema:     v1.File_backend_proto_service_proto.Services().ByName("DeviceService").Methods().ByName("GetDevices"),
+			Procedure:  DeviceServiceGetDevicesProcedure,
 		}
 	})
 )
@@ -794,8 +784,7 @@ var (
 // DeviceServiceClient is a client for the sparkly.backend.v1.DeviceService service.
 type DeviceServiceClient interface {
 	GetDevice(context.Context, *v1.GetDeviceRequest) (*v1.GetDeviceResponse, error)
-	GetAllDevices(context.Context, *v1.GetAllDevicesRequest) (*v1.GetAllDevicesResponse, error)
-	GetDevicesByFilters(context.Context, *v1.GetDevicesByFiltersRequest) (*v1.GetDevicesByFiltersResponse, error)
+	GetDevices(context.Context, *v1.GetDevicesRequest) (*v1.GetDevicesResponse, error)
 }
 
 // NewDeviceServiceClient constructs a client for the sparkly.backend.v1.DeviceService service.
@@ -807,8 +796,7 @@ func NewDeviceServiceClient(client *connect.Client) DeviceServiceClient {
 // DeviceServiceHandler is an implementation of the sparkly.backend.v1.DeviceService service.
 type DeviceServiceHandler interface {
 	GetDevice(context.Context, *v1.GetDeviceRequest) (*v1.GetDeviceResponse, error)
-	GetAllDevices(context.Context, *v1.GetAllDevicesRequest) (*v1.GetAllDevicesResponse, error)
-	GetDevicesByFilters(context.Context, *v1.GetDevicesByFiltersRequest) (*v1.GetDevicesByFiltersResponse, error)
+	GetDevices(context.Context, *v1.GetDevicesRequest) (*v1.GetDevicesResponse, error)
 }
 
 // RegisterDeviceServiceHandler registers svc as the sparkly.backend.v1.DeviceService implementation
@@ -817,8 +805,7 @@ func RegisterDeviceServiceHandler(server *connect.Server, svc DeviceServiceHandl
 	adapter := deviceServiceHandler{svc: svc}
 	server.Register(
 		connect.Method{Spec: deviceServiceGetDeviceSpec(), Handler: adapter.getDevice},
-		connect.Method{Spec: deviceServiceGetAllDevicesSpec(), Handler: adapter.getAllDevices},
-		connect.Method{Spec: deviceServiceGetDevicesByFiltersSpec(), Handler: adapter.getDevicesByFilters},
+		connect.Method{Spec: deviceServiceGetDevicesSpec(), Handler: adapter.getDevices},
 	)
 }
 
@@ -829,12 +816,8 @@ func (UnimplementedDeviceServiceHandler) GetDevice(context.Context, *v1.GetDevic
 	return nil, connect.NewError(connect.CodeUnimplemented, "sparkly.backend.v1.DeviceService.GetDevice is not implemented")
 }
 
-func (UnimplementedDeviceServiceHandler) GetAllDevices(context.Context, *v1.GetAllDevicesRequest) (*v1.GetAllDevicesResponse, error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, "sparkly.backend.v1.DeviceService.GetAllDevices is not implemented")
-}
-
-func (UnimplementedDeviceServiceHandler) GetDevicesByFilters(context.Context, *v1.GetDevicesByFiltersRequest) (*v1.GetDevicesByFiltersResponse, error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, "sparkly.backend.v1.DeviceService.GetDevicesByFilters is not implemented")
+func (UnimplementedDeviceServiceHandler) GetDevices(context.Context, *v1.GetDevicesRequest) (*v1.GetDevicesResponse, error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, "sparkly.backend.v1.DeviceService.GetDevices is not implemented")
 }
 
 type deviceServiceClient struct {
@@ -849,17 +832,9 @@ func (c *deviceServiceClient) GetDevice(ctx context.Context, req *v1.GetDeviceRe
 	return &res, nil
 }
 
-func (c *deviceServiceClient) GetAllDevices(ctx context.Context, req *v1.GetAllDevicesRequest) (*v1.GetAllDevicesResponse, error) {
-	var res v1.GetAllDevicesResponse
-	if err := c.client.CallUnary(ctx, deviceServiceGetAllDevicesSpec(), req, &res); err != nil {
-		return nil, err
-	}
-	return &res, nil
-}
-
-func (c *deviceServiceClient) GetDevicesByFilters(ctx context.Context, req *v1.GetDevicesByFiltersRequest) (*v1.GetDevicesByFiltersResponse, error) {
-	var res v1.GetDevicesByFiltersResponse
-	if err := c.client.CallUnary(ctx, deviceServiceGetDevicesByFiltersSpec(), req, &res); err != nil {
+func (c *deviceServiceClient) GetDevices(ctx context.Context, req *v1.GetDevicesRequest) (*v1.GetDevicesResponse, error) {
+	var res v1.GetDevicesResponse
+	if err := c.client.CallUnary(ctx, deviceServiceGetDevicesSpec(), req, &res); err != nil {
 		return nil, err
 	}
 	return &res, nil
@@ -879,24 +854,12 @@ func (h deviceServiceHandler) getDevice(ctx context.Context, _ connect.Spec, str
 	return stream.Send(res)
 }
 
-func (h deviceServiceHandler) getAllDevices(ctx context.Context, _ connect.Spec, stream connect.ServerStream) error {
-	var req v1.GetAllDevicesRequest
+func (h deviceServiceHandler) getDevices(ctx context.Context, _ connect.Spec, stream connect.ServerStream) error {
+	var req v1.GetDevicesRequest
 	if err := stream.Receive(&req); err != nil {
 		return err
 	}
-	res, err := h.svc.GetAllDevices(ctx, &req)
-	if err != nil {
-		return err
-	}
-	return stream.Send(res)
-}
-
-func (h deviceServiceHandler) getDevicesByFilters(ctx context.Context, _ connect.Spec, stream connect.ServerStream) error {
-	var req v1.GetDevicesByFiltersRequest
-	if err := stream.Receive(&req); err != nil {
-		return err
-	}
-	res, err := h.svc.GetDevicesByFilters(ctx, &req)
+	res, err := h.svc.GetDevices(ctx, &req)
 	if err != nil {
 		return err
 	}
@@ -911,18 +874,11 @@ var (
 			Procedure:  IssueServiceGetIssueProcedure,
 		}
 	})
-	issueServiceGetAllIssuesSpec = sync.OnceValue(func() connect.Spec {
+	issueServiceGetIssuesSpec = sync.OnceValue(func() connect.Spec {
 		return connect.Spec{
 			StreamType: connect.StreamTypeUnary,
-			Schema:     v1.File_backend_proto_service_proto.Services().ByName("IssueService").Methods().ByName("GetAllIssues"),
-			Procedure:  IssueServiceGetAllIssuesProcedure,
-		}
-	})
-	issueServiceGetIssuesByFiltersSpec = sync.OnceValue(func() connect.Spec {
-		return connect.Spec{
-			StreamType: connect.StreamTypeUnary,
-			Schema:     v1.File_backend_proto_service_proto.Services().ByName("IssueService").Methods().ByName("GetIssuesByFilters"),
-			Procedure:  IssueServiceGetIssuesByFiltersProcedure,
+			Schema:     v1.File_backend_proto_service_proto.Services().ByName("IssueService").Methods().ByName("GetIssues"),
+			Procedure:  IssueServiceGetIssuesProcedure,
 		}
 	})
 	issueServiceResolveIssueSpec = sync.OnceValue(func() connect.Spec {
@@ -932,14 +888,29 @@ var (
 			Procedure:  IssueServiceResolveIssueProcedure,
 		}
 	})
+	issueServiceUpdateIssueSpec = sync.OnceValue(func() connect.Spec {
+		return connect.Spec{
+			StreamType: connect.StreamTypeUnary,
+			Schema:     v1.File_backend_proto_service_proto.Services().ByName("IssueService").Methods().ByName("UpdateIssue"),
+			Procedure:  IssueServiceUpdateIssueProcedure,
+		}
+	})
+	issueServiceDeleteIssueSpec = sync.OnceValue(func() connect.Spec {
+		return connect.Spec{
+			StreamType: connect.StreamTypeUnary,
+			Schema:     v1.File_backend_proto_service_proto.Services().ByName("IssueService").Methods().ByName("DeleteIssue"),
+			Procedure:  IssueServiceDeleteIssueProcedure,
+		}
+	})
 )
 
 // IssueServiceClient is a client for the sparkly.backend.v1.IssueService service.
 type IssueServiceClient interface {
 	GetIssue(context.Context, *v1.GetIssueRequest) (*v1.GetIssueResponse, error)
-	GetAllIssues(context.Context, *v1.GetAllIssuesRequest) (*v1.GetAllIssuesResponse, error)
-	GetIssuesByFilters(context.Context, *v1.GetIssuesByFiltersRequest) (*v1.GetIssuesByFiltersResponse, error)
+	GetIssues(context.Context, *v1.GetIssuesRequest) (*v1.GetIssuesResponse, error)
 	ResolveIssue(context.Context, *v1.ResolveIssueRequest) (*v1.ResolveIssueResponse, error)
+	UpdateIssue(context.Context, *v1.UpdateIssueRequest) (*v1.UpdateIssueResponse, error)
+	DeleteIssue(context.Context, *v1.DeleteIssueRequest) (*v1.DeleteIssueResponse, error)
 }
 
 // NewIssueServiceClient constructs a client for the sparkly.backend.v1.IssueService service.
@@ -951,9 +922,10 @@ func NewIssueServiceClient(client *connect.Client) IssueServiceClient {
 // IssueServiceHandler is an implementation of the sparkly.backend.v1.IssueService service.
 type IssueServiceHandler interface {
 	GetIssue(context.Context, *v1.GetIssueRequest) (*v1.GetIssueResponse, error)
-	GetAllIssues(context.Context, *v1.GetAllIssuesRequest) (*v1.GetAllIssuesResponse, error)
-	GetIssuesByFilters(context.Context, *v1.GetIssuesByFiltersRequest) (*v1.GetIssuesByFiltersResponse, error)
+	GetIssues(context.Context, *v1.GetIssuesRequest) (*v1.GetIssuesResponse, error)
 	ResolveIssue(context.Context, *v1.ResolveIssueRequest) (*v1.ResolveIssueResponse, error)
+	UpdateIssue(context.Context, *v1.UpdateIssueRequest) (*v1.UpdateIssueResponse, error)
+	DeleteIssue(context.Context, *v1.DeleteIssueRequest) (*v1.DeleteIssueResponse, error)
 }
 
 // RegisterIssueServiceHandler registers svc as the sparkly.backend.v1.IssueService implementation
@@ -962,9 +934,10 @@ func RegisterIssueServiceHandler(server *connect.Server, svc IssueServiceHandler
 	adapter := issueServiceHandler{svc: svc}
 	server.Register(
 		connect.Method{Spec: issueServiceGetIssueSpec(), Handler: adapter.getIssue},
-		connect.Method{Spec: issueServiceGetAllIssuesSpec(), Handler: adapter.getAllIssues},
-		connect.Method{Spec: issueServiceGetIssuesByFiltersSpec(), Handler: adapter.getIssuesByFilters},
+		connect.Method{Spec: issueServiceGetIssuesSpec(), Handler: adapter.getIssues},
 		connect.Method{Spec: issueServiceResolveIssueSpec(), Handler: adapter.resolveIssue},
+		connect.Method{Spec: issueServiceUpdateIssueSpec(), Handler: adapter.updateIssue},
+		connect.Method{Spec: issueServiceDeleteIssueSpec(), Handler: adapter.deleteIssue},
 	)
 }
 
@@ -975,16 +948,20 @@ func (UnimplementedIssueServiceHandler) GetIssue(context.Context, *v1.GetIssueRe
 	return nil, connect.NewError(connect.CodeUnimplemented, "sparkly.backend.v1.IssueService.GetIssue is not implemented")
 }
 
-func (UnimplementedIssueServiceHandler) GetAllIssues(context.Context, *v1.GetAllIssuesRequest) (*v1.GetAllIssuesResponse, error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, "sparkly.backend.v1.IssueService.GetAllIssues is not implemented")
-}
-
-func (UnimplementedIssueServiceHandler) GetIssuesByFilters(context.Context, *v1.GetIssuesByFiltersRequest) (*v1.GetIssuesByFiltersResponse, error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, "sparkly.backend.v1.IssueService.GetIssuesByFilters is not implemented")
+func (UnimplementedIssueServiceHandler) GetIssues(context.Context, *v1.GetIssuesRequest) (*v1.GetIssuesResponse, error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, "sparkly.backend.v1.IssueService.GetIssues is not implemented")
 }
 
 func (UnimplementedIssueServiceHandler) ResolveIssue(context.Context, *v1.ResolveIssueRequest) (*v1.ResolveIssueResponse, error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, "sparkly.backend.v1.IssueService.ResolveIssue is not implemented")
+}
+
+func (UnimplementedIssueServiceHandler) UpdateIssue(context.Context, *v1.UpdateIssueRequest) (*v1.UpdateIssueResponse, error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, "sparkly.backend.v1.IssueService.UpdateIssue is not implemented")
+}
+
+func (UnimplementedIssueServiceHandler) DeleteIssue(context.Context, *v1.DeleteIssueRequest) (*v1.DeleteIssueResponse, error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, "sparkly.backend.v1.IssueService.DeleteIssue is not implemented")
 }
 
 type issueServiceClient struct {
@@ -999,17 +976,9 @@ func (c *issueServiceClient) GetIssue(ctx context.Context, req *v1.GetIssueReque
 	return &res, nil
 }
 
-func (c *issueServiceClient) GetAllIssues(ctx context.Context, req *v1.GetAllIssuesRequest) (*v1.GetAllIssuesResponse, error) {
-	var res v1.GetAllIssuesResponse
-	if err := c.client.CallUnary(ctx, issueServiceGetAllIssuesSpec(), req, &res); err != nil {
-		return nil, err
-	}
-	return &res, nil
-}
-
-func (c *issueServiceClient) GetIssuesByFilters(ctx context.Context, req *v1.GetIssuesByFiltersRequest) (*v1.GetIssuesByFiltersResponse, error) {
-	var res v1.GetIssuesByFiltersResponse
-	if err := c.client.CallUnary(ctx, issueServiceGetIssuesByFiltersSpec(), req, &res); err != nil {
+func (c *issueServiceClient) GetIssues(ctx context.Context, req *v1.GetIssuesRequest) (*v1.GetIssuesResponse, error) {
+	var res v1.GetIssuesResponse
+	if err := c.client.CallUnary(ctx, issueServiceGetIssuesSpec(), req, &res); err != nil {
 		return nil, err
 	}
 	return &res, nil
@@ -1018,6 +987,22 @@ func (c *issueServiceClient) GetIssuesByFilters(ctx context.Context, req *v1.Get
 func (c *issueServiceClient) ResolveIssue(ctx context.Context, req *v1.ResolveIssueRequest) (*v1.ResolveIssueResponse, error) {
 	var res v1.ResolveIssueResponse
 	if err := c.client.CallUnary(ctx, issueServiceResolveIssueSpec(), req, &res); err != nil {
+		return nil, err
+	}
+	return &res, nil
+}
+
+func (c *issueServiceClient) UpdateIssue(ctx context.Context, req *v1.UpdateIssueRequest) (*v1.UpdateIssueResponse, error) {
+	var res v1.UpdateIssueResponse
+	if err := c.client.CallUnary(ctx, issueServiceUpdateIssueSpec(), req, &res); err != nil {
+		return nil, err
+	}
+	return &res, nil
+}
+
+func (c *issueServiceClient) DeleteIssue(ctx context.Context, req *v1.DeleteIssueRequest) (*v1.DeleteIssueResponse, error) {
+	var res v1.DeleteIssueResponse
+	if err := c.client.CallUnary(ctx, issueServiceDeleteIssueSpec(), req, &res); err != nil {
 		return nil, err
 	}
 	return &res, nil
@@ -1037,24 +1022,12 @@ func (h issueServiceHandler) getIssue(ctx context.Context, _ connect.Spec, strea
 	return stream.Send(res)
 }
 
-func (h issueServiceHandler) getAllIssues(ctx context.Context, _ connect.Spec, stream connect.ServerStream) error {
-	var req v1.GetAllIssuesRequest
+func (h issueServiceHandler) getIssues(ctx context.Context, _ connect.Spec, stream connect.ServerStream) error {
+	var req v1.GetIssuesRequest
 	if err := stream.Receive(&req); err != nil {
 		return err
 	}
-	res, err := h.svc.GetAllIssues(ctx, &req)
-	if err != nil {
-		return err
-	}
-	return stream.Send(res)
-}
-
-func (h issueServiceHandler) getIssuesByFilters(ctx context.Context, _ connect.Spec, stream connect.ServerStream) error {
-	var req v1.GetIssuesByFiltersRequest
-	if err := stream.Receive(&req); err != nil {
-		return err
-	}
-	res, err := h.svc.GetIssuesByFilters(ctx, &req)
+	res, err := h.svc.GetIssues(ctx, &req)
 	if err != nil {
 		return err
 	}
@@ -1067,6 +1040,30 @@ func (h issueServiceHandler) resolveIssue(ctx context.Context, _ connect.Spec, s
 		return err
 	}
 	res, err := h.svc.ResolveIssue(ctx, &req)
+	if err != nil {
+		return err
+	}
+	return stream.Send(res)
+}
+
+func (h issueServiceHandler) updateIssue(ctx context.Context, _ connect.Spec, stream connect.ServerStream) error {
+	var req v1.UpdateIssueRequest
+	if err := stream.Receive(&req); err != nil {
+		return err
+	}
+	res, err := h.svc.UpdateIssue(ctx, &req)
+	if err != nil {
+		return err
+	}
+	return stream.Send(res)
+}
+
+func (h issueServiceHandler) deleteIssue(ctx context.Context, _ connect.Spec, stream connect.ServerStream) error {
+	var req v1.DeleteIssueRequest
+	if err := stream.Receive(&req); err != nil {
+		return err
+	}
+	res, err := h.svc.DeleteIssue(ctx, &req)
 	if err != nil {
 		return err
 	}
