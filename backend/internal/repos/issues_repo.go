@@ -40,8 +40,6 @@ func (r *IssuesRepo) GetIssueByID(ctx context.Context, issueID, userID uuid.UUID
 	return issue.ToDomain(), nil
 }
 
-const SIMILARITY_THRESHOLD = 0.3
-
 func (r *IssuesRepo) GetIssues(ctx context.Context, filters domain.IssueFilters, parkID, userID uuid.UUID) ([]domain.Issue, error) {
 	var severity *models.IssueSeverity
 	if filters.Severity == nil {

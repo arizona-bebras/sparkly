@@ -9,12 +9,12 @@ import (
 	"sparkly/backend/internal/services"
 )
 
-type DevicesHandler struct {
+type DevicesRegHandler struct {
 	service *services.DeviceService
 }
 
-func NewDeviceHandler(s *services.DeviceService) *DevicesHandler {
-	return &DevicesHandler{
+func NewDeviceRegHandler(s *services.DeviceService) *DevicesRegHandler {
+	return &DevicesRegHandler{
 		service: s,
 	}
 }
@@ -32,7 +32,7 @@ type errorResponse struct {
 	Msg        string `json:"message"`
 }
 
-func (h *DevicesHandler) RegDevice(w http.ResponseWriter, r *http.Request) {
+func (h *DevicesRegHandler) RegDevice(w http.ResponseWriter, r *http.Request) {
 	var parkToken parkToken
 	if err := json.NewDecoder(r.Body).Decode(&parkToken); err != nil {
 		w.Header().Set("Content-Type", "application/json")
