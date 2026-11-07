@@ -14,12 +14,8 @@
   const devicesQuery = createQuery(() => ({
     queryKey: ['devices', parkId],
     queryFn: () =>
-      client.device.getAllDevices({
-        parkId: 'park-1',
-        pagination: {
-          page: 1,
-          pageSize: 100,
-        },
+      client.device.getDevices({
+        parkId: parkId,
       }),
   }));
 </script>

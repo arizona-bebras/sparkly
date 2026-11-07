@@ -44,7 +44,9 @@ export const columns = columnHelper.columns([
     id: 'status',
     header: 'Статус',
     cell: ({ row }) => {
-      const isResolved = !!row.original.resolvedAt && Number(row.original.resolvedAt.seconds) > 0;
+      const isResolved =
+        !!row.original.isResolved ||
+        (!!row.original.resolvedAt && Number(row.original.resolvedAt.seconds) > 0);
       return renderComponent(IssueStatusCell, { isResolved });
     },
   }),
