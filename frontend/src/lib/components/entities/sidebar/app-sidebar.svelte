@@ -1,17 +1,17 @@
 <script lang="ts">
-	import * as Sidebar from "$lib/components/ui/sidebar/index.js";
-	import { Skeleton } from "$lib/components/ui/skeleton/index.js";
-	import { page } from "$app/state";
-	import { createQuery } from "@tanstack/svelte-query";
-	import { client } from "$proto";
-	import SparklesIcon from "@lucide/svelte/icons/sparkles";
-	import LayoutDashboardIcon from "@lucide/svelte/icons/layout-dashboard";
-	import CpuIcon from "@lucide/svelte/icons/cpu";
-	import CircleAlertIcon from "@lucide/svelte/icons/circle-alert";
-	import BoxesIcon from "@lucide/svelte/icons/boxes";
-	import RocketIcon from "@lucide/svelte/icons/rocket";
-	import SettingsIcon from "@lucide/svelte/icons/settings";
-	import ArrowLeftIcon from "@lucide/svelte/icons/arrow-left";
+  import * as Sidebar from '$lib/components/ui/sidebar/index.js';
+  import { Skeleton } from '$lib/components/ui/skeleton/index.js';
+  import { page } from '$app/state';
+  import { createQuery } from '@tanstack/svelte-query';
+  import { client } from '$proto';
+  import SparklesIcon from '@lucide/svelte/icons/sparkles';
+  import LayoutDashboardIcon from '@lucide/svelte/icons/layout-dashboard';
+  import CpuIcon from '@lucide/svelte/icons/cpu';
+  import CircleAlertIcon from '@lucide/svelte/icons/circle-alert';
+  import BoxesIcon from '@lucide/svelte/icons/boxes';
+  import RocketIcon from '@lucide/svelte/icons/rocket';
+  import SettingsIcon from '@lucide/svelte/icons/settings';
+  import ArrowLeftIcon from '@lucide/svelte/icons/arrow-left';
 
   const parkId = $derived(page.params.park_id ?? '');
   const currentPath = $derived(page.url.pathname);
@@ -27,38 +27,38 @@
 
   const basePath = $derived(`/control-panel/${parkId}`);
 
-	const mainNavItems = $derived([
-		{
-			title: "Панель управления",
-			url: basePath,
-			icon: LayoutDashboardIcon,
-			isActive: currentPath === basePath || currentPath === `${basePath}/`,
-		},
-		{
-			title: "Устройства",
-			url: `${basePath}/devices`,
-			icon: CpuIcon,
-			isActive: currentPath.startsWith(`${basePath}/devices`),
-		},
-		{
-			title: "Группы",
-			url: `${basePath}/groups`,
-			icon: BoxesIcon,
-			isActive: currentPath.startsWith(`${basePath}/groups`),
-		},
-		{
-			title: "Релизы",
-			url: `${basePath}/releases`,
-			icon: RocketIcon,
-			isActive: currentPath.startsWith(`${basePath}/releases`),
-		},
-		{
-			title: "Проблемы",
-			url: `${basePath}/issues`,
-			icon: CircleAlertIcon,
-			isActive: currentPath.startsWith(`${basePath}/issues`),
-		},
-	]);
+  const mainNavItems = $derived([
+    {
+      title: 'Панель управления',
+      url: basePath,
+      icon: LayoutDashboardIcon,
+      isActive: currentPath === basePath || currentPath === `${basePath}/`,
+    },
+    {
+      title: 'Устройства',
+      url: `${basePath}/devices`,
+      icon: CpuIcon,
+      isActive: currentPath.startsWith(`${basePath}/devices`),
+    },
+    {
+      title: 'Группы',
+      url: `${basePath}/groups`,
+      icon: BoxesIcon,
+      isActive: currentPath.startsWith(`${basePath}/groups`),
+    },
+    {
+      title: 'Релизы',
+      url: `${basePath}/releases`,
+      icon: RocketIcon,
+      isActive: currentPath.startsWith(`${basePath}/releases`),
+    },
+    {
+      title: 'Проблемы',
+      url: `${basePath}/issues`,
+      icon: CircleAlertIcon,
+      isActive: currentPath.startsWith(`${basePath}/issues`),
+    },
+  ]);
 
   const systemNavItems = $derived([
     {

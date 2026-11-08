@@ -35,6 +35,7 @@
     const external = value ?? '';
     untrack(() => {
       if (external !== innerValue) {
+        clearTimeout(timer);
         innerValue = external;
         immediateValue = external;
       }
