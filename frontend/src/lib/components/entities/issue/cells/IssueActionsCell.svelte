@@ -1,5 +1,5 @@
 <script lang="ts">
-  import ChevronRightIcon from '@lucide/svelte/icons/chevron-right';
+  import { ChevronRight } from '@lucide/svelte';
 
   let { parkId, id }: { parkId: string; id: string } = $props();
 </script>
@@ -11,6 +11,6 @@
     title="Подробнее"
     aria-label="Подробнее о проблеме"
   >
-    <ChevronRightIcon class="size-4" />
+    <ChevronRight class="size-4" />
   </a>
 </div>

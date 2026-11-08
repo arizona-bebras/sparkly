@@ -3,7 +3,7 @@
   import { getLocalTimeZone } from '@internationalized/date';
   import { timestampFromDate } from '@bufbuild/protobuf/wkt';
   import { client, type Issue, type IssueSeverity } from '$proto';
-  import { createQuery, keepPreviousData } from '@tanstack/svelte-query';
+  import { createQuery, keepPreviousData, useQueryClient } from '@tanstack/svelte-query';
   import { CircleAlert, RefreshCw } from '@lucide/svelte';
   import { Button } from '$lib/components/ui/button/index.js';
   import { Skeleton } from '$lib/components/ui/skeleton/index.js';
@@ -17,20 +17,13 @@
   let selectedSeverities = $state<IssueSeverity[]>([]);
   let dateRange = $state<DateRange | undefined>(undefined);
   let searchQuery = $state('');
-  let debouncedSearch = $state('');
-
-  $effect(() => {
-    const query = searchQuery;
-    const timer = setTimeout(() => {
-      debouncedSearch = query;
-    }, 350);
-    return () => clearTimeout(timer);
-  });
 
   const searchParam = $derived.by(() => {
-    const trimmed = debouncedSearch.trim();
+    const trimmed = searchQuery.trim();
     return trimmed.length > 0 ? trimmed : undefined;
   });
+
+  const queryClient = useQueryClient();
 
   const issuesQuery = createQuery(() => ({
     queryKey: [
@@ -43,6 +36,17 @@
       searchParam,
     ],
     queryFn: async () => {
+      const currentKey = [
+        'issues',
+        parkId,
+        selectedStatus,
+        selectedSeverities,
+        dateRange?.start?.toString(),
+        dateRange?.end?.toString(),
+        searchParam,
+      ];
+      const hasCached = !!queryClient.getQueryData(currentKey);
+
       const isResolvedParam =
         selectedStatus === 'open' ? false : selectedStatus === 'resolved' ? true : undefined;
       const severityParam = selectedSeverities.length === 1 ? selectedSeverities[0] : undefined;
@@ -70,11 +74,12 @@
           toTime,
           title: searchParam,
         }),
-        new Promise((resolve) => setTimeout(resolve, 350)),
+        !hasCached ? new Promise((resolve) => setTimeout(resolve, 350)) : Promise.resolve(),
       ]);
       return response;
     },
     placeholderData: keepPreviousData,
+    staleTime: 1000 * 60,
     enabled: !!parkId,
   }));
 
@@ -129,7 +134,7 @@
     </div>
   {:else}
     <div class="relative">
-      {#if issuesQuery.isFetching}
+      {#if issuesQuery.isPlaceholderData}
         <div
           class="absolute inset-0 z-10 flex items-center justify-center rounded-lg bg-background/40 backdrop-blur-[1px] transition-all duration-200"
         >
@@ -142,7 +147,7 @@
         </div>
       {/if}
       <div
-        class="transition-opacity duration-200 {issuesQuery.isFetching
+        class="transition-opacity duration-200 {issuesQuery.isPlaceholderData
           ? 'opacity-60 pointer-events-none'
           : 'opacity-100'}"
       >

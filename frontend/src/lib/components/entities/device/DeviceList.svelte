@@ -2,7 +2,7 @@
   import { goto } from '$app/navigation';
   import { page } from '$app/state';
   import { client } from '$proto';
-  import { createQuery, keepPreviousData } from '@tanstack/svelte-query';
+  import { createQuery, keepPreviousData, useQueryClient } from '@tanstack/svelte-query';
   import { CircleAlert, RefreshCw } from '@lucide/svelte';
   import { Button } from '$lib/components/ui/button/index.js';
   import { Skeleton } from '$lib/components/ui/skeleton/index.js';
@@ -22,16 +22,7 @@
   let selectedGroupIds = $state<string[]>(getUrlGroups());
   let selectedBuildIds = $state<string[]>([]);
   let searchQuery = $state('');
-  let debouncedSearch = $state('');
   let lastUrlKey = $state(getUrlGroups().slice().sort().join(','));
-
-  $effect(() => {
-    const query = searchQuery;
-    const timer = setTimeout(() => {
-      debouncedSearch = query;
-    }, 350);
-    return () => clearTimeout(timer);
-  });
 
   $effect(() => {
     const fromUrl = getUrlGroups();
@@ -75,24 +66,30 @@
   });
 
   const searchParam = $derived.by(() => {
-    const trimmed = debouncedSearch.trim();
+    const trimmed = searchQuery.trim();
     return trimmed.length > 0 ? trimmed.slice(0, 30) : undefined;
   });
+
+  const queryClient = useQueryClient();
 
   const devicesQuery = createQuery(() => ({
     queryKey: ['devices', parkId, selectedGroupIds, searchParam],
     queryFn: async () => {
+      const currentKey = ['devices', parkId, selectedGroupIds, searchParam];
+      const hasCached = !!queryClient.getQueryData(currentKey);
+
       const [response] = await Promise.all([
         client.device.getDevices({
           parkId,
           groupIds: selectedGroupIds,
           name: searchParam,
         }),
-        new Promise((resolve) => setTimeout(resolve, 350)),
+        !hasCached ? new Promise((resolve) => setTimeout(resolve, 350)) : Promise.resolve(),
       ]);
       return response;
     },
     placeholderData: keepPreviousData,
+    staleTime: 1000 * 60,
     enabled: !!parkId,
   }));
 
@@ -145,7 +142,7 @@
     </div>
   {:else}
     <div class="relative">
-      {#if devicesQuery.isFetching}
+      {#if devicesQuery.isPlaceholderData}
         <div
           class="absolute inset-0 z-10 flex items-center justify-center rounded-lg bg-background/40 backdrop-blur-[1px] transition-all duration-200"
         >
@@ -158,7 +155,7 @@
         </div>
       {/if}
       <div
-        class="transition-opacity duration-200 {devicesQuery.isFetching
+        class="transition-opacity duration-200 {devicesQuery.isPlaceholderData
           ? 'opacity-60 pointer-events-none'
           : 'opacity-100'}"
       >
