@@ -655,6 +655,7 @@ type Release struct {
 	ParkId        string                 `protobuf:"bytes,2,opt,name=park_id,json=parkId,proto3" json:"park_id,omitempty"`
 	Name          string                 `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
 	Version       string                 `protobuf:"bytes,4,opt,name=version,proto3" json:"version,omitempty"`
+	CreatedAt     *timestamppb.Timestamp `protobuf:"bytes,5,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -715,6 +716,13 @@ func (x *Release) GetVersion() string {
 		return x.Version
 	}
 	return ""
+}
+
+func (x *Release) GetCreatedAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.CreatedAt
+	}
+	return nil
 }
 
 type RegRequest struct {
@@ -3888,7 +3896,7 @@ func (x *GetReleaseResponse) GetRelease() *Release {
 
 type GetReleasesRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	ParkId        string                 `protobuf:"bytes,1,opt,name=park_id,json=parkId,proto3" json:"park_id,omitempty"`
 	Name          *string                `protobuf:"bytes,2,opt,name=name,proto3,oneof" json:"name,omitempty"`
 	Version       *string                `protobuf:"bytes,3,opt,name=version,proto3,oneof" json:"version,omitempty"`
 	FromTime      *timestamppb.Timestamp `protobuf:"bytes,4,opt,name=from_time,json=fromTime,proto3,oneof" json:"from_time,omitempty"`
@@ -3927,9 +3935,9 @@ func (*GetReleasesRequest) Descriptor() ([]byte, []int) {
 	return file_backend_proto_service_proto_rawDescGZIP(), []int{71}
 }
 
-func (x *GetReleasesRequest) GetId() string {
+func (x *GetReleasesRequest) GetParkId() string {
 	if x != nil {
-		return x.Id
+		return x.ParkId
 	}
 	return ""
 }
@@ -3964,7 +3972,7 @@ func (x *GetReleasesRequest) GetToTime() *timestamppb.Timestamp {
 
 type GetReleasesResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Builds        []*Release             `protobuf:"bytes,1,rep,name=builds,proto3" json:"builds,omitempty"`
+	Releases      []*Release             `protobuf:"bytes,1,rep,name=releases,proto3" json:"releases,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -3999,9 +4007,9 @@ func (*GetReleasesResponse) Descriptor() ([]byte, []int) {
 	return file_backend_proto_service_proto_rawDescGZIP(), []int{72}
 }
 
-func (x *GetReleasesResponse) GetBuilds() []*Release {
+func (x *GetReleasesResponse) GetReleases() []*Release {
 	if x != nil {
-		return x.Builds
+		return x.Releases
 	}
 	return nil
 }
@@ -4068,7 +4076,7 @@ func (x *UpdateReleaseRequest) GetVersion() string {
 
 type UpdateReleaseResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Builds        []*Release             `protobuf:"bytes,1,rep,name=builds,proto3" json:"builds,omitempty"`
+	Release       *Release               `protobuf:"bytes,1,opt,name=release,proto3" json:"release,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -4103,9 +4111,9 @@ func (*UpdateReleaseResponse) Descriptor() ([]byte, []int) {
 	return file_backend_proto_service_proto_rawDescGZIP(), []int{74}
 }
 
-func (x *UpdateReleaseResponse) GetBuilds() []*Release {
+func (x *UpdateReleaseResponse) GetRelease() *Release {
 	if x != nil {
-		return x.Builds
+		return x.Release
 	}
 	return nil
 }
@@ -4268,12 +4276,14 @@ const file_backend_proto_service_proto_rawDesc = "" +
 	"\x0eelf_object_key\x18\x05 \x01(\tR\felfObjectKey\x12(\n" +
 	"\x10dwarf_object_key\x18\x06 \x01(\tR\x0edwarfObjectKey\x129\n" +
 	"\n" +
-	"created_at\x18\a \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\"`\n" +
+	"created_at\x18\a \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\"\x9b\x01\n" +
 	"\aRelease\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x17\n" +
 	"\apark_id\x18\x02 \x01(\tR\x06parkId\x12\x12\n" +
 	"\x04name\x18\x03 \x01(\tR\x04name\x12\x18\n" +
-	"\aversion\x18\x04 \x01(\tR\aversion\"P\n" +
+	"\aversion\x18\x04 \x01(\tR\aversion\x129\n" +
+	"\n" +
+	"created_at\x18\x05 \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\"P\n" +
 	"\n" +
 	"RegRequest\x12\x1d\n" +
 	"\x05email\x18\x01 \x01(\tB\a\xbaH\x04r\x02`\x01R\x05email\x12#\n" +
@@ -4483,9 +4493,9 @@ const file_backend_proto_service_proto_rawDesc = "" +
 	"\x11GetReleaseRequest\x12\x18\n" +
 	"\x02id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x02id\"K\n" +
 	"\x12GetReleaseResponse\x125\n" +
-	"\arelease\x18\x01 \x01(\v2\x1b.sparkly.backend.v1.ReleaseR\arelease\"\x8d\x02\n" +
-	"\x12GetReleasesRequest\x12\x18\n" +
-	"\x02id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x02id\x12\x17\n" +
+	"\arelease\x18\x01 \x01(\v2\x1b.sparkly.backend.v1.ReleaseR\arelease\"\x96\x02\n" +
+	"\x12GetReleasesRequest\x12!\n" +
+	"\apark_id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x06parkId\x12\x17\n" +
 	"\x04name\x18\x02 \x01(\tH\x00R\x04name\x88\x01\x01\x12\x1d\n" +
 	"\aversion\x18\x03 \x01(\tH\x01R\aversion\x88\x01\x01\x12<\n" +
 	"\tfrom_time\x18\x04 \x01(\v2\x1a.google.protobuf.TimestampH\x02R\bfromTime\x88\x01\x01\x128\n" +
@@ -4496,18 +4506,18 @@ const file_backend_proto_service_proto_rawDesc = "" +
 	"\n" +
 	"_from_timeB\n" +
 	"\n" +
-	"\b_to_time\"J\n" +
-	"\x13GetReleasesResponse\x123\n" +
-	"\x06builds\x18\x01 \x03(\v2\x1b.sparkly.backend.v1.ReleaseR\x06builds\"}\n" +
+	"\b_to_time\"N\n" +
+	"\x13GetReleasesResponse\x127\n" +
+	"\breleases\x18\x01 \x03(\v2\x1b.sparkly.backend.v1.ReleaseR\breleases\"}\n" +
 	"\x14UpdateReleaseRequest\x12\x18\n" +
 	"\x02id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x02id\x12\x17\n" +
 	"\x04name\x18\x02 \x01(\tH\x00R\x04name\x88\x01\x01\x12\x1d\n" +
 	"\aversion\x18\x03 \x01(\tH\x01R\aversion\x88\x01\x01B\a\n" +
 	"\x05_nameB\n" +
 	"\n" +
-	"\b_version\"L\n" +
-	"\x15UpdateReleaseResponse\x123\n" +
-	"\x06builds\x18\x01 \x03(\v2\x1b.sparkly.backend.v1.ReleaseR\x06builds\"0\n" +
+	"\b_version\"N\n" +
+	"\x15UpdateReleaseResponse\x125\n" +
+	"\arelease\x18\x01 \x01(\v2\x1b.sparkly.backend.v1.ReleaseR\arelease\"0\n" +
 	"\x14DeleteReleaseRequest\x12\x18\n" +
 	"\x02id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x02id\"1\n" +
 	"\x15DeleteReleaseResponse\x12\x18\n" +
@@ -4680,112 +4690,113 @@ var file_backend_proto_service_proto_depIdxs = []int32{
 	78, // 13: sparkly.backend.v1.Issue.first_at:type_name -> google.protobuf.Timestamp
 	78, // 14: sparkly.backend.v1.Issue.last_at:type_name -> google.protobuf.Timestamp
 	78, // 15: sparkly.backend.v1.Build.created_at:type_name -> google.protobuf.Timestamp
-	1,  // 16: sparkly.backend.v1.UpdateUserResponse.user:type_name -> sparkly.backend.v1.User
-	2,  // 17: sparkly.backend.v1.CreateParkResponse.park:type_name -> sparkly.backend.v1.Park
-	2,  // 18: sparkly.backend.v1.GetParkResponse.park:type_name -> sparkly.backend.v1.Park
-	2,  // 19: sparkly.backend.v1.GetAllParksResponse.parks:type_name -> sparkly.backend.v1.Park
-	2,  // 20: sparkly.backend.v1.UpdateParkResponse.park:type_name -> sparkly.backend.v1.Park
-	3,  // 21: sparkly.backend.v1.CreateGroupResponse.group:type_name -> sparkly.backend.v1.DeviceGroup
-	3,  // 22: sparkly.backend.v1.GetGroupResponse.group:type_name -> sparkly.backend.v1.DeviceGroup
-	3,  // 23: sparkly.backend.v1.GetGroupsResponse.groups:type_name -> sparkly.backend.v1.DeviceGroup
-	3,  // 24: sparkly.backend.v1.UpdateGroupResponse.group:type_name -> sparkly.backend.v1.DeviceGroup
-	4,  // 25: sparkly.backend.v1.GetDeviceResponse.device:type_name -> sparkly.backend.v1.Device
-	4,  // 26: sparkly.backend.v1.GetDevicesResponse.devices:type_name -> sparkly.backend.v1.Device
-	5,  // 27: sparkly.backend.v1.GetIssueResponse.issue:type_name -> sparkly.backend.v1.Issue
-	0,  // 28: sparkly.backend.v1.GetIssuesRequest.severity:type_name -> sparkly.backend.v1.IssueSeverity
-	78, // 29: sparkly.backend.v1.GetIssuesRequest.from_time:type_name -> google.protobuf.Timestamp
-	78, // 30: sparkly.backend.v1.GetIssuesRequest.to_time:type_name -> google.protobuf.Timestamp
-	5,  // 31: sparkly.backend.v1.GetIssuesResponse.issues:type_name -> sparkly.backend.v1.Issue
-	5,  // 32: sparkly.backend.v1.ResolveIssueResponse.issue:type_name -> sparkly.backend.v1.Issue
-	0,  // 33: sparkly.backend.v1.UpdateIssueRequest.severity:type_name -> sparkly.backend.v1.IssueSeverity
-	5,  // 34: sparkly.backend.v1.UpdateIssueResponse.issue:type_name -> sparkly.backend.v1.Issue
-	6,  // 35: sparkly.backend.v1.CreateBuildResponse.build:type_name -> sparkly.backend.v1.Build
-	6,  // 36: sparkly.backend.v1.GetBuildResponse.build:type_name -> sparkly.backend.v1.Build
-	78, // 37: sparkly.backend.v1.GetBuildsRequest.from_time:type_name -> google.protobuf.Timestamp
-	78, // 38: sparkly.backend.v1.GetBuildsRequest.to_time:type_name -> google.protobuf.Timestamp
-	6,  // 39: sparkly.backend.v1.GetBuildsResponse.builds:type_name -> sparkly.backend.v1.Build
-	6,  // 40: sparkly.backend.v1.UpdateBuildResponse.builds:type_name -> sparkly.backend.v1.Build
-	7,  // 41: sparkly.backend.v1.CreateReleaseResponse.release:type_name -> sparkly.backend.v1.Release
-	7,  // 42: sparkly.backend.v1.GetReleaseResponse.release:type_name -> sparkly.backend.v1.Release
-	78, // 43: sparkly.backend.v1.GetReleasesRequest.from_time:type_name -> google.protobuf.Timestamp
-	78, // 44: sparkly.backend.v1.GetReleasesRequest.to_time:type_name -> google.protobuf.Timestamp
-	7,  // 45: sparkly.backend.v1.GetReleasesResponse.builds:type_name -> sparkly.backend.v1.Release
-	7,  // 46: sparkly.backend.v1.UpdateReleaseResponse.builds:type_name -> sparkly.backend.v1.Release
-	8,  // 47: sparkly.backend.v1.UserService.Reg:input_type -> sparkly.backend.v1.RegRequest
-	10, // 48: sparkly.backend.v1.UserService.GetToken:input_type -> sparkly.backend.v1.GetTokenRequest
-	14, // 49: sparkly.backend.v1.UserService.CheckAuth:input_type -> sparkly.backend.v1.CheckAuthRequest
-	12, // 50: sparkly.backend.v1.UserService.RevokeToken:input_type -> sparkly.backend.v1.RevokeTokenRequest
-	16, // 51: sparkly.backend.v1.UserService.UpdateUser:input_type -> sparkly.backend.v1.UpdateUserRequest
-	18, // 52: sparkly.backend.v1.UserService.DeleteUser:input_type -> sparkly.backend.v1.DeleteUserRequest
-	20, // 53: sparkly.backend.v1.ParkService.CreatePark:input_type -> sparkly.backend.v1.CreateParkRequest
-	22, // 54: sparkly.backend.v1.ParkService.GetPark:input_type -> sparkly.backend.v1.GetParkRequest
-	24, // 55: sparkly.backend.v1.ParkService.GetAllParks:input_type -> sparkly.backend.v1.GetAllParksRequest
-	26, // 56: sparkly.backend.v1.ParkService.UpdatePark:input_type -> sparkly.backend.v1.UpdateParkRequest
-	28, // 57: sparkly.backend.v1.ParkService.DeletePark:input_type -> sparkly.backend.v1.DeleteParkRequest
-	30, // 58: sparkly.backend.v1.ParkService.CreateGroup:input_type -> sparkly.backend.v1.CreateGroupRequest
-	32, // 59: sparkly.backend.v1.ParkService.GetGroup:input_type -> sparkly.backend.v1.GetGroupRequest
-	34, // 60: sparkly.backend.v1.ParkService.GetGroups:input_type -> sparkly.backend.v1.GetGroupsRequest
-	36, // 61: sparkly.backend.v1.ParkService.UpdateGroup:input_type -> sparkly.backend.v1.UpdateGroupRequest
-	38, // 62: sparkly.backend.v1.ParkService.DeleteGroup:input_type -> sparkly.backend.v1.DeleteGroupRequest
-	40, // 63: sparkly.backend.v1.ParkService.AddDeviceToGroup:input_type -> sparkly.backend.v1.AddDeviceToGroupRequest
-	42, // 64: sparkly.backend.v1.ParkService.RemoveDeviceFromGroup:input_type -> sparkly.backend.v1.RemoveDeviceFromGroupRequest
-	44, // 65: sparkly.backend.v1.DeviceService.GetDevice:input_type -> sparkly.backend.v1.GetDeviceRequest
-	46, // 66: sparkly.backend.v1.DeviceService.GetDevices:input_type -> sparkly.backend.v1.GetDevicesRequest
-	48, // 67: sparkly.backend.v1.IssueService.GetIssue:input_type -> sparkly.backend.v1.GetIssueRequest
-	50, // 68: sparkly.backend.v1.IssueService.GetIssues:input_type -> sparkly.backend.v1.GetIssuesRequest
-	52, // 69: sparkly.backend.v1.IssueService.ResolveIssue:input_type -> sparkly.backend.v1.ResolveIssueRequest
-	54, // 70: sparkly.backend.v1.IssueService.UpdateIssue:input_type -> sparkly.backend.v1.UpdateIssueRequest
-	56, // 71: sparkly.backend.v1.IssueService.DeleteIssue:input_type -> sparkly.backend.v1.DeleteIssueRequest
-	58, // 72: sparkly.backend.v1.BuildService.CreateBuild:input_type -> sparkly.backend.v1.CreateBuildRequest
-	60, // 73: sparkly.backend.v1.BuildService.GetBuild:input_type -> sparkly.backend.v1.GetBuildRequest
-	62, // 74: sparkly.backend.v1.BuildService.GetBuilds:input_type -> sparkly.backend.v1.GetBuildsRequest
-	64, // 75: sparkly.backend.v1.BuildService.UpdateBuild:input_type -> sparkly.backend.v1.UpdateBuildRequest
-	66, // 76: sparkly.backend.v1.BuildService.DeleteBuild:input_type -> sparkly.backend.v1.DeleteBuildRequest
-	68, // 77: sparkly.backend.v1.ReleaseService.CreateRelease:input_type -> sparkly.backend.v1.CreateReleaseRequest
-	70, // 78: sparkly.backend.v1.ReleaseService.GetRelease:input_type -> sparkly.backend.v1.GetReleaseRequest
-	72, // 79: sparkly.backend.v1.ReleaseService.GetReleases:input_type -> sparkly.backend.v1.GetReleasesRequest
-	74, // 80: sparkly.backend.v1.ReleaseService.UpdateRelease:input_type -> sparkly.backend.v1.UpdateReleaseRequest
-	76, // 81: sparkly.backend.v1.ReleaseService.DeleteRelease:input_type -> sparkly.backend.v1.DeleteReleaseRequest
-	9,  // 82: sparkly.backend.v1.UserService.Reg:output_type -> sparkly.backend.v1.RegResponse
-	11, // 83: sparkly.backend.v1.UserService.GetToken:output_type -> sparkly.backend.v1.GetTokenResponse
-	15, // 84: sparkly.backend.v1.UserService.CheckAuth:output_type -> sparkly.backend.v1.CheckAuthResponse
-	13, // 85: sparkly.backend.v1.UserService.RevokeToken:output_type -> sparkly.backend.v1.RevokeTokenResponse
-	17, // 86: sparkly.backend.v1.UserService.UpdateUser:output_type -> sparkly.backend.v1.UpdateUserResponse
-	19, // 87: sparkly.backend.v1.UserService.DeleteUser:output_type -> sparkly.backend.v1.DeleteUserResponse
-	21, // 88: sparkly.backend.v1.ParkService.CreatePark:output_type -> sparkly.backend.v1.CreateParkResponse
-	23, // 89: sparkly.backend.v1.ParkService.GetPark:output_type -> sparkly.backend.v1.GetParkResponse
-	25, // 90: sparkly.backend.v1.ParkService.GetAllParks:output_type -> sparkly.backend.v1.GetAllParksResponse
-	27, // 91: sparkly.backend.v1.ParkService.UpdatePark:output_type -> sparkly.backend.v1.UpdateParkResponse
-	29, // 92: sparkly.backend.v1.ParkService.DeletePark:output_type -> sparkly.backend.v1.DeleteParkResponse
-	31, // 93: sparkly.backend.v1.ParkService.CreateGroup:output_type -> sparkly.backend.v1.CreateGroupResponse
-	33, // 94: sparkly.backend.v1.ParkService.GetGroup:output_type -> sparkly.backend.v1.GetGroupResponse
-	35, // 95: sparkly.backend.v1.ParkService.GetGroups:output_type -> sparkly.backend.v1.GetGroupsResponse
-	37, // 96: sparkly.backend.v1.ParkService.UpdateGroup:output_type -> sparkly.backend.v1.UpdateGroupResponse
-	39, // 97: sparkly.backend.v1.ParkService.DeleteGroup:output_type -> sparkly.backend.v1.DeleteGroupResponse
-	41, // 98: sparkly.backend.v1.ParkService.AddDeviceToGroup:output_type -> sparkly.backend.v1.AddDeviceToGroupResponse
-	43, // 99: sparkly.backend.v1.ParkService.RemoveDeviceFromGroup:output_type -> sparkly.backend.v1.RemoveDeviceFromGroupResponse
-	45, // 100: sparkly.backend.v1.DeviceService.GetDevice:output_type -> sparkly.backend.v1.GetDeviceResponse
-	47, // 101: sparkly.backend.v1.DeviceService.GetDevices:output_type -> sparkly.backend.v1.GetDevicesResponse
-	49, // 102: sparkly.backend.v1.IssueService.GetIssue:output_type -> sparkly.backend.v1.GetIssueResponse
-	51, // 103: sparkly.backend.v1.IssueService.GetIssues:output_type -> sparkly.backend.v1.GetIssuesResponse
-	53, // 104: sparkly.backend.v1.IssueService.ResolveIssue:output_type -> sparkly.backend.v1.ResolveIssueResponse
-	55, // 105: sparkly.backend.v1.IssueService.UpdateIssue:output_type -> sparkly.backend.v1.UpdateIssueResponse
-	57, // 106: sparkly.backend.v1.IssueService.DeleteIssue:output_type -> sparkly.backend.v1.DeleteIssueResponse
-	59, // 107: sparkly.backend.v1.BuildService.CreateBuild:output_type -> sparkly.backend.v1.CreateBuildResponse
-	61, // 108: sparkly.backend.v1.BuildService.GetBuild:output_type -> sparkly.backend.v1.GetBuildResponse
-	63, // 109: sparkly.backend.v1.BuildService.GetBuilds:output_type -> sparkly.backend.v1.GetBuildsResponse
-	65, // 110: sparkly.backend.v1.BuildService.UpdateBuild:output_type -> sparkly.backend.v1.UpdateBuildResponse
-	67, // 111: sparkly.backend.v1.BuildService.DeleteBuild:output_type -> sparkly.backend.v1.DeleteBuildResponse
-	69, // 112: sparkly.backend.v1.ReleaseService.CreateRelease:output_type -> sparkly.backend.v1.CreateReleaseResponse
-	71, // 113: sparkly.backend.v1.ReleaseService.GetRelease:output_type -> sparkly.backend.v1.GetReleaseResponse
-	73, // 114: sparkly.backend.v1.ReleaseService.GetReleases:output_type -> sparkly.backend.v1.GetReleasesResponse
-	75, // 115: sparkly.backend.v1.ReleaseService.UpdateRelease:output_type -> sparkly.backend.v1.UpdateReleaseResponse
-	77, // 116: sparkly.backend.v1.ReleaseService.DeleteRelease:output_type -> sparkly.backend.v1.DeleteReleaseResponse
-	82, // [82:117] is the sub-list for method output_type
-	47, // [47:82] is the sub-list for method input_type
-	47, // [47:47] is the sub-list for extension type_name
-	47, // [47:47] is the sub-list for extension extendee
-	0,  // [0:47] is the sub-list for field type_name
+	78, // 16: sparkly.backend.v1.Release.created_at:type_name -> google.protobuf.Timestamp
+	1,  // 17: sparkly.backend.v1.UpdateUserResponse.user:type_name -> sparkly.backend.v1.User
+	2,  // 18: sparkly.backend.v1.CreateParkResponse.park:type_name -> sparkly.backend.v1.Park
+	2,  // 19: sparkly.backend.v1.GetParkResponse.park:type_name -> sparkly.backend.v1.Park
+	2,  // 20: sparkly.backend.v1.GetAllParksResponse.parks:type_name -> sparkly.backend.v1.Park
+	2,  // 21: sparkly.backend.v1.UpdateParkResponse.park:type_name -> sparkly.backend.v1.Park
+	3,  // 22: sparkly.backend.v1.CreateGroupResponse.group:type_name -> sparkly.backend.v1.DeviceGroup
+	3,  // 23: sparkly.backend.v1.GetGroupResponse.group:type_name -> sparkly.backend.v1.DeviceGroup
+	3,  // 24: sparkly.backend.v1.GetGroupsResponse.groups:type_name -> sparkly.backend.v1.DeviceGroup
+	3,  // 25: sparkly.backend.v1.UpdateGroupResponse.group:type_name -> sparkly.backend.v1.DeviceGroup
+	4,  // 26: sparkly.backend.v1.GetDeviceResponse.device:type_name -> sparkly.backend.v1.Device
+	4,  // 27: sparkly.backend.v1.GetDevicesResponse.devices:type_name -> sparkly.backend.v1.Device
+	5,  // 28: sparkly.backend.v1.GetIssueResponse.issue:type_name -> sparkly.backend.v1.Issue
+	0,  // 29: sparkly.backend.v1.GetIssuesRequest.severity:type_name -> sparkly.backend.v1.IssueSeverity
+	78, // 30: sparkly.backend.v1.GetIssuesRequest.from_time:type_name -> google.protobuf.Timestamp
+	78, // 31: sparkly.backend.v1.GetIssuesRequest.to_time:type_name -> google.protobuf.Timestamp
+	5,  // 32: sparkly.backend.v1.GetIssuesResponse.issues:type_name -> sparkly.backend.v1.Issue
+	5,  // 33: sparkly.backend.v1.ResolveIssueResponse.issue:type_name -> sparkly.backend.v1.Issue
+	0,  // 34: sparkly.backend.v1.UpdateIssueRequest.severity:type_name -> sparkly.backend.v1.IssueSeverity
+	5,  // 35: sparkly.backend.v1.UpdateIssueResponse.issue:type_name -> sparkly.backend.v1.Issue
+	6,  // 36: sparkly.backend.v1.CreateBuildResponse.build:type_name -> sparkly.backend.v1.Build
+	6,  // 37: sparkly.backend.v1.GetBuildResponse.build:type_name -> sparkly.backend.v1.Build
+	78, // 38: sparkly.backend.v1.GetBuildsRequest.from_time:type_name -> google.protobuf.Timestamp
+	78, // 39: sparkly.backend.v1.GetBuildsRequest.to_time:type_name -> google.protobuf.Timestamp
+	6,  // 40: sparkly.backend.v1.GetBuildsResponse.builds:type_name -> sparkly.backend.v1.Build
+	6,  // 41: sparkly.backend.v1.UpdateBuildResponse.builds:type_name -> sparkly.backend.v1.Build
+	7,  // 42: sparkly.backend.v1.CreateReleaseResponse.release:type_name -> sparkly.backend.v1.Release
+	7,  // 43: sparkly.backend.v1.GetReleaseResponse.release:type_name -> sparkly.backend.v1.Release
+	78, // 44: sparkly.backend.v1.GetReleasesRequest.from_time:type_name -> google.protobuf.Timestamp
+	78, // 45: sparkly.backend.v1.GetReleasesRequest.to_time:type_name -> google.protobuf.Timestamp
+	7,  // 46: sparkly.backend.v1.GetReleasesResponse.releases:type_name -> sparkly.backend.v1.Release
+	7,  // 47: sparkly.backend.v1.UpdateReleaseResponse.release:type_name -> sparkly.backend.v1.Release
+	8,  // 48: sparkly.backend.v1.UserService.Reg:input_type -> sparkly.backend.v1.RegRequest
+	10, // 49: sparkly.backend.v1.UserService.GetToken:input_type -> sparkly.backend.v1.GetTokenRequest
+	14, // 50: sparkly.backend.v1.UserService.CheckAuth:input_type -> sparkly.backend.v1.CheckAuthRequest
+	12, // 51: sparkly.backend.v1.UserService.RevokeToken:input_type -> sparkly.backend.v1.RevokeTokenRequest
+	16, // 52: sparkly.backend.v1.UserService.UpdateUser:input_type -> sparkly.backend.v1.UpdateUserRequest
+	18, // 53: sparkly.backend.v1.UserService.DeleteUser:input_type -> sparkly.backend.v1.DeleteUserRequest
+	20, // 54: sparkly.backend.v1.ParkService.CreatePark:input_type -> sparkly.backend.v1.CreateParkRequest
+	22, // 55: sparkly.backend.v1.ParkService.GetPark:input_type -> sparkly.backend.v1.GetParkRequest
+	24, // 56: sparkly.backend.v1.ParkService.GetAllParks:input_type -> sparkly.backend.v1.GetAllParksRequest
+	26, // 57: sparkly.backend.v1.ParkService.UpdatePark:input_type -> sparkly.backend.v1.UpdateParkRequest
+	28, // 58: sparkly.backend.v1.ParkService.DeletePark:input_type -> sparkly.backend.v1.DeleteParkRequest
+	30, // 59: sparkly.backend.v1.ParkService.CreateGroup:input_type -> sparkly.backend.v1.CreateGroupRequest
+	32, // 60: sparkly.backend.v1.ParkService.GetGroup:input_type -> sparkly.backend.v1.GetGroupRequest
+	34, // 61: sparkly.backend.v1.ParkService.GetGroups:input_type -> sparkly.backend.v1.GetGroupsRequest
+	36, // 62: sparkly.backend.v1.ParkService.UpdateGroup:input_type -> sparkly.backend.v1.UpdateGroupRequest
+	38, // 63: sparkly.backend.v1.ParkService.DeleteGroup:input_type -> sparkly.backend.v1.DeleteGroupRequest
+	40, // 64: sparkly.backend.v1.ParkService.AddDeviceToGroup:input_type -> sparkly.backend.v1.AddDeviceToGroupRequest
+	42, // 65: sparkly.backend.v1.ParkService.RemoveDeviceFromGroup:input_type -> sparkly.backend.v1.RemoveDeviceFromGroupRequest
+	44, // 66: sparkly.backend.v1.DeviceService.GetDevice:input_type -> sparkly.backend.v1.GetDeviceRequest
+	46, // 67: sparkly.backend.v1.DeviceService.GetDevices:input_type -> sparkly.backend.v1.GetDevicesRequest
+	48, // 68: sparkly.backend.v1.IssueService.GetIssue:input_type -> sparkly.backend.v1.GetIssueRequest
+	50, // 69: sparkly.backend.v1.IssueService.GetIssues:input_type -> sparkly.backend.v1.GetIssuesRequest
+	52, // 70: sparkly.backend.v1.IssueService.ResolveIssue:input_type -> sparkly.backend.v1.ResolveIssueRequest
+	54, // 71: sparkly.backend.v1.IssueService.UpdateIssue:input_type -> sparkly.backend.v1.UpdateIssueRequest
+	56, // 72: sparkly.backend.v1.IssueService.DeleteIssue:input_type -> sparkly.backend.v1.DeleteIssueRequest
+	58, // 73: sparkly.backend.v1.BuildService.CreateBuild:input_type -> sparkly.backend.v1.CreateBuildRequest
+	60, // 74: sparkly.backend.v1.BuildService.GetBuild:input_type -> sparkly.backend.v1.GetBuildRequest
+	62, // 75: sparkly.backend.v1.BuildService.GetBuilds:input_type -> sparkly.backend.v1.GetBuildsRequest
+	64, // 76: sparkly.backend.v1.BuildService.UpdateBuild:input_type -> sparkly.backend.v1.UpdateBuildRequest
+	66, // 77: sparkly.backend.v1.BuildService.DeleteBuild:input_type -> sparkly.backend.v1.DeleteBuildRequest
+	68, // 78: sparkly.backend.v1.ReleaseService.CreateRelease:input_type -> sparkly.backend.v1.CreateReleaseRequest
+	70, // 79: sparkly.backend.v1.ReleaseService.GetRelease:input_type -> sparkly.backend.v1.GetReleaseRequest
+	72, // 80: sparkly.backend.v1.ReleaseService.GetReleases:input_type -> sparkly.backend.v1.GetReleasesRequest
+	74, // 81: sparkly.backend.v1.ReleaseService.UpdateRelease:input_type -> sparkly.backend.v1.UpdateReleaseRequest
+	76, // 82: sparkly.backend.v1.ReleaseService.DeleteRelease:input_type -> sparkly.backend.v1.DeleteReleaseRequest
+	9,  // 83: sparkly.backend.v1.UserService.Reg:output_type -> sparkly.backend.v1.RegResponse
+	11, // 84: sparkly.backend.v1.UserService.GetToken:output_type -> sparkly.backend.v1.GetTokenResponse
+	15, // 85: sparkly.backend.v1.UserService.CheckAuth:output_type -> sparkly.backend.v1.CheckAuthResponse
+	13, // 86: sparkly.backend.v1.UserService.RevokeToken:output_type -> sparkly.backend.v1.RevokeTokenResponse
+	17, // 87: sparkly.backend.v1.UserService.UpdateUser:output_type -> sparkly.backend.v1.UpdateUserResponse
+	19, // 88: sparkly.backend.v1.UserService.DeleteUser:output_type -> sparkly.backend.v1.DeleteUserResponse
+	21, // 89: sparkly.backend.v1.ParkService.CreatePark:output_type -> sparkly.backend.v1.CreateParkResponse
+	23, // 90: sparkly.backend.v1.ParkService.GetPark:output_type -> sparkly.backend.v1.GetParkResponse
+	25, // 91: sparkly.backend.v1.ParkService.GetAllParks:output_type -> sparkly.backend.v1.GetAllParksResponse
+	27, // 92: sparkly.backend.v1.ParkService.UpdatePark:output_type -> sparkly.backend.v1.UpdateParkResponse
+	29, // 93: sparkly.backend.v1.ParkService.DeletePark:output_type -> sparkly.backend.v1.DeleteParkResponse
+	31, // 94: sparkly.backend.v1.ParkService.CreateGroup:output_type -> sparkly.backend.v1.CreateGroupResponse
+	33, // 95: sparkly.backend.v1.ParkService.GetGroup:output_type -> sparkly.backend.v1.GetGroupResponse
+	35, // 96: sparkly.backend.v1.ParkService.GetGroups:output_type -> sparkly.backend.v1.GetGroupsResponse
+	37, // 97: sparkly.backend.v1.ParkService.UpdateGroup:output_type -> sparkly.backend.v1.UpdateGroupResponse
+	39, // 98: sparkly.backend.v1.ParkService.DeleteGroup:output_type -> sparkly.backend.v1.DeleteGroupResponse
+	41, // 99: sparkly.backend.v1.ParkService.AddDeviceToGroup:output_type -> sparkly.backend.v1.AddDeviceToGroupResponse
+	43, // 100: sparkly.backend.v1.ParkService.RemoveDeviceFromGroup:output_type -> sparkly.backend.v1.RemoveDeviceFromGroupResponse
+	45, // 101: sparkly.backend.v1.DeviceService.GetDevice:output_type -> sparkly.backend.v1.GetDeviceResponse
+	47, // 102: sparkly.backend.v1.DeviceService.GetDevices:output_type -> sparkly.backend.v1.GetDevicesResponse
+	49, // 103: sparkly.backend.v1.IssueService.GetIssue:output_type -> sparkly.backend.v1.GetIssueResponse
+	51, // 104: sparkly.backend.v1.IssueService.GetIssues:output_type -> sparkly.backend.v1.GetIssuesResponse
+	53, // 105: sparkly.backend.v1.IssueService.ResolveIssue:output_type -> sparkly.backend.v1.ResolveIssueResponse
+	55, // 106: sparkly.backend.v1.IssueService.UpdateIssue:output_type -> sparkly.backend.v1.UpdateIssueResponse
+	57, // 107: sparkly.backend.v1.IssueService.DeleteIssue:output_type -> sparkly.backend.v1.DeleteIssueResponse
+	59, // 108: sparkly.backend.v1.BuildService.CreateBuild:output_type -> sparkly.backend.v1.CreateBuildResponse
+	61, // 109: sparkly.backend.v1.BuildService.GetBuild:output_type -> sparkly.backend.v1.GetBuildResponse
+	63, // 110: sparkly.backend.v1.BuildService.GetBuilds:output_type -> sparkly.backend.v1.GetBuildsResponse
+	65, // 111: sparkly.backend.v1.BuildService.UpdateBuild:output_type -> sparkly.backend.v1.UpdateBuildResponse
+	67, // 112: sparkly.backend.v1.BuildService.DeleteBuild:output_type -> sparkly.backend.v1.DeleteBuildResponse
+	69, // 113: sparkly.backend.v1.ReleaseService.CreateRelease:output_type -> sparkly.backend.v1.CreateReleaseResponse
+	71, // 114: sparkly.backend.v1.ReleaseService.GetRelease:output_type -> sparkly.backend.v1.GetReleaseResponse
+	73, // 115: sparkly.backend.v1.ReleaseService.GetReleases:output_type -> sparkly.backend.v1.GetReleasesResponse
+	75, // 116: sparkly.backend.v1.ReleaseService.UpdateRelease:output_type -> sparkly.backend.v1.UpdateReleaseResponse
+	77, // 117: sparkly.backend.v1.ReleaseService.DeleteRelease:output_type -> sparkly.backend.v1.DeleteReleaseResponse
+	83, // [83:118] is the sub-list for method output_type
+	48, // [48:83] is the sub-list for method input_type
+	48, // [48:48] is the sub-list for extension type_name
+	48, // [48:48] is the sub-list for extension extendee
+	0,  // [0:48] is the sub-list for field type_name
 }
 
 func init() { file_backend_proto_service_proto_init() }

@@ -34,3 +34,9 @@ func UserBuildScope(userID uuid.UUID) func(db *gorm.DB) *gorm.DB {
 		return db.Where("builds.park_id IN (SELECT user_parks.park_id FROM user_parks WHERE user_parks.user_id = ?)", userID)
 	}
 }
+
+func UserReleaseScope(userID uuid.UUID) func(db *gorm.DB) *gorm.DB {
+	return func(db *gorm.DB) *gorm.DB {
+		return db.Where("releases.park_id IN (SELECT user_parks.park_id FROM user_parks WHERE user_parks.user_id = ?)", userID)
+	}
+}
