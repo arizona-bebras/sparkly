@@ -216,6 +216,16 @@ func (Release) TableName() string {
 	return "releases"
 }
 
+func (r *Release) ToDomain() domain.Release {
+	return domain.Release{
+		ID:        r.ID,
+		ParkID:    r.ParkID,
+		Name:      r.Name,
+		Version:   r.Version,
+		CreatedAt: r.CreatedAt,
+	}
+}
+
 type KeyStatus string
 
 const (
