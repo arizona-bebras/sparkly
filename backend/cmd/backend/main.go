@@ -102,6 +102,11 @@ func main() {
 	devicesHandler := handlers.NewDevicesHandler(devicesService)
 	backendv1connect.RegisterDeviceServiceHandler(server, devicesHandler)
 
+	buildsRepo := repos.NewBuildsRepo(db)
+	buildsService := services.NewBuildService(buildsRepo)
+	buildsHandler := handlers.NewBuildsHandler(buildsService)
+	backendv1connect.RegisterBuildServiceHandler(server, buildsHandler)
+
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("GET /.well-known/jwks.json", jwksHandler.GetJWKS)
