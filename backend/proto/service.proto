@@ -11,20 +11,6 @@ option go_package = "sparkly/backend/proto/v1;backendv1";
 // 1. DOMAIN ENTITIES
 // ============================================================================
 
-message PaginationRequest {
-  int32 page = 1 [(buf.validate.field).int32.gte = 1];
-  int32 page_size = 2 [(buf.validate.field).int32 = {
-    gte: 1
-    lte: 100
-  }];
-}
-
-message PaginationResponse {
-  int32 total_items = 1;
-  int32 total_pages = 2;
-  int32 current_page = 3;
-}
-
 message User {
   string id = 1;
   string email = 2;
@@ -86,18 +72,21 @@ message Issue {
   google.protobuf.Timestamp last_at = 9;
 }
 
-message Release {
+message Build {
   string id = 1;
   string park_id = 2;
   string version = 3;
   string commit = 4;
-  string binary_url = 5;
-  string checksum_sha256 = 6;
-  string elf_object_key = 7;
-  string dwarf_object_key = 8;
-  string description = 9;
-  int64 file_size = 10;
-  google.protobuf.Timestamp created_at = 11;
+  string elf_object_key = 5;
+  string dwarf_object_key = 6;
+  google.protobuf.Timestamp created_at = 7;
+}
+
+message Release {
+  string id = 1;
+  string park_id = 2;
+  string name = 3;
+  string version = 4;
 }
 
 // ============================================================================
@@ -184,13 +173,10 @@ message GetParkResponse {
   Park park = 1;
 }
 
-message GetAllParksRequest {
-  PaginationRequest pagination = 1;
-}
+message GetAllParksRequest {}
 
 message GetAllParksResponse {
   repeated Park parks = 1;
-  PaginationResponse pagination = 2;
 }
 
 message UpdateParkRequest {
@@ -238,12 +224,10 @@ message GetGroupResponse {
 
 message GetGroupsRequest {
   string park_id = 1 [(buf.validate.field).string.uuid = true];
-  PaginationRequest pagination = 2;
 }
 
 message GetGroupsResponse {
   repeated DeviceGroup groups = 1;
-  PaginationResponse pagination = 2;
 }
 
 message UpdateGroupRequest {
@@ -306,12 +290,10 @@ message GetDevicesRequest {
     max_len: 30
   }];
   repeated string build_ids = 5 [(buf.validate.field).repeated.items.string.uuid = true];
-  PaginationRequest pagination = 6;
 }
 
 message GetDevicesResponse {
   repeated Device devices = 1;
-  PaginationResponse pagination = 2;
 }
 
 // ============================================================================
@@ -333,12 +315,10 @@ message GetIssuesRequest {
   optional bool is_resolved = 4;
   optional google.protobuf.Timestamp from_time = 5;
   optional google.protobuf.Timestamp to_time = 6;
-  PaginationRequest pagination = 7;
 }
 
 message GetIssuesResponse {
   repeated Issue issues = 1;
-  PaginationResponse pagination = 2;
 }
 
 message ResolveIssueRequest {
@@ -369,7 +349,115 @@ message DeleteIssueResponse {
 }
 
 // ============================================================================
-// 6. SERVICES DEFINITIONS
+// 6. BUILD SERVICE MESSAGES
+// ============================================================================
+
+message CreateBuildRequest {
+    string park_id = 1 [(buf.validate.field).string.uuid = true];
+    string version = 2;
+    string commit = 3;
+    string elf_object_key = 4;
+    string dwarf_object_key = 5;
+}
+
+message CreateBuildResponse {
+    Build build = 1;
+}
+
+message GetBuildRequest {
+    string id = 1 [(buf.validate.field).string.uuid = true];
+}
+
+message GetBuildResponse {
+    Build build = 1;
+}
+
+message GetBuildsRequest {
+    string park_id = 1 [(buf.validate.field).string.uuid = true];
+    optional string version = 2;
+    optional string commit = 3;
+    optional google.protobuf.Timestamp from_time = 4;
+    optional google.protobuf.Timestamp to_time = 5;
+}
+
+message GetBuildsResponse {
+    repeated Build builds = 1;
+}
+
+message UpdateBuildRequest {
+    string id = 1 [(buf.validate.field).string.uuid = true];
+    optional string version = 2;
+    optional string commit = 3;
+    optional string elf_object_key = 5;
+    optional string dwarf_object_key = 6;
+}
+
+message UpdateBuildResponse {
+    repeated Build builds = 1;
+}
+
+message DeleteBuildRequest {
+    string id = 1 [(buf.validate.field).string.uuid = true];
+}
+
+message DeleteBuildResponse {
+    bool success = 1;
+}
+
+// ============================================================================
+// 7. RELEASE SERVICE MESSAGES
+// ============================================================================
+
+message CreateReleaseRequest {
+    string park_id = 1 [(buf.validate.field).string.uuid = true];
+    string name = 2;
+    string version = 3;
+}
+
+message CreateReleaseResponse {
+    Release release = 1;
+}
+
+message GetReleaseRequest {
+    string id = 1 [(buf.validate.field).string.uuid = true];
+}
+
+message GetReleaseResponse {
+    Release release = 1;
+}
+
+message GetReleasesRequest {
+    string id = 1 [(buf.validate.field).string.uuid = true];
+    optional string name = 2;
+    optional string version = 3;
+    optional google.protobuf.Timestamp from_time = 4;
+    optional google.protobuf.Timestamp to_time = 5;
+}
+
+message GetReleasesResponse {
+    repeated Release builds = 1;
+}
+
+message UpdateReleaseRequest {
+    string id = 1 [(buf.validate.field).string.uuid = true];
+    optional string name = 2;
+    optional string version = 3;
+}
+
+message UpdateReleaseResponse {
+    repeated Release builds = 1;
+}
+
+message DeleteReleaseRequest {
+    string id = 1 [(buf.validate.field).string.uuid = true];
+}
+
+message DeleteReleaseResponse {
+    bool success = 1;
+}
+
+// ============================================================================
+// 8. SERVICES DEFINITIONS
 // ============================================================================
 
 service UserService {
@@ -409,4 +497,20 @@ service IssueService {
   rpc ResolveIssue(ResolveIssueRequest) returns (ResolveIssueResponse);
   rpc UpdateIssue(UpdateIssueRequest) returns (UpdateIssueResponse);
   rpc DeleteIssue(DeleteIssueRequest) returns (DeleteIssueResponse);
+}
+
+service BuildService {
+    rpc CreateBuild(CreateBuildRequest) returns (CreateBuildResponse);
+    rpc GetBuild(GetBuildRequest) returns (GetBuildResponse);
+    rpc GetBuilds(GetBuildsRequest) returns (GetBuildsResponse);
+    rpc UpdateBuild(UpdateBuildRequest) returns (UpdateBuildResponse);
+    rpc DeleteBuild(DeleteBuildRequest) returns (DeleteBuildResponse);
+}
+
+service ReleaseService {
+    rpc CreateRelease(CreateReleaseRequest) returns (CreateReleaseResponse);
+    rpc GetRelease(GetReleaseRequest) returns (GetReleaseResponse);
+    rpc GetReleases(GetReleasesRequest) returns (GetReleasesResponse);
+    rpc UpdateRelease(UpdateReleaseRequest) returns (UpdateReleaseResponse);
+    rpc DeleteRelease(DeleteReleaseRequest) returns (DeleteReleaseResponse);
 }

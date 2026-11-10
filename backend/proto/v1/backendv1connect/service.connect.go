@@ -20,6 +20,10 @@ const (
 	DeviceServiceName = "sparkly.backend.v1.DeviceService"
 	// IssueServiceName is the fully-qualified name of the IssueService service.
 	IssueServiceName = "sparkly.backend.v1.IssueService"
+	// BuildServiceName is the fully-qualified name of the BuildService service.
+	BuildServiceName = "sparkly.backend.v1.BuildService"
+	// ReleaseServiceName is the fully-qualified name of the ReleaseService service.
+	ReleaseServiceName = "sparkly.backend.v1.ReleaseService"
 )
 
 // These constants are the procedure names of the RPCs defined in this package. They're exposed at
@@ -82,6 +86,29 @@ const (
 	IssueServiceUpdateIssueProcedure = "/sparkly.backend.v1.IssueService/UpdateIssue"
 	// IssueServiceDeleteIssueProcedure is the procedure name of the IssueService's DeleteIssue RPC.
 	IssueServiceDeleteIssueProcedure = "/sparkly.backend.v1.IssueService/DeleteIssue"
+	// BuildServiceCreateBuildProcedure is the procedure name of the BuildService's CreateBuild RPC.
+	BuildServiceCreateBuildProcedure = "/sparkly.backend.v1.BuildService/CreateBuild"
+	// BuildServiceGetBuildProcedure is the procedure name of the BuildService's GetBuild RPC.
+	BuildServiceGetBuildProcedure = "/sparkly.backend.v1.BuildService/GetBuild"
+	// BuildServiceGetBuildsProcedure is the procedure name of the BuildService's GetBuilds RPC.
+	BuildServiceGetBuildsProcedure = "/sparkly.backend.v1.BuildService/GetBuilds"
+	// BuildServiceUpdateBuildProcedure is the procedure name of the BuildService's UpdateBuild RPC.
+	BuildServiceUpdateBuildProcedure = "/sparkly.backend.v1.BuildService/UpdateBuild"
+	// BuildServiceDeleteBuildProcedure is the procedure name of the BuildService's DeleteBuild RPC.
+	BuildServiceDeleteBuildProcedure = "/sparkly.backend.v1.BuildService/DeleteBuild"
+	// ReleaseServiceCreateReleaseProcedure is the procedure name of the ReleaseService's CreateRelease
+	// RPC.
+	ReleaseServiceCreateReleaseProcedure = "/sparkly.backend.v1.ReleaseService/CreateRelease"
+	// ReleaseServiceGetReleaseProcedure is the procedure name of the ReleaseService's GetRelease RPC.
+	ReleaseServiceGetReleaseProcedure = "/sparkly.backend.v1.ReleaseService/GetRelease"
+	// ReleaseServiceGetReleasesProcedure is the procedure name of the ReleaseService's GetReleases RPC.
+	ReleaseServiceGetReleasesProcedure = "/sparkly.backend.v1.ReleaseService/GetReleases"
+	// ReleaseServiceUpdateReleaseProcedure is the procedure name of the ReleaseService's UpdateRelease
+	// RPC.
+	ReleaseServiceUpdateReleaseProcedure = "/sparkly.backend.v1.ReleaseService/UpdateRelease"
+	// ReleaseServiceDeleteReleaseProcedure is the procedure name of the ReleaseService's DeleteRelease
+	// RPC.
+	ReleaseServiceDeleteReleaseProcedure = "/sparkly.backend.v1.ReleaseService/DeleteRelease"
 )
 
 var (
@@ -1064,6 +1091,414 @@ func (h issueServiceHandler) deleteIssue(ctx context.Context, _ connect.Spec, st
 		return err
 	}
 	res, err := h.svc.DeleteIssue(ctx, &req)
+	if err != nil {
+		return err
+	}
+	return stream.Send(res)
+}
+
+var (
+	buildServiceCreateBuildSpec = sync.OnceValue(func() connect.Spec {
+		return connect.Spec{
+			StreamType: connect.StreamTypeUnary,
+			Schema:     v1.File_backend_proto_service_proto.Services().ByName("BuildService").Methods().ByName("CreateBuild"),
+			Procedure:  BuildServiceCreateBuildProcedure,
+		}
+	})
+	buildServiceGetBuildSpec = sync.OnceValue(func() connect.Spec {
+		return connect.Spec{
+			StreamType: connect.StreamTypeUnary,
+			Schema:     v1.File_backend_proto_service_proto.Services().ByName("BuildService").Methods().ByName("GetBuild"),
+			Procedure:  BuildServiceGetBuildProcedure,
+		}
+	})
+	buildServiceGetBuildsSpec = sync.OnceValue(func() connect.Spec {
+		return connect.Spec{
+			StreamType: connect.StreamTypeUnary,
+			Schema:     v1.File_backend_proto_service_proto.Services().ByName("BuildService").Methods().ByName("GetBuilds"),
+			Procedure:  BuildServiceGetBuildsProcedure,
+		}
+	})
+	buildServiceUpdateBuildSpec = sync.OnceValue(func() connect.Spec {
+		return connect.Spec{
+			StreamType: connect.StreamTypeUnary,
+			Schema:     v1.File_backend_proto_service_proto.Services().ByName("BuildService").Methods().ByName("UpdateBuild"),
+			Procedure:  BuildServiceUpdateBuildProcedure,
+		}
+	})
+	buildServiceDeleteBuildSpec = sync.OnceValue(func() connect.Spec {
+		return connect.Spec{
+			StreamType: connect.StreamTypeUnary,
+			Schema:     v1.File_backend_proto_service_proto.Services().ByName("BuildService").Methods().ByName("DeleteBuild"),
+			Procedure:  BuildServiceDeleteBuildProcedure,
+		}
+	})
+)
+
+// BuildServiceClient is a client for the sparkly.backend.v1.BuildService service.
+type BuildServiceClient interface {
+	CreateBuild(context.Context, *v1.CreateBuildRequest) (*v1.CreateBuildResponse, error)
+	GetBuild(context.Context, *v1.GetBuildRequest) (*v1.GetBuildResponse, error)
+	GetBuilds(context.Context, *v1.GetBuildsRequest) (*v1.GetBuildsResponse, error)
+	UpdateBuild(context.Context, *v1.UpdateBuildRequest) (*v1.UpdateBuildResponse, error)
+	DeleteBuild(context.Context, *v1.DeleteBuildRequest) (*v1.DeleteBuildResponse, error)
+}
+
+// NewBuildServiceClient constructs a client for the sparkly.backend.v1.BuildService service.
+// Multiple service clients may share a single connect.Client.
+func NewBuildServiceClient(client *connect.Client) BuildServiceClient {
+	return &buildServiceClient{client: client}
+}
+
+// BuildServiceHandler is an implementation of the sparkly.backend.v1.BuildService service.
+type BuildServiceHandler interface {
+	CreateBuild(context.Context, *v1.CreateBuildRequest) (*v1.CreateBuildResponse, error)
+	GetBuild(context.Context, *v1.GetBuildRequest) (*v1.GetBuildResponse, error)
+	GetBuilds(context.Context, *v1.GetBuildsRequest) (*v1.GetBuildsResponse, error)
+	UpdateBuild(context.Context, *v1.UpdateBuildRequest) (*v1.UpdateBuildResponse, error)
+	DeleteBuild(context.Context, *v1.DeleteBuildRequest) (*v1.DeleteBuildResponse, error)
+}
+
+// RegisterBuildServiceHandler registers svc as the sparkly.backend.v1.BuildService implementation
+// on server.
+func RegisterBuildServiceHandler(server *connect.Server, svc BuildServiceHandler) {
+	adapter := buildServiceHandler{svc: svc}
+	server.Register(
+		connect.Method{Spec: buildServiceCreateBuildSpec(), Handler: adapter.createBuild},
+		connect.Method{Spec: buildServiceGetBuildSpec(), Handler: adapter.getBuild},
+		connect.Method{Spec: buildServiceGetBuildsSpec(), Handler: adapter.getBuilds},
+		connect.Method{Spec: buildServiceUpdateBuildSpec(), Handler: adapter.updateBuild},
+		connect.Method{Spec: buildServiceDeleteBuildSpec(), Handler: adapter.deleteBuild},
+	)
+}
+
+// UnimplementedBuildServiceHandler returns CodeUnimplemented from all methods.
+type UnimplementedBuildServiceHandler struct{}
+
+func (UnimplementedBuildServiceHandler) CreateBuild(context.Context, *v1.CreateBuildRequest) (*v1.CreateBuildResponse, error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, "sparkly.backend.v1.BuildService.CreateBuild is not implemented")
+}
+
+func (UnimplementedBuildServiceHandler) GetBuild(context.Context, *v1.GetBuildRequest) (*v1.GetBuildResponse, error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, "sparkly.backend.v1.BuildService.GetBuild is not implemented")
+}
+
+func (UnimplementedBuildServiceHandler) GetBuilds(context.Context, *v1.GetBuildsRequest) (*v1.GetBuildsResponse, error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, "sparkly.backend.v1.BuildService.GetBuilds is not implemented")
+}
+
+func (UnimplementedBuildServiceHandler) UpdateBuild(context.Context, *v1.UpdateBuildRequest) (*v1.UpdateBuildResponse, error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, "sparkly.backend.v1.BuildService.UpdateBuild is not implemented")
+}
+
+func (UnimplementedBuildServiceHandler) DeleteBuild(context.Context, *v1.DeleteBuildRequest) (*v1.DeleteBuildResponse, error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, "sparkly.backend.v1.BuildService.DeleteBuild is not implemented")
+}
+
+type buildServiceClient struct {
+	client *connect.Client
+}
+
+func (c *buildServiceClient) CreateBuild(ctx context.Context, req *v1.CreateBuildRequest) (*v1.CreateBuildResponse, error) {
+	var res v1.CreateBuildResponse
+	if err := c.client.CallUnary(ctx, buildServiceCreateBuildSpec(), req, &res); err != nil {
+		return nil, err
+	}
+	return &res, nil
+}
+
+func (c *buildServiceClient) GetBuild(ctx context.Context, req *v1.GetBuildRequest) (*v1.GetBuildResponse, error) {
+	var res v1.GetBuildResponse
+	if err := c.client.CallUnary(ctx, buildServiceGetBuildSpec(), req, &res); err != nil {
+		return nil, err
+	}
+	return &res, nil
+}
+
+func (c *buildServiceClient) GetBuilds(ctx context.Context, req *v1.GetBuildsRequest) (*v1.GetBuildsResponse, error) {
+	var res v1.GetBuildsResponse
+	if err := c.client.CallUnary(ctx, buildServiceGetBuildsSpec(), req, &res); err != nil {
+		return nil, err
+	}
+	return &res, nil
+}
+
+func (c *buildServiceClient) UpdateBuild(ctx context.Context, req *v1.UpdateBuildRequest) (*v1.UpdateBuildResponse, error) {
+	var res v1.UpdateBuildResponse
+	if err := c.client.CallUnary(ctx, buildServiceUpdateBuildSpec(), req, &res); err != nil {
+		return nil, err
+	}
+	return &res, nil
+}
+
+func (c *buildServiceClient) DeleteBuild(ctx context.Context, req *v1.DeleteBuildRequest) (*v1.DeleteBuildResponse, error) {
+	var res v1.DeleteBuildResponse
+	if err := c.client.CallUnary(ctx, buildServiceDeleteBuildSpec(), req, &res); err != nil {
+		return nil, err
+	}
+	return &res, nil
+}
+
+type buildServiceHandler struct{ svc BuildServiceHandler }
+
+func (h buildServiceHandler) createBuild(ctx context.Context, _ connect.Spec, stream connect.ServerStream) error {
+	var req v1.CreateBuildRequest
+	if err := stream.Receive(&req); err != nil {
+		return err
+	}
+	res, err := h.svc.CreateBuild(ctx, &req)
+	if err != nil {
+		return err
+	}
+	return stream.Send(res)
+}
+
+func (h buildServiceHandler) getBuild(ctx context.Context, _ connect.Spec, stream connect.ServerStream) error {
+	var req v1.GetBuildRequest
+	if err := stream.Receive(&req); err != nil {
+		return err
+	}
+	res, err := h.svc.GetBuild(ctx, &req)
+	if err != nil {
+		return err
+	}
+	return stream.Send(res)
+}
+
+func (h buildServiceHandler) getBuilds(ctx context.Context, _ connect.Spec, stream connect.ServerStream) error {
+	var req v1.GetBuildsRequest
+	if err := stream.Receive(&req); err != nil {
+		return err
+	}
+	res, err := h.svc.GetBuilds(ctx, &req)
+	if err != nil {
+		return err
+	}
+	return stream.Send(res)
+}
+
+func (h buildServiceHandler) updateBuild(ctx context.Context, _ connect.Spec, stream connect.ServerStream) error {
+	var req v1.UpdateBuildRequest
+	if err := stream.Receive(&req); err != nil {
+		return err
+	}
+	res, err := h.svc.UpdateBuild(ctx, &req)
+	if err != nil {
+		return err
+	}
+	return stream.Send(res)
+}
+
+func (h buildServiceHandler) deleteBuild(ctx context.Context, _ connect.Spec, stream connect.ServerStream) error {
+	var req v1.DeleteBuildRequest
+	if err := stream.Receive(&req); err != nil {
+		return err
+	}
+	res, err := h.svc.DeleteBuild(ctx, &req)
+	if err != nil {
+		return err
+	}
+	return stream.Send(res)
+}
+
+var (
+	releaseServiceCreateReleaseSpec = sync.OnceValue(func() connect.Spec {
+		return connect.Spec{
+			StreamType: connect.StreamTypeUnary,
+			Schema:     v1.File_backend_proto_service_proto.Services().ByName("ReleaseService").Methods().ByName("CreateRelease"),
+			Procedure:  ReleaseServiceCreateReleaseProcedure,
+		}
+	})
+	releaseServiceGetReleaseSpec = sync.OnceValue(func() connect.Spec {
+		return connect.Spec{
+			StreamType: connect.StreamTypeUnary,
+			Schema:     v1.File_backend_proto_service_proto.Services().ByName("ReleaseService").Methods().ByName("GetRelease"),
+			Procedure:  ReleaseServiceGetReleaseProcedure,
+		}
+	})
+	releaseServiceGetReleasesSpec = sync.OnceValue(func() connect.Spec {
+		return connect.Spec{
+			StreamType: connect.StreamTypeUnary,
+			Schema:     v1.File_backend_proto_service_proto.Services().ByName("ReleaseService").Methods().ByName("GetReleases"),
+			Procedure:  ReleaseServiceGetReleasesProcedure,
+		}
+	})
+	releaseServiceUpdateReleaseSpec = sync.OnceValue(func() connect.Spec {
+		return connect.Spec{
+			StreamType: connect.StreamTypeUnary,
+			Schema:     v1.File_backend_proto_service_proto.Services().ByName("ReleaseService").Methods().ByName("UpdateRelease"),
+			Procedure:  ReleaseServiceUpdateReleaseProcedure,
+		}
+	})
+	releaseServiceDeleteReleaseSpec = sync.OnceValue(func() connect.Spec {
+		return connect.Spec{
+			StreamType: connect.StreamTypeUnary,
+			Schema:     v1.File_backend_proto_service_proto.Services().ByName("ReleaseService").Methods().ByName("DeleteRelease"),
+			Procedure:  ReleaseServiceDeleteReleaseProcedure,
+		}
+	})
+)
+
+// ReleaseServiceClient is a client for the sparkly.backend.v1.ReleaseService service.
+type ReleaseServiceClient interface {
+	CreateRelease(context.Context, *v1.CreateReleaseRequest) (*v1.CreateReleaseResponse, error)
+	GetRelease(context.Context, *v1.GetReleaseRequest) (*v1.GetReleaseResponse, error)
+	GetReleases(context.Context, *v1.GetReleasesRequest) (*v1.GetReleasesResponse, error)
+	UpdateRelease(context.Context, *v1.UpdateReleaseRequest) (*v1.UpdateReleaseResponse, error)
+	DeleteRelease(context.Context, *v1.DeleteReleaseRequest) (*v1.DeleteReleaseResponse, error)
+}
+
+// NewReleaseServiceClient constructs a client for the sparkly.backend.v1.ReleaseService service.
+// Multiple service clients may share a single connect.Client.
+func NewReleaseServiceClient(client *connect.Client) ReleaseServiceClient {
+	return &releaseServiceClient{client: client}
+}
+
+// ReleaseServiceHandler is an implementation of the sparkly.backend.v1.ReleaseService service.
+type ReleaseServiceHandler interface {
+	CreateRelease(context.Context, *v1.CreateReleaseRequest) (*v1.CreateReleaseResponse, error)
+	GetRelease(context.Context, *v1.GetReleaseRequest) (*v1.GetReleaseResponse, error)
+	GetReleases(context.Context, *v1.GetReleasesRequest) (*v1.GetReleasesResponse, error)
+	UpdateRelease(context.Context, *v1.UpdateReleaseRequest) (*v1.UpdateReleaseResponse, error)
+	DeleteRelease(context.Context, *v1.DeleteReleaseRequest) (*v1.DeleteReleaseResponse, error)
+}
+
+// RegisterReleaseServiceHandler registers svc as the sparkly.backend.v1.ReleaseService
+// implementation on server.
+func RegisterReleaseServiceHandler(server *connect.Server, svc ReleaseServiceHandler) {
+	adapter := releaseServiceHandler{svc: svc}
+	server.Register(
+		connect.Method{Spec: releaseServiceCreateReleaseSpec(), Handler: adapter.createRelease},
+		connect.Method{Spec: releaseServiceGetReleaseSpec(), Handler: adapter.getRelease},
+		connect.Method{Spec: releaseServiceGetReleasesSpec(), Handler: adapter.getReleases},
+		connect.Method{Spec: releaseServiceUpdateReleaseSpec(), Handler: adapter.updateRelease},
+		connect.Method{Spec: releaseServiceDeleteReleaseSpec(), Handler: adapter.deleteRelease},
+	)
+}
+
+// UnimplementedReleaseServiceHandler returns CodeUnimplemented from all methods.
+type UnimplementedReleaseServiceHandler struct{}
+
+func (UnimplementedReleaseServiceHandler) CreateRelease(context.Context, *v1.CreateReleaseRequest) (*v1.CreateReleaseResponse, error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, "sparkly.backend.v1.ReleaseService.CreateRelease is not implemented")
+}
+
+func (UnimplementedReleaseServiceHandler) GetRelease(context.Context, *v1.GetReleaseRequest) (*v1.GetReleaseResponse, error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, "sparkly.backend.v1.ReleaseService.GetRelease is not implemented")
+}
+
+func (UnimplementedReleaseServiceHandler) GetReleases(context.Context, *v1.GetReleasesRequest) (*v1.GetReleasesResponse, error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, "sparkly.backend.v1.ReleaseService.GetReleases is not implemented")
+}
+
+func (UnimplementedReleaseServiceHandler) UpdateRelease(context.Context, *v1.UpdateReleaseRequest) (*v1.UpdateReleaseResponse, error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, "sparkly.backend.v1.ReleaseService.UpdateRelease is not implemented")
+}
+
+func (UnimplementedReleaseServiceHandler) DeleteRelease(context.Context, *v1.DeleteReleaseRequest) (*v1.DeleteReleaseResponse, error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, "sparkly.backend.v1.ReleaseService.DeleteRelease is not implemented")
+}
+
+type releaseServiceClient struct {
+	client *connect.Client
+}
+
+func (c *releaseServiceClient) CreateRelease(ctx context.Context, req *v1.CreateReleaseRequest) (*v1.CreateReleaseResponse, error) {
+	var res v1.CreateReleaseResponse
+	if err := c.client.CallUnary(ctx, releaseServiceCreateReleaseSpec(), req, &res); err != nil {
+		return nil, err
+	}
+	return &res, nil
+}
+
+func (c *releaseServiceClient) GetRelease(ctx context.Context, req *v1.GetReleaseRequest) (*v1.GetReleaseResponse, error) {
+	var res v1.GetReleaseResponse
+	if err := c.client.CallUnary(ctx, releaseServiceGetReleaseSpec(), req, &res); err != nil {
+		return nil, err
+	}
+	return &res, nil
+}
+
+func (c *releaseServiceClient) GetReleases(ctx context.Context, req *v1.GetReleasesRequest) (*v1.GetReleasesResponse, error) {
+	var res v1.GetReleasesResponse
+	if err := c.client.CallUnary(ctx, releaseServiceGetReleasesSpec(), req, &res); err != nil {
+		return nil, err
+	}
+	return &res, nil
+}
+
+func (c *releaseServiceClient) UpdateRelease(ctx context.Context, req *v1.UpdateReleaseRequest) (*v1.UpdateReleaseResponse, error) {
+	var res v1.UpdateReleaseResponse
+	if err := c.client.CallUnary(ctx, releaseServiceUpdateReleaseSpec(), req, &res); err != nil {
+		return nil, err
+	}
+	return &res, nil
+}
+
+func (c *releaseServiceClient) DeleteRelease(ctx context.Context, req *v1.DeleteReleaseRequest) (*v1.DeleteReleaseResponse, error) {
+	var res v1.DeleteReleaseResponse
+	if err := c.client.CallUnary(ctx, releaseServiceDeleteReleaseSpec(), req, &res); err != nil {
+		return nil, err
+	}
+	return &res, nil
+}
+
+type releaseServiceHandler struct{ svc ReleaseServiceHandler }
+
+func (h releaseServiceHandler) createRelease(ctx context.Context, _ connect.Spec, stream connect.ServerStream) error {
+	var req v1.CreateReleaseRequest
+	if err := stream.Receive(&req); err != nil {
+		return err
+	}
+	res, err := h.svc.CreateRelease(ctx, &req)
+	if err != nil {
+		return err
+	}
+	return stream.Send(res)
+}
+
+func (h releaseServiceHandler) getRelease(ctx context.Context, _ connect.Spec, stream connect.ServerStream) error {
+	var req v1.GetReleaseRequest
+	if err := stream.Receive(&req); err != nil {
+		return err
+	}
+	res, err := h.svc.GetRelease(ctx, &req)
+	if err != nil {
+		return err
+	}
+	return stream.Send(res)
+}
+
+func (h releaseServiceHandler) getReleases(ctx context.Context, _ connect.Spec, stream connect.ServerStream) error {
+	var req v1.GetReleasesRequest
+	if err := stream.Receive(&req); err != nil {
+		return err
+	}
+	res, err := h.svc.GetReleases(ctx, &req)
+	if err != nil {
+		return err
+	}
+	return stream.Send(res)
+}
+
+func (h releaseServiceHandler) updateRelease(ctx context.Context, _ connect.Spec, stream connect.ServerStream) error {
+	var req v1.UpdateReleaseRequest
+	if err := stream.Receive(&req); err != nil {
+		return err
+	}
+	res, err := h.svc.UpdateRelease(ctx, &req)
+	if err != nil {
+		return err
+	}
+	return stream.Send(res)
+}
+
+func (h releaseServiceHandler) deleteRelease(ctx context.Context, _ connect.Spec, stream connect.ServerStream) error {
+	var req v1.DeleteReleaseRequest
+	if err := stream.Receive(&req); err != nil {
+		return err
+	}
+	res, err := h.svc.DeleteRelease(ctx, &req)
 	if err != nil {
 		return err
 	}
