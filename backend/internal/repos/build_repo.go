@@ -104,7 +104,7 @@ func (r *BuildsRepo) GetBuilds(ctx context.Context, filters domain.GetBuildsFilt
 	}
 
 	if filters.Commit != nil {
-		query = query.Where("builds.commit = ?", "%"+*filters.Commit+"%")
+		query = query.Where("builds.commit LIKE ?", "%"+*filters.Commit+"%")
 	}
 
 	if filters.FromTime != nil {
