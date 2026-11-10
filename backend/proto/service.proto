@@ -354,55 +354,55 @@ message DeleteIssueResponse {
 // ============================================================================
 
 message CreateBuildRequest {
-    string park_id = 1 [(buf.validate.field).string.uuid = true];
-    string version = 2;
-    string commit = 3;
-    string elf_object_key = 4;
-    string dwarf_object_key = 5;
+  string park_id = 1 [(buf.validate.field).string.uuid = true];
+  string version = 2;
+  string commit = 3;
+  string elf_object_key = 4;
+  string dwarf_object_key = 5;
 }
 
 message CreateBuildResponse {
-    Build build = 1;
+  Build build = 1;
 }
 
 message GetBuildRequest {
-    string id = 1 [(buf.validate.field).string.uuid = true];
+  string id = 1 [(buf.validate.field).string.uuid = true];
 }
 
 message GetBuildResponse {
-    Build build = 1;
+  Build build = 1;
 }
 
 message GetBuildsRequest {
-    string park_id = 1 [(buf.validate.field).string.uuid = true];
-    optional string version = 2;
-    optional string commit = 3;
-    optional google.protobuf.Timestamp from_time = 4;
-    optional google.protobuf.Timestamp to_time = 5;
+  string park_id = 1 [(buf.validate.field).string.uuid = true];
+  optional string version = 2;
+  optional string commit = 3;
+  optional google.protobuf.Timestamp from_time = 4;
+  optional google.protobuf.Timestamp to_time = 5;
 }
 
 message GetBuildsResponse {
-    repeated Build builds = 1;
+  repeated Build builds = 1;
 }
 
 message UpdateBuildRequest {
-    string id = 1 [(buf.validate.field).string.uuid = true];
-    optional string version = 2;
-    optional string commit = 3;
-    optional string elf_object_key = 5;
-    optional string dwarf_object_key = 6;
+  string id = 1 [(buf.validate.field).string.uuid = true];
+  optional string version = 2;
+  optional string commit = 3;
+  optional string elf_object_key = 5;
+  optional string dwarf_object_key = 6;
 }
 
 message UpdateBuildResponse {
-    repeated Build builds = 1;
+  repeated Build builds = 1;
 }
 
 message DeleteBuildRequest {
-    string id = 1 [(buf.validate.field).string.uuid = true];
+  string id = 1 [(buf.validate.field).string.uuid = true];
 }
 
 message DeleteBuildResponse {
-    bool success = 1;
+  bool success = 1;
 }
 
 // ============================================================================
@@ -410,51 +410,51 @@ message DeleteBuildResponse {
 // ============================================================================
 
 message CreateReleaseRequest {
-    string park_id = 1 [(buf.validate.field).string.uuid = true];
-    string name = 2;
-    string version = 3;
+  string park_id = 1 [(buf.validate.field).string.uuid = true];
+  string name = 2;
+  string version = 3;
 }
 
 message CreateReleaseResponse {
-    Release release = 1;
+  Release release = 1;
 }
 
 message GetReleaseRequest {
-    string id = 1 [(buf.validate.field).string.uuid = true];
+  string id = 1 [(buf.validate.field).string.uuid = true];
 }
 
 message GetReleaseResponse {
-    Release release = 1;
+  Release release = 1;
 }
 
 message GetReleasesRequest {
-    string park_id = 1 [(buf.validate.field).string.uuid = true];
-    optional string name = 2;
-    optional string version = 3;
-    optional google.protobuf.Timestamp from_time = 4;
-    optional google.protobuf.Timestamp to_time = 5;
+  string park_id = 1 [(buf.validate.field).string.uuid = true];
+  optional string name = 2;
+  optional string version = 3;
+  optional google.protobuf.Timestamp from_time = 4;
+  optional google.protobuf.Timestamp to_time = 5;
 }
 
 message GetReleasesResponse {
-    repeated Release releases = 1;
+  repeated Release releases = 1;
 }
 
 message UpdateReleaseRequest {
-    string id = 1 [(buf.validate.field).string.uuid = true];
-    optional string name = 2;
-    optional string version = 3;
+  string id = 1 [(buf.validate.field).string.uuid = true];
+  optional string name = 2;
+  optional string version = 3;
 }
 
 message UpdateReleaseResponse {
-    Release release = 1;
+  Release release = 1;
 }
 
 message DeleteReleaseRequest {
-    string id = 1 [(buf.validate.field).string.uuid = true];
+  string id = 1 [(buf.validate.field).string.uuid = true];
 }
 
 message DeleteReleaseResponse {
-    bool success = 1;
+  bool success = 1;
 }
 
 // ============================================================================
@@ -501,17 +501,17 @@ service IssueService {
 }
 
 service BuildService {
-    rpc CreateBuild(CreateBuildRequest) returns (CreateBuildResponse);
-    rpc GetBuild(GetBuildRequest) returns (GetBuildResponse);
-    rpc GetBuilds(GetBuildsRequest) returns (GetBuildsResponse);
-    rpc UpdateBuild(UpdateBuildRequest) returns (UpdateBuildResponse);
-    rpc DeleteBuild(DeleteBuildRequest) returns (DeleteBuildResponse);
+  rpc CreateBuild(CreateBuildRequest) returns (CreateBuildResponse);
+  rpc GetBuild(GetBuildRequest) returns (GetBuildResponse);
+  rpc GetBuilds(GetBuildsRequest) returns (GetBuildsResponse);
+  rpc UpdateBuild(UpdateBuildRequest) returns (UpdateBuildResponse);
+  rpc DeleteBuild(DeleteBuildRequest) returns (DeleteBuildResponse);
 }
 
 service ReleaseService {
-    rpc CreateRelease(CreateReleaseRequest) returns (CreateReleaseResponse);
-    rpc GetRelease(GetReleaseRequest) returns (GetReleaseResponse);
-    rpc GetReleases(GetReleasesRequest) returns (GetReleasesResponse);
-    rpc UpdateRelease(UpdateReleaseRequest) returns (UpdateReleaseResponse);
-    rpc DeleteRelease(DeleteReleaseRequest) returns (DeleteReleaseResponse);
+  rpc CreateRelease(CreateReleaseRequest) returns (CreateReleaseResponse);
+  rpc GetRelease(GetReleaseRequest) returns (GetReleaseResponse);
+  rpc GetReleases(GetReleasesRequest) returns (GetReleasesResponse);
+  rpc UpdateRelease(UpdateReleaseRequest) returns (UpdateReleaseResponse);
+  rpc DeleteRelease(DeleteReleaseRequest) returns (DeleteReleaseResponse);
 }
