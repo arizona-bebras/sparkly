@@ -1,3 +1,6 @@
 node_modules/
 .nx/
 .pnpm-store/
+
+# Local CA trust and provisioner credentials
+step-ca/local/

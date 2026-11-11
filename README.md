@@ -30,15 +30,16 @@ Nx использует `project.json` в каждом проекте. Кеш Nx
 
 Для каждого приложения, кроме agent, добавлен Dockerfile. Compose также запускает PostgreSQL 18 и ClickHouse 26.8 из официальных образов.
 
-| Сервис / профиль       | Порт хоста по умолчанию    |
-| ---------------------- | -------------------------- |
-| frontend               | 3000                       |
-| envoy                  | 10000                      |
-| backend                | 8080                       |
-| analytics              | 8081                       |
-| ml                     | 8082                       |
-| postgres (без профиля) | 5432                       |
-| clickhouse             | 8123 (HTTP), 9000 (native) |
+| Сервис / профиль | Порт хоста по умолчанию                                     |
+| ---------------- | ----------------------------------------------------------- |
+| frontend         | 3000                                                        |
+| envoy            | 10000 (HTTP), 10001 (device mTLS), 10002 (enrollment HTTPS) |
+| step-ca          | 9001 (HTTPS)                                                |
+| backend          | 8080                                                        |
+| analytics        | 8081                                                        |
+| ml               | 8082                                                        |
+| postgres         | 5432                                                        |
+| clickhouse       | 8123 (HTTP), 9000 (native)                                  |
 
 ```sh
 # Все профили
@@ -48,14 +49,22 @@ docker compose --profile '*' up --build -d
 docker compose --profile backend up --build -d
 ```
 
+step-ca автоматически создаёт CA и device provisioner при первом запуске. Backend получает доверенный корень и ключ provisioner через отдельный read-only volume и ждёт готовности CA. Настройка и экспорт credentials для локального backend описаны в [step-ca/README.md](step-ca/README.md).
+
 Gateway доступен на `http://localhost:10000` (порт задаётся через `ENVOY_PORT`).
 Для frontend через gateway задайте `FRONTEND_ORIGIN=http://localhost:10000`.
 Frontend и RPC регистрации/входа публичны, остальные маршруты сервисов требуют
 cookie `access_token`.
+Устройства отправляют `POST /ingest` через mTLS на `https://localhost:10001`;
+регистрация с enrollment token и CSR доступна на `https://localhost:10002/devices/reg`.
+Envoy проверяет сертификат и передаёт device/park ID из URI SAN в доверенных заголовках.
+Подробнее — [envoy/README.md](envoy/README.md).
 
-Во всех контейнерах `extra_hosts` направляет имена `frontend`, `backend`, `analytics`, `ml`, `postgres`, `clickhouse` и `host.docker.internal` на `host-gateway`. Поэтому запрос `postgres:5432` идёт через опубликованный порт хоста. Использовать `127.0.0.1` в этих записях нельзя: это loopback самого контейнера. Снаружи Docker сервисы доступны через `localhost:<порт>`; записи `extra_hosts` не меняют DNS хоста или браузера.
+В контейнерах приложений `extra_hosts` направляет имена `frontend`, `backend`, `analytics`, `ml`, `postgres`, `clickhouse` и `host.docker.internal` на `host-gateway`. Поэтому запрос `postgres:5432` идёт через опубликованный порт хоста. Использовать `127.0.0.1` в этих записях нельзя: это loopback самого контейнера. Снаружи Docker сервисы доступны через `localhost:<порт>`; записи `extra_hosts` не меняют DNS хоста или браузера.
 
-Чтобы заменить backend локальным процессом:
+step-ca использует внутренний Compose DNS `step-ca:9000`; опубликованный HTTPS-порт `9001` задаётся через `STEP_CA_PORT` и не влияет на адрес backend → CA.
+
+Чтобы заменить backend локальным процессом, сначала экспортируйте `STEP_CA_*` по инструкции выше:
 
 ```sh
 docker compose stop backend

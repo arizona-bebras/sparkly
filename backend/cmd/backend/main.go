@@ -12,6 +12,7 @@ import (
 
 	"sparkly/backend/internal/db"
 	"sparkly/backend/internal/handlers"
+	"sparkly/backend/internal/infrastructure/stepca"
 	"sparkly/backend/internal/interceptors"
 	"sparkly/backend/internal/repos"
 	"sparkly/backend/internal/services"
@@ -97,7 +98,18 @@ func main() {
 	backendv1connect.RegisterIssueServiceHandler(server, issuesHandler)
 
 	devicesRepo := repos.NewDevicesRepo(db)
-	devicesService := services.NewDeviceService(devicesRepo)
+	deviceCA, err := stepca.New(stepca.Config{
+		URL:         os.Getenv("STEP_CA_URL"),
+		RootFile:    os.Getenv("STEP_CA_ROOT_FILE"),
+		Provisioner: os.Getenv("STEP_CA_PROVISIONER"),
+		KeyID:       os.Getenv("STEP_CA_KEY_ID"),
+		KeyIDFile:   os.Getenv("STEP_CA_KEY_ID_FILE"),
+		KeyFile:     os.Getenv("STEP_CA_KEY_FILE"),
+	})
+	if err != nil {
+		log.Fatalf("failed to initialize device CA: %v", err)
+	}
+	devicesService := services.NewDeviceService(devicesRepo, deviceCA)
 	devicesRegHandler := handlers.NewDeviceRegHandler(devicesService)
 	devicesHandler := handlers.NewDevicesHandler(devicesService)
 	backendv1connect.RegisterDeviceServiceHandler(server, devicesHandler)

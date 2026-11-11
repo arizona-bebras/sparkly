@@ -71,8 +71,11 @@ func TestClickHouseIngest(t *testing.T) {
 	}
 	before := time.Now().UTC().Truncate(time.Millisecond)
 	response := httptest.NewRecorder()
-	handlers.NewIngestHandler(repos.NewRawBatchesRepo(conn)).ServeHTTP(response,
-		httptest.NewRequest(http.MethodPost, "/ingest", bytes.NewReader(body)).WithContext(ctx))
+	deviceID, parkID := uuid.New(), uuid.New()
+	request := httptest.NewRequest(http.MethodPost, "/ingest", bytes.NewReader(body)).WithContext(ctx)
+	request.Header.Set("X-Device-Id", deviceID.String())
+	request.Header.Set("X-Park-Id", parkID.String())
+	handlers.NewIngestHandler(repos.NewRawBatchesRepo(conn)).ServeHTTP(response, request)
 	if response.Code != http.StatusNoContent {
 		t.Fatalf("status = %d, body = %s", response.Code, response.Body)
 	}
@@ -104,7 +107,7 @@ func TestClickHouseIngest(t *testing.T) {
 	if err != nil || batchID.Version() != 7 {
 		t.Fatalf("batch ID = %q, error = %v", id, err)
 	}
-	if device != uuid.Nil.String() || park != uuid.Nil.String() || groups != 0 {
+	if device != deviceID.String() || park != parkID.String() || groups != 0 {
 		t.Fatalf("device = %s, park = %s, groups = %d", device, park, groups)
 	}
 	if received.Before(before) || received.After(time.Now()) {

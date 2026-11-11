@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log"
 	"time"
 
 	"sparkly/backend/internal/db/models"
@@ -26,40 +25,47 @@ func NewDevicesRepo(db *gorm.DB) *DevicesRepo {
 	}
 }
 
-func (r *DevicesRepo) CreateDevice(ctx context.Context, connectToken, deviceToken string) error {
-	var token models.Token
-	if err := r.db.WithContext(ctx).Preload("Groups").First(&token, "token = ?", connectToken).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return domain.ErrTokenNotFound
-		}
-		return fmt.Errorf("failed to write device to db: %w", err)
-	}
-	id, err := uuid.NewV7()
-	if err != nil {
-		return fmt.Errorf("failed to generate id for device: %w", err)
-	}
-	device := models.Device{
-		ID:       id,
-		ParkID:   token.ParkID,
-		Name:     "device_" + id.String(),
-		Token:    deviceToken,
-		JoinedAt: time.Now(),
-	}
-	if err := r.db.WithContext(ctx).Create(&device).Error; err != nil {
-		var pgErr *pgconn.PgError
-		if errors.Is(err, gorm.ErrDuplicatedKey) || (errors.As(err, &pgErr) && pgErr.Code == "23505") {
-			return domain.ErrDuplicatedDevice
-		}
-		return fmt.Errorf("failed to write new device to db: %w", err)
-	}
-	log.Println(token.Groups)
+func (r *DevicesRepo) CreateDevice(ctx context.Context, connectToken string, issue func(domain.Device) error) error {
+	return r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		var token models.Token
 
-	if len(token.Groups) > 0 {
-		if err := r.db.WithContext(ctx).Model(&device).Association("Groups").Append(token.Groups); err != nil {
-			return fmt.Errorf("failed to assign device to groups: %w", err)
+		if err := tx.Preload("Groups").First(&token, "token = ?", connectToken).Error; err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				return domain.ErrTokenNotFound
+			}
+			return fmt.Errorf("failed to write device to db: %w", err)
 		}
-	}
-	return nil
+
+		id, err := uuid.NewV7()
+		if err != nil {
+			return fmt.Errorf("failed to generate id for device: %w", err)
+		}
+		device := models.Device{
+			ID:     id,
+			ParkID: token.ParkID,
+			Name:   "device_" + id.String(),
+			// Retained for compatibility with the existing NOT NULL column.
+			// Certificates replace device bearer tokens.
+			Token:    "",
+			JoinedAt: time.Now(),
+		}
+
+		if err := tx.Create(&device).Error; err != nil {
+			var pgErr *pgconn.PgError
+			if errors.Is(err, gorm.ErrDuplicatedKey) || (errors.As(err, &pgErr) && pgErr.Code == "23505") {
+				return domain.ErrDuplicatedDevice
+			}
+			return fmt.Errorf("failed to write new device to db: %w", err)
+		}
+
+		if len(token.Groups) > 0 {
+			if err := tx.Model(&device).Association("Groups").Append(token.Groups); err != nil {
+				return fmt.Errorf("failed to assign device to groups: %w", err)
+			}
+		}
+
+		return issue(domain.Device{ID: device.ID, ParkID: device.ParkID, Name: device.Name})
+	})
 }
 
 func (r *DevicesRepo) GetDevice(ctx context.Context, deviceID, userID uuid.UUID) (domain.Device, error) {

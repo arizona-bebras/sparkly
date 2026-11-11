@@ -1,0 +1,6 @@
+*
+!Dockerfile
+!bootstrap.sh
+!templates/
+!templates/device.tpl
+!templates/envoy-server.tpl

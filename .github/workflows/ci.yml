@@ -93,6 +93,15 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install --yes protobuf-compiler
+      - name: Prepare host example CA certificate
+        if: matrix.project == 'agent'
+        run: |
+          openssl req -x509 -newkey ec -pkeyopt ec_paramgen_curve:P-256 -nodes \
+            -keyout "$RUNNER_TEMP/host-example-ca.key" \
+            -out "$RUNNER_TEMP/host-example-ca.crt" \
+            -days 1 -subj '/CN=Host example CI CA'
+          rm "$RUNNER_TEMP/host-example-ca.key"
+          echo "SPARKLY_CA_CERT=$RUNNER_TEMP/host-example-ca.crt" >> "$GITHUB_ENV"
       - uses: actions/setup-python@v7
         if: matrix.runtime == 'python'
         with:
