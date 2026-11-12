@@ -46,11 +46,7 @@
     },
     "check": {
       "executor": "nx:noop",
-      "dependsOn": [
-        "lint",
-        "format:check",
-        "test"
-      ]
+      "dependsOn": ["lint", "format:check", "test"]
     }
   }
 }
