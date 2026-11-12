@@ -25,7 +25,7 @@ func (r *GroupMembershipRepo) WriteAssociatedGroups(ctx context.Context, params 
 		groupIDs = append(groupIDs, id.String())
 	}
 
-	ctx = clickhouse.Context(ctx, clickhouse.WithAsync(false))
+	ctx = clickhouse.Context(ctx)
 	if _, err := r.db.ExecContext(ctx,
 		`INSERT INTO group_membership (device_id, group_ids, version)
 		VALUES (toUUID(?), CAST(? AS Array(UUID)), fromUnixTimestamp64Milli(?, 'UTC'))`,

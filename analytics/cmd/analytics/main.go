@@ -69,6 +69,7 @@ func main() {
 	defer consumerCancel()
 	if err := deviceGroupsConsumer.Listen(consumerCtx); err != nil {
 		log.Fatalf("failed to start group_membership consumer: %v", err)
+		return
 	}
 
 	httpServer := &http.Server{
