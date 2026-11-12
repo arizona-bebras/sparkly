@@ -26,17 +26,17 @@ func NewDevicesRepo(db *gorm.DB) *DevicesRepo {
 	}
 }
 
-func (r *DevicesRepo) CreateDevice(ctx context.Context, connectToken, deviceToken string) error {
+func (r *DevicesRepo) CreateDevice(ctx context.Context, connectToken, deviceToken string) (domain.Device, error) {
 	var token models.Token
 	if err := r.db.WithContext(ctx).Preload("Groups").First(&token, "token = ?", connectToken).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return domain.ErrTokenNotFound
+			return domain.Device{}, domain.ErrTokenNotFound
 		}
-		return fmt.Errorf("failed to write device to db: %w", err)
+		return domain.Device{}, fmt.Errorf("failed to write device to db: %w", err)
 	}
 	id, err := uuid.NewV7()
 	if err != nil {
-		return fmt.Errorf("failed to generate id for device: %w", err)
+		return domain.Device{}, fmt.Errorf("failed to generate id for device: %w", err)
 	}
 	device := models.Device{
 		ID:       id,
@@ -48,18 +48,18 @@ func (r *DevicesRepo) CreateDevice(ctx context.Context, connectToken, deviceToke
 	if err := r.db.WithContext(ctx).Create(&device).Error; err != nil {
 		var pgErr *pgconn.PgError
 		if errors.Is(err, gorm.ErrDuplicatedKey) || (errors.As(err, &pgErr) && pgErr.Code == "23505") {
-			return domain.ErrDuplicatedDevice
+			return domain.Device{}, domain.ErrDuplicatedDevice
 		}
-		return fmt.Errorf("failed to write new device to db: %w", err)
+		return domain.Device{}, fmt.Errorf("failed to write new device to db: %w", err)
 	}
 	log.Println(token.Groups)
 
 	if len(token.Groups) > 0 {
 		if err := r.db.WithContext(ctx).Model(&device).Association("Groups").Append(token.Groups); err != nil {
-			return fmt.Errorf("failed to assign device to groups: %w", err)
+			return domain.Device{}, fmt.Errorf("failed to assign device to groups: %w", err)
 		}
 	}
-	return nil
+	return device.ToDomain(), nil
 }
 
 func (r *DevicesRepo) GetDevice(ctx context.Context, deviceID, userID uuid.UUID) (domain.Device, error) {
@@ -110,4 +110,21 @@ func (r *DevicesRepo) GetDevices(ctx context.Context, filters domain.GetDevicesF
 	}
 
 	return domainDevices, nil
+}
+
+func (r *DevicesRepo) GetDeviceGroups(ctx context.Context, deviceID uuid.UUID) ([]domain.Group, error) {
+	var groups []models.Group
+	if err := r.db.WithContext(ctx).
+		Model(&models.Device{ID: deviceID}).
+		Association("Groups").
+		Find(&groups); err != nil {
+		return []domain.Group{}, fmt.Errorf("failed to get groups groups from db: %w", err)
+	}
+
+	domainGroups := make([]domain.Group, 0, len(groups))
+	for _, group := range groups {
+		domainGroups = append(domainGroups, group.ToDomain())
+	}
+	
+	return domainGroups, nil
 }

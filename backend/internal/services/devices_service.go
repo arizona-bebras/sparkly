@@ -3,7 +3,10 @@ package services
 import (
 	"context"
 	"encoding/base64"
+	"log"
 	"sparkly/backend/internal/domain"
+	"sparkly/backend/internal/msgq"
+	"time"
 
 	"crypto/rand"
 	"fmt"
@@ -12,18 +15,25 @@ import (
 )
 
 type DevicesRepo interface {
-	CreateDevice(ctx context.Context, parkToken, deviceToken string) error
+	CreateDevice(ctx context.Context, parkToken, deviceToken string) (domain.Device, error)
 	GetDevice(ctx context.Context, deviceID, userID uuid.UUID) (domain.Device, error)
 	GetDevices(ctx context.Context, filters domain.GetDevicesFilters, userID uuid.UUID) ([]domain.Device, error)
+	GetDeviceGroups(ctx context.Context, deviceID uuid.UUID) ([]domain.Group, error)
+}
+
+type DeviceGroupsQueue interface {
+	SendMsg(ctx context.Context, msg msgq.GroupMembershipMsg) error
 }
 
 type DeviceService struct {
 	repo DevicesRepo
+	groupsQueue DeviceGroupsQueue
 }
 
-func NewDeviceService(repo DevicesRepo) *DeviceService {
+func NewDeviceService(repo DevicesRepo, q DeviceGroupsQueue) *DeviceService {
 	return &DeviceService{
 		repo: repo,
+		groupsQueue: q,
 	}
 }
 
@@ -43,12 +53,30 @@ func (s *DeviceService) RegDevice(ctx context.Context, parkToken string) (string
 		return "", fmt.Errorf("failed to generate device token: %w", err)
 	}
 
-	err = s.repo.CreateDevice(ctx,
+	device, err := s.repo.CreateDevice(ctx,
 		parkToken,
 		deviceToken,
 	)
 	if err != nil {
 		return "", fmt.Errorf("failed to register device: %w", err)
+	}
+
+	groups, err := s.repo.GetDeviceGroups(ctx, device.ID)
+	if err != nil {
+		return "", fmt.Errorf("failed to define device groups: %w", err)
+	}
+
+	groupIDs := make([]string, 0, len(groups))
+	for _, g := range groups {
+		groupIDs = append(groupIDs, g.ID.String())
+	}
+
+	if err = s.groupsQueue.SendMsg(ctx, msgq.GroupMembershipMsg{
+		DeviceID: device.ID.String(),
+		Version: time.Now().String(),
+		GroupIDs: groupIDs,
+	}); err != nil {
+		log.Printf("Failed to send group membreship message to rabbitmq: %v", err) //TODO: store msg in outbox
 	}
 
 	return deviceToken, nil

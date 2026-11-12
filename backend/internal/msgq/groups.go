@@ -1,0 +1,45 @@
+package msgq
+
+import (
+	"context"
+	"encoding/json"
+	"fmt"
+
+	"github.com/google/uuid"
+	amqp "github.com/rabbitmq/amqp091-go"
+)
+
+type DeviceGroupsQueue struct {
+	name string
+	ch   *amqp.Channel
+}
+
+func NewDeviceGroupsQueue(broker *MessageBroker) (*DeviceGroupsQueue, error) {
+	qName := "group_membership"
+	_, err := broker.ch.QueueDeclare(qName, true, false, false, false, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to declare group_membership queue")
+	}
+
+	return &DeviceGroupsQueue{
+		name: qName,
+		ch: broker.ch,
+	}, nil
+}
+
+func (q *DeviceGroupsQueue) SendMsg(ctx context.Context, msg GroupMembershipMsg) error {
+	msg.ID = uuid.New().String()
+	binMsg, err := json.Marshal(msg)
+	if err != nil {
+		return fmt.Errorf("failed to marshal group membership message: %w", err)
+	}
+	
+	if err := q.ch.PublishWithContext(ctx, "", q.name, false, false, amqp.Publishing{
+		ContentType: "application/json",
+		Body: binMsg,
+	}); err != nil {
+		return fmt.Errorf("failed to produce group membership message: %w", err)
+	}
+
+	return nil
+}
