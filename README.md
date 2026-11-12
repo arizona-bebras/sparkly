@@ -28,7 +28,7 @@ Nx использует `project.json` в каждом проекте. Кеш Nx
 
 ## Docker Compose
 
-Для каждого приложения, кроме agent, добавлен Dockerfile. Compose также запускает PostgreSQL 18 и ClickHouse 26.8 из официальных образов.
+Для каждого приложения, кроме agent, добавлен Dockerfile. Compose также запускает PostgreSQL 18, ClickHouse 26.8 и RabbitMQ 4 с management UI из официальных образов.
 
 | Сервис / профиль | Порт хоста по умолчанию                                     |
 | ---------------- | ----------------------------------------------------------- |
@@ -39,6 +39,7 @@ Nx использует `project.json` в каждом проекте. Кеш Nx
 | analytics        | 8081                                                        |
 | ml               | 8082                                                        |
 | postgres         | 5432                                                        |
+| rabbitmq         | 5672 (AMQP), 15672 (management UI)                           |
 | clickhouse       | 8123 (HTTP), 9000 (native)                                  |
 
 ```sh
@@ -48,6 +49,8 @@ docker compose --profile '*' up --build -d
 # Только выбранные сервисы (backend)
 docker compose --profile backend up --build -d
 ```
+
+RabbitMQ доступен контейнерам по `rabbitmq:5672`, локальным процессам — по `localhost:5672`. Management UI: `http://localhost:15672`. Пользователь, пароль и vhost по умолчанию — `sparkly`; их можно задать через `RABBITMQ_USER`, `RABBITMQ_PASSWORD`, `RABBITMQ_VHOST` перед первым запуском. Данные сохраняются в volume `rabbitmq-data`. Порты хоста задаются через `RABBITMQ_PORT` и `RABBITMQ_MANAGEMENT_PORT`.
 
 step-ca автоматически создаёт CA и device provisioner при первом запуске. Backend получает доверенный корень и ключ provisioner через отдельный read-only volume и ждёт готовности CA. Настройка и экспорт credentials для локального backend описаны в [step-ca/README.md](step-ca/README.md).
 

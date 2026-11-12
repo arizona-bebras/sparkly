@@ -126,6 +126,25 @@ services:
       timeout: 5s
       retries: 10
 
+  rabbitmq:
+    image: rabbitmq:4-management
+    hostname: rabbitmq
+    ports:
+      - "${RABBITMQ_PORT:-5672}:5672"
+      - "${RABBITMQ_MANAGEMENT_PORT:-15672}:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-sparkly}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-sparkly}
+      RABBITMQ_DEFAULT_VHOST: ${RABBITMQ_VHOST:-sparkly}
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+    healthcheck:
+      test: [CMD, rabbitmq-diagnostics, -q, ping]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+
   clickhouse:
     image: clickhouse/clickhouse-server:26.8
     ports:
@@ -151,6 +170,7 @@ services:
 
 volumes:
   postgres-data: {}
+  rabbitmq-data: {}
   clickhouse-data: {}
   step-ca-data: {}
   device-pki: {}
