@@ -26,13 +26,13 @@ type DeviceGroupsQueue interface {
 }
 
 type DeviceService struct {
-	repo DevicesRepo
+	repo        DevicesRepo
 	groupsQueue DeviceGroupsQueue
 }
 
 func NewDeviceService(repo DevicesRepo, q DeviceGroupsQueue) *DeviceService {
 	return &DeviceService{
-		repo: repo,
+		repo:        repo,
 		groupsQueue: q,
 	}
 }
@@ -71,12 +71,14 @@ func (s *DeviceService) RegDevice(ctx context.Context, parkToken string) (string
 		groupIDs = append(groupIDs, g.ID.String())
 	}
 
-	if err = s.groupsQueue.SendMsg(ctx, msgq.GroupMembershipMsg{
-		DeviceID: device.ID.String(),
-		Version: time.Now().String(),
-		GroupIDs: groupIDs,
-	}); err != nil {
-		log.Printf("Failed to send group membreship message to rabbitmq: %v", err) //TODO: store msg in outbox
+	if s.groupsQueue != nil {
+		if err = s.groupsQueue.SendMsg(ctx, msgq.GroupMembershipMsg{
+			DeviceID: device.ID.String(),
+			Version:  time.Now().UTC().Format(time.RFC3339Nano),
+			GroupIDs: groupIDs,
+		}); err != nil {
+			log.Printf("Failed to send group membreship message to rabbitmq: %v", err) //TODO: store msg in outbox
+		}
 	}
 
 	return deviceToken, nil

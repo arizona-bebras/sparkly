@@ -11,19 +11,19 @@ import (
 
 type DeviceGroupsQueueProducer struct {
 	queueName string
-	ch   *amqp.Channel
+	ch        *amqp.Channel
 }
 
 func NewDeviceGroupsQueueProducer(broker *MessageBroker) (*DeviceGroupsQueueProducer, error) {
 	qName := "group_membership"
 	_, err := broker.ch.QueueDeclare(qName, true, false, false, false, nil)
 	if err != nil {
-		return nil, fmt.Errorf("failed to declare group_membership queue")
+		return nil, fmt.Errorf("failed to declare group_membership queue: %w", err)
 	}
 
 	return &DeviceGroupsQueueProducer{
 		queueName: qName,
-		ch: broker.ch,
+		ch:        broker.ch,
 	}, nil
 }
 
@@ -33,10 +33,12 @@ func (q *DeviceGroupsQueueProducer) SendMsg(ctx context.Context, msg GroupMember
 	if err != nil {
 		return fmt.Errorf("failed to marshal group membership message: %w", err)
 	}
-	
+
 	if err := q.ch.PublishWithContext(ctx, "", q.queueName, false, false, amqp.Publishing{
-		ContentType: "application/json",
-		Body: binMsg,
+		ContentType:  "application/json",
+		DeliveryMode: amqp.Persistent,
+		MessageId:    msg.ID,
+		Body:         binMsg,
 	}); err != nil {
 		return fmt.Errorf("failed to produce group membership message: %w", err)
 	}

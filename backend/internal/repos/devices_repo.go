@@ -125,6 +125,6 @@ func (r *DevicesRepo) GetDeviceGroups(ctx context.Context, deviceID uuid.UUID) (
 	for _, group := range groups {
 		domainGroups = append(domainGroups, group.ToDomain())
 	}
-	
+
 	return domainGroups, nil
 }

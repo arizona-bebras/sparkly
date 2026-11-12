@@ -26,27 +26,27 @@ func NewGroupMembershipService(repo GroupMembershipRepo) *GroupMembershipService
 func (c *GroupMembershipService) AssociateGroupsToDevice(ctx context.Context, deviceIDStr string, groupIDsStr []string, versionStr string) error {
 	deviceID, err := uuid.Parse(deviceIDStr)
 	if err != nil {
-		return fmt.Errorf("failed to parse device id from message: %w", err)
+		return fmt.Errorf("failed to parse device id from message: %w: %w", domain.ErrInvalidBrokerMsg, err)
 	}
 
 	groupIDs := make([]uuid.UUID, 0, len(groupIDsStr))
 	for _, groupID := range groupIDsStr {
 		id, err := uuid.Parse(groupID)
 		if err != nil {
-			return fmt.Errorf("failed to parse group id from message: %w", err)
+			return fmt.Errorf("failed to parse group id from message: %w: %w", domain.ErrInvalidBrokerMsg, err)
 		}
 		groupIDs = append(groupIDs, id)
 	}
 
-	version, err := time.Parse(time.RFC1123, versionStr)
+	version, err := time.Parse(time.RFC3339Nano, versionStr)
 	if err != nil {
-		return fmt.Errorf("failed to parse group membership version from message: %w", err)
+		return fmt.Errorf("failed to parse group membership version from message: %w: %w", domain.ErrInvalidBrokerMsg, err)
 	}
 
 	err = c.repo.WriteAssociatedGroups(ctx, domain.GroupsToDeviceAssociationParams{
 		DeviceID: deviceID,
 		GroupIDs: groupIDs,
-		Version:  version,
+		Version:  version.UTC(),
 	})
 	if err != nil {
 		return fmt.Errorf("failed to write device group membership: %w", err)

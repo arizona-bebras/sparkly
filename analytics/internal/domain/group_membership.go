@@ -9,5 +9,5 @@ import (
 type GroupsToDeviceAssociationParams struct {
 	DeviceID uuid.UUID
 	GroupIDs []uuid.UUID
-	Version time.Time
+	Version  time.Time
 }
