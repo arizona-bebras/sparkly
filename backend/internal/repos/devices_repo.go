@@ -41,11 +41,9 @@ func (r *DevicesRepo) CreateDevice(ctx context.Context, connectToken string, iss
 			return fmt.Errorf("failed to generate id for device: %w", err)
 		}
 		device := models.Device{
-			ID:     id,
-			ParkID: token.ParkID,
-			Name:   "device_" + id.String(),
-			// Retained for compatibility with the existing NOT NULL column.
-			// Certificates replace device bearer tokens.
+			ID:       id,
+			ParkID:   token.ParkID,
+			Name:     "device_" + id.String(),
 			Token:    "",
 			JoinedAt: time.Now(),
 		}
@@ -116,4 +114,21 @@ func (r *DevicesRepo) GetDevices(ctx context.Context, filters domain.GetDevicesF
 	}
 
 	return domainDevices, nil
+}
+
+func (r *DevicesRepo) GetDeviceGroups(ctx context.Context, deviceID uuid.UUID) ([]domain.Group, error) {
+	var groups []models.Group
+	if err := r.db.WithContext(ctx).
+		Model(&models.Device{ID: deviceID}).
+		Association("Groups").
+		Find(&groups); err != nil {
+		return []domain.Group{}, fmt.Errorf("failed to get groups groups from db: %w", err)
+	}
+
+	domainGroups := make([]domain.Group, 0, len(groups))
+	for _, group := range groups {
+		domainGroups = append(domainGroups, group.ToDomain())
+	}
+
+	return domainGroups, nil
 }

@@ -14,6 +14,7 @@ import (
 	"sparkly/backend/internal/handlers"
 	"sparkly/backend/internal/infrastructure/stepca"
 	"sparkly/backend/internal/interceptors"
+	"sparkly/backend/internal/msgq"
 	"sparkly/backend/internal/repos"
 	"sparkly/backend/internal/services"
 	"sparkly/backend/proto/v1/backendv1connect"
@@ -27,6 +28,8 @@ func main() {
 		POSTGRES_PASSWORD string
 		POSTGRES_PORT     string
 		MAIN_PORT         string
+		RABBITMQ_HOST     string
+		RABBITMQ_PORT     string
 	}{}
 
 	readEnv := func() {
@@ -43,6 +46,14 @@ func main() {
 		if env.MAIN_PORT == "" {
 			env.MAIN_PORT = "8080"
 		}
+		env.RABBITMQ_HOST, _ = os.LookupEnv("RABBITMQ_HOST")
+		if env.RABBITMQ_HOST == "" {
+			env.RABBITMQ_HOST = "localhost"
+		}
+		env.RABBITMQ_PORT, _ = os.LookupEnv("RABBITMQ_PORT")
+		if env.RABBITMQ_PORT == "" {
+			env.RABBITMQ_PORT = "5672"
+		}
 	}
 	readEnv()
 
@@ -58,6 +69,12 @@ func main() {
 	if err != nil {
 		log.Fatalf("db init failed: %v", err)
 	}
+
+	broker, err := msgq.NewMessageBroker(env.RABBITMQ_HOST, env.RABBITMQ_PORT)
+	if err != nil {
+		log.Fatalf("failed to init rabbitmq broker: %v", err)
+	}
+	defer broker.Close()
 
 	jwksRepo, err := repos.NewJWKSRepo(db)
 	if err != nil {
@@ -97,6 +114,11 @@ func main() {
 	issuesHandler := handlers.NewIssuesHandler(issueService)
 	backendv1connect.RegisterIssueServiceHandler(server, issuesHandler)
 
+	groupMembershipQueue, err := msgq.NewDeviceGroupsQueueProducer(broker)
+	if err != nil {
+		log.Fatalf("failed to init group_membership queue in broker: %v", err)
+	}
+
 	devicesRepo := repos.NewDevicesRepo(db)
 	deviceCA, err := stepca.New(stepca.Config{
 		URL:         os.Getenv("STEP_CA_URL"),
@@ -109,7 +131,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("failed to initialize device CA: %v", err)
 	}
-	devicesService := services.NewDeviceService(devicesRepo, deviceCA)
+	devicesService := services.NewDeviceService(devicesRepo, deviceCA, groupMembershipQueue)
 	devicesRegHandler := handlers.NewDeviceRegHandler(devicesService)
 	devicesHandler := handlers.NewDevicesHandler(devicesService)
 	backendv1connect.RegisterDeviceServiceHandler(server, devicesHandler)

@@ -5,6 +5,8 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"os/signal"
+	"syscall"
 	"time"
 
 	"connectrpc.com/connect/v2"
@@ -13,7 +15,9 @@ import (
 
 	"sparkly/analytics/internal/db"
 	"sparkly/analytics/internal/handlers"
+	"sparkly/analytics/internal/msgq"
 	"sparkly/analytics/internal/repos"
+	"sparkly/analytics/internal/services"
 	"sparkly/analytics/proto/v1/analyticsv1connect"
 )
 
@@ -38,6 +42,35 @@ func main() {
 		log.Fatalf("db migration failed: %v", err)
 	}
 	cancel()
+
+	rabbitHost := os.Getenv("RABBITMQ_HOST")
+	if rabbitHost == "" {
+		rabbitHost = "localhost"
+	}
+	rabbitPort := os.Getenv("RABBITMQ_PORT")
+	if rabbitPort == "" {
+		rabbitPort = "5672"
+	}
+
+	broker, err := msgq.NewMessageBroker(rabbitHost, rabbitPort)
+	if err != nil {
+		log.Fatalf("failed to init rabbitmq broker: %v", err)
+	}
+	defer broker.Close()
+
+	groupMembershipRepo := repos.NewGroupMembershipRepo(conn)
+	groupMembershipService := services.NewGroupMembershipService(groupMembershipRepo)
+	deviceGroupsConsumer, err := msgq.NewDeviceGroupsQueueConsumer(broker, groupMembershipService)
+	if err != nil {
+		log.Fatalf("failed to init group_membership consumer: %v", err)
+	}
+
+	consumerCtx, consumerCancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer consumerCancel()
+	if err := deviceGroupsConsumer.Listen(consumerCtx); err != nil {
+		log.Fatalf("failed to start group_membership consumer: %v", err)
+		return
+	}
 
 	httpServer := &http.Server{
 		Addr:              ":" + port,

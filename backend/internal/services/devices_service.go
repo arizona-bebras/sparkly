@@ -3,15 +3,23 @@ package services
 import (
 	"context"
 	"fmt"
+	"log"
+	"time"
 
 	"github.com/google/uuid"
 	"sparkly/backend/internal/domain"
+	"sparkly/backend/internal/msgq"
 )
 
 type DevicesRepo interface {
 	CreateDevice(ctx context.Context, connectToken string, enroll func(domain.Device) error) error
 	GetDevice(ctx context.Context, deviceID, userID uuid.UUID) (domain.Device, error)
 	GetDevices(ctx context.Context, filters domain.GetDevicesFilters, userID uuid.UUID) ([]domain.Device, error)
+	GetDeviceGroups(ctx context.Context, deviceID uuid.UUID) ([]domain.Group, error)
+}
+
+type DeviceGroupsQueue interface {
+	SendMsg(ctx context.Context, msg msgq.GroupMembershipMsg) error
 }
 
 type DeviceCertificateIssuer interface {
@@ -24,12 +32,21 @@ type DeviceEnrollment struct {
 }
 
 type DeviceService struct {
-	repo   DevicesRepo
-	issuer DeviceCertificateIssuer
+	repo        DevicesRepo
+	issuer      DeviceCertificateIssuer
+	groupsQueue DeviceGroupsQueue
 }
 
-func NewDeviceService(repo DevicesRepo, issuer DeviceCertificateIssuer) *DeviceService {
-	return &DeviceService{repo: repo, issuer: issuer}
+func NewDeviceService(repo DevicesRepo, issuer DeviceCertificateIssuer, q ...DeviceGroupsQueue) *DeviceService {
+	var queue DeviceGroupsQueue
+	if len(q) > 0 {
+		queue = q[0]
+	}
+	return &DeviceService{
+		repo:        repo,
+		issuer:      issuer,
+		groupsQueue: queue,
+	}
 }
 
 func (s *DeviceService) RegDevice(ctx context.Context, parkToken, csrPEM string) (DeviceEnrollment, error) {
@@ -42,6 +59,7 @@ func (s *DeviceService) RegDevice(ctx context.Context, parkToken, csrPEM string)
 	}
 
 	var enrollment DeviceEnrollment
+	var registeredDevice domain.Device
 	err = s.repo.CreateDevice(ctx, parkToken, func(device domain.Device) error {
 		identity, err := device.Identity()
 		if err != nil {
@@ -52,11 +70,33 @@ func (s *DeviceService) RegDevice(ctx context.Context, parkToken, csrPEM string)
 			return fmt.Errorf("%w: %w", domain.ErrCertificateIssuance, err)
 		}
 		enrollment = DeviceEnrollment{Identity: identity, Certificate: certificate}
+		registeredDevice = device
 		return nil
 	})
 	if err != nil {
 		return DeviceEnrollment{}, fmt.Errorf("register device: %w", err)
 	}
+
+	if s.groupsQueue != nil {
+		groups, err := s.repo.GetDeviceGroups(ctx, registeredDevice.ID)
+		if err != nil {
+			return DeviceEnrollment{}, fmt.Errorf("failed to define device groups: %w", err)
+		}
+
+		groupIDs := make([]string, 0, len(groups))
+		for _, g := range groups {
+			groupIDs = append(groupIDs, g.ID.String())
+		}
+
+		if err = s.groupsQueue.SendMsg(ctx, msgq.GroupMembershipMsg{
+			DeviceID: registeredDevice.ID.String(),
+			Version:  time.Now().UTC().Format(time.RFC3339Nano),
+			GroupIDs: groupIDs,
+		}); err != nil {
+			log.Printf("Failed to send group membership message to rabbitmq: %v", err)
+		}
+	}
+
 	return enrollment, nil
 }
 
