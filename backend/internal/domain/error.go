@@ -29,6 +29,10 @@ var (
 	ErrDuplicatedDevice = errors.New("this device is already registered")
 	ErrDeviceNotFound   = errors.New("device not found")
 
+	ErrBuildNotFound = errors.New("build with this ID doesnt exists")
+
+	ErrReleaseNotFound = errors.New("release with this ID doesnt exists")
+
 	ErrIssueNotFound        = errors.New("issue with this ID doesnt exists")
 	ErrIssueAlreadyResolved = errors.New("this issue already resolved")
 )

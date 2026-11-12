@@ -35,6 +35,10 @@ func (r *enrollmentRepo) GetDevices(context.Context, domain.GetDevicesFilters, u
 	panic("unexpected GetDevices call")
 }
 
+func (r *enrollmentRepo) GetDeviceGroups(context.Context, uuid.UUID) ([]domain.Group, error) {
+	return nil, nil
+}
+
 func (r *enrollmentRepo) CreateDevice(_ context.Context, token string, issue func(domain.Device) error) error {
 	r.called = true
 	if token != "park-secret" {

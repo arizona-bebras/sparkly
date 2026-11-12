@@ -1223,3 +1223,511 @@ var IssueService_ServiceDesc = grpc.ServiceDesc{
 	Streams:  []grpc.StreamDesc{},
 	Metadata: "backend/proto/service.proto",
 }
+
+const (
+	BuildService_CreateBuild_FullMethodName = "/sparkly.backend.v1.BuildService/CreateBuild"
+	BuildService_GetBuild_FullMethodName    = "/sparkly.backend.v1.BuildService/GetBuild"
+	BuildService_GetBuilds_FullMethodName   = "/sparkly.backend.v1.BuildService/GetBuilds"
+	BuildService_UpdateBuild_FullMethodName = "/sparkly.backend.v1.BuildService/UpdateBuild"
+	BuildService_DeleteBuild_FullMethodName = "/sparkly.backend.v1.BuildService/DeleteBuild"
+)
+
+// BuildServiceClient is the client API for BuildService service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+type BuildServiceClient interface {
+	CreateBuild(ctx context.Context, in *CreateBuildRequest, opts ...grpc.CallOption) (*CreateBuildResponse, error)
+	GetBuild(ctx context.Context, in *GetBuildRequest, opts ...grpc.CallOption) (*GetBuildResponse, error)
+	GetBuilds(ctx context.Context, in *GetBuildsRequest, opts ...grpc.CallOption) (*GetBuildsResponse, error)
+	UpdateBuild(ctx context.Context, in *UpdateBuildRequest, opts ...grpc.CallOption) (*UpdateBuildResponse, error)
+	DeleteBuild(ctx context.Context, in *DeleteBuildRequest, opts ...grpc.CallOption) (*DeleteBuildResponse, error)
+}
+
+type buildServiceClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewBuildServiceClient(cc grpc.ClientConnInterface) BuildServiceClient {
+	return &buildServiceClient{cc}
+}
+
+func (c *buildServiceClient) CreateBuild(ctx context.Context, in *CreateBuildRequest, opts ...grpc.CallOption) (*CreateBuildResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CreateBuildResponse)
+	err := c.cc.Invoke(ctx, BuildService_CreateBuild_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *buildServiceClient) GetBuild(ctx context.Context, in *GetBuildRequest, opts ...grpc.CallOption) (*GetBuildResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetBuildResponse)
+	err := c.cc.Invoke(ctx, BuildService_GetBuild_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *buildServiceClient) GetBuilds(ctx context.Context, in *GetBuildsRequest, opts ...grpc.CallOption) (*GetBuildsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetBuildsResponse)
+	err := c.cc.Invoke(ctx, BuildService_GetBuilds_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *buildServiceClient) UpdateBuild(ctx context.Context, in *UpdateBuildRequest, opts ...grpc.CallOption) (*UpdateBuildResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UpdateBuildResponse)
+	err := c.cc.Invoke(ctx, BuildService_UpdateBuild_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *buildServiceClient) DeleteBuild(ctx context.Context, in *DeleteBuildRequest, opts ...grpc.CallOption) (*DeleteBuildResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DeleteBuildResponse)
+	err := c.cc.Invoke(ctx, BuildService_DeleteBuild_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// BuildServiceServer is the server API for BuildService service.
+// All implementations must embed UnimplementedBuildServiceServer
+// for forward compatibility.
+type BuildServiceServer interface {
+	CreateBuild(context.Context, *CreateBuildRequest) (*CreateBuildResponse, error)
+	GetBuild(context.Context, *GetBuildRequest) (*GetBuildResponse, error)
+	GetBuilds(context.Context, *GetBuildsRequest) (*GetBuildsResponse, error)
+	UpdateBuild(context.Context, *UpdateBuildRequest) (*UpdateBuildResponse, error)
+	DeleteBuild(context.Context, *DeleteBuildRequest) (*DeleteBuildResponse, error)
+	mustEmbedUnimplementedBuildServiceServer()
+}
+
+// UnimplementedBuildServiceServer must be embedded to have
+// forward compatible implementations.
+//
+// NOTE: this should be embedded by value instead of pointer to avoid a nil
+// pointer dereference when methods are called.
+type UnimplementedBuildServiceServer struct{}
+
+func (UnimplementedBuildServiceServer) CreateBuild(context.Context, *CreateBuildRequest) (*CreateBuildResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method CreateBuild not implemented")
+}
+func (UnimplementedBuildServiceServer) GetBuild(context.Context, *GetBuildRequest) (*GetBuildResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetBuild not implemented")
+}
+func (UnimplementedBuildServiceServer) GetBuilds(context.Context, *GetBuildsRequest) (*GetBuildsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetBuilds not implemented")
+}
+func (UnimplementedBuildServiceServer) UpdateBuild(context.Context, *UpdateBuildRequest) (*UpdateBuildResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method UpdateBuild not implemented")
+}
+func (UnimplementedBuildServiceServer) DeleteBuild(context.Context, *DeleteBuildRequest) (*DeleteBuildResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method DeleteBuild not implemented")
+}
+func (UnimplementedBuildServiceServer) mustEmbedUnimplementedBuildServiceServer() {}
+func (UnimplementedBuildServiceServer) testEmbeddedByValue()                      {}
+
+// UnsafeBuildServiceServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to BuildServiceServer will
+// result in compilation errors.
+type UnsafeBuildServiceServer interface {
+	mustEmbedUnimplementedBuildServiceServer()
+}
+
+func RegisterBuildServiceServer(s grpc.ServiceRegistrar, srv BuildServiceServer) {
+	// If the following call panics, it indicates UnimplementedBuildServiceServer was
+	// embedded by pointer and is nil.  This will cause panics if an
+	// unimplemented method is ever invoked, so we test this at initialization
+	// time to prevent it from happening at runtime later due to I/O.
+	if t, ok := srv.(interface{ testEmbeddedByValue() }); ok {
+		t.testEmbeddedByValue()
+	}
+	s.RegisterService(&BuildService_ServiceDesc, srv)
+}
+
+func _BuildService_CreateBuild_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateBuildRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BuildServiceServer).CreateBuild(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: BuildService_CreateBuild_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BuildServiceServer).CreateBuild(ctx, req.(*CreateBuildRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _BuildService_GetBuild_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetBuildRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BuildServiceServer).GetBuild(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: BuildService_GetBuild_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BuildServiceServer).GetBuild(ctx, req.(*GetBuildRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _BuildService_GetBuilds_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetBuildsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BuildServiceServer).GetBuilds(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: BuildService_GetBuilds_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BuildServiceServer).GetBuilds(ctx, req.(*GetBuildsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _BuildService_UpdateBuild_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateBuildRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BuildServiceServer).UpdateBuild(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: BuildService_UpdateBuild_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BuildServiceServer).UpdateBuild(ctx, req.(*UpdateBuildRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _BuildService_DeleteBuild_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteBuildRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BuildServiceServer).DeleteBuild(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: BuildService_DeleteBuild_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BuildServiceServer).DeleteBuild(ctx, req.(*DeleteBuildRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+// BuildService_ServiceDesc is the grpc.ServiceDesc for BuildService service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var BuildService_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "sparkly.backend.v1.BuildService",
+	HandlerType: (*BuildServiceServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "CreateBuild",
+			Handler:    _BuildService_CreateBuild_Handler,
+		},
+		{
+			MethodName: "GetBuild",
+			Handler:    _BuildService_GetBuild_Handler,
+		},
+		{
+			MethodName: "GetBuilds",
+			Handler:    _BuildService_GetBuilds_Handler,
+		},
+		{
+			MethodName: "UpdateBuild",
+			Handler:    _BuildService_UpdateBuild_Handler,
+		},
+		{
+			MethodName: "DeleteBuild",
+			Handler:    _BuildService_DeleteBuild_Handler,
+		},
+	},
+	Streams:  []grpc.StreamDesc{},
+	Metadata: "backend/proto/service.proto",
+}
+
+const (
+	ReleaseService_CreateRelease_FullMethodName = "/sparkly.backend.v1.ReleaseService/CreateRelease"
+	ReleaseService_GetRelease_FullMethodName    = "/sparkly.backend.v1.ReleaseService/GetRelease"
+	ReleaseService_GetReleases_FullMethodName   = "/sparkly.backend.v1.ReleaseService/GetReleases"
+	ReleaseService_UpdateRelease_FullMethodName = "/sparkly.backend.v1.ReleaseService/UpdateRelease"
+	ReleaseService_DeleteRelease_FullMethodName = "/sparkly.backend.v1.ReleaseService/DeleteRelease"
+)
+
+// ReleaseServiceClient is the client API for ReleaseService service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+type ReleaseServiceClient interface {
+	CreateRelease(ctx context.Context, in *CreateReleaseRequest, opts ...grpc.CallOption) (*CreateReleaseResponse, error)
+	GetRelease(ctx context.Context, in *GetReleaseRequest, opts ...grpc.CallOption) (*GetReleaseResponse, error)
+	GetReleases(ctx context.Context, in *GetReleasesRequest, opts ...grpc.CallOption) (*GetReleasesResponse, error)
+	UpdateRelease(ctx context.Context, in *UpdateReleaseRequest, opts ...grpc.CallOption) (*UpdateReleaseResponse, error)
+	DeleteRelease(ctx context.Context, in *DeleteReleaseRequest, opts ...grpc.CallOption) (*DeleteReleaseResponse, error)
+}
+
+type releaseServiceClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewReleaseServiceClient(cc grpc.ClientConnInterface) ReleaseServiceClient {
+	return &releaseServiceClient{cc}
+}
+
+func (c *releaseServiceClient) CreateRelease(ctx context.Context, in *CreateReleaseRequest, opts ...grpc.CallOption) (*CreateReleaseResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CreateReleaseResponse)
+	err := c.cc.Invoke(ctx, ReleaseService_CreateRelease_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *releaseServiceClient) GetRelease(ctx context.Context, in *GetReleaseRequest, opts ...grpc.CallOption) (*GetReleaseResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetReleaseResponse)
+	err := c.cc.Invoke(ctx, ReleaseService_GetRelease_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *releaseServiceClient) GetReleases(ctx context.Context, in *GetReleasesRequest, opts ...grpc.CallOption) (*GetReleasesResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetReleasesResponse)
+	err := c.cc.Invoke(ctx, ReleaseService_GetReleases_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *releaseServiceClient) UpdateRelease(ctx context.Context, in *UpdateReleaseRequest, opts ...grpc.CallOption) (*UpdateReleaseResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UpdateReleaseResponse)
+	err := c.cc.Invoke(ctx, ReleaseService_UpdateRelease_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *releaseServiceClient) DeleteRelease(ctx context.Context, in *DeleteReleaseRequest, opts ...grpc.CallOption) (*DeleteReleaseResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DeleteReleaseResponse)
+	err := c.cc.Invoke(ctx, ReleaseService_DeleteRelease_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// ReleaseServiceServer is the server API for ReleaseService service.
+// All implementations must embed UnimplementedReleaseServiceServer
+// for forward compatibility.
+type ReleaseServiceServer interface {
+	CreateRelease(context.Context, *CreateReleaseRequest) (*CreateReleaseResponse, error)
+	GetRelease(context.Context, *GetReleaseRequest) (*GetReleaseResponse, error)
+	GetReleases(context.Context, *GetReleasesRequest) (*GetReleasesResponse, error)
+	UpdateRelease(context.Context, *UpdateReleaseRequest) (*UpdateReleaseResponse, error)
+	DeleteRelease(context.Context, *DeleteReleaseRequest) (*DeleteReleaseResponse, error)
+	mustEmbedUnimplementedReleaseServiceServer()
+}
+
+// UnimplementedReleaseServiceServer must be embedded to have
+// forward compatible implementations.
+//
+// NOTE: this should be embedded by value instead of pointer to avoid a nil
+// pointer dereference when methods are called.
+type UnimplementedReleaseServiceServer struct{}
+
+func (UnimplementedReleaseServiceServer) CreateRelease(context.Context, *CreateReleaseRequest) (*CreateReleaseResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method CreateRelease not implemented")
+}
+func (UnimplementedReleaseServiceServer) GetRelease(context.Context, *GetReleaseRequest) (*GetReleaseResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetRelease not implemented")
+}
+func (UnimplementedReleaseServiceServer) GetReleases(context.Context, *GetReleasesRequest) (*GetReleasesResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetReleases not implemented")
+}
+func (UnimplementedReleaseServiceServer) UpdateRelease(context.Context, *UpdateReleaseRequest) (*UpdateReleaseResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method UpdateRelease not implemented")
+}
+func (UnimplementedReleaseServiceServer) DeleteRelease(context.Context, *DeleteReleaseRequest) (*DeleteReleaseResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method DeleteRelease not implemented")
+}
+func (UnimplementedReleaseServiceServer) mustEmbedUnimplementedReleaseServiceServer() {}
+func (UnimplementedReleaseServiceServer) testEmbeddedByValue()                        {}
+
+// UnsafeReleaseServiceServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to ReleaseServiceServer will
+// result in compilation errors.
+type UnsafeReleaseServiceServer interface {
+	mustEmbedUnimplementedReleaseServiceServer()
+}
+
+func RegisterReleaseServiceServer(s grpc.ServiceRegistrar, srv ReleaseServiceServer) {
+	// If the following call panics, it indicates UnimplementedReleaseServiceServer was
+	// embedded by pointer and is nil.  This will cause panics if an
+	// unimplemented method is ever invoked, so we test this at initialization
+	// time to prevent it from happening at runtime later due to I/O.
+	if t, ok := srv.(interface{ testEmbeddedByValue() }); ok {
+		t.testEmbeddedByValue()
+	}
+	s.RegisterService(&ReleaseService_ServiceDesc, srv)
+}
+
+func _ReleaseService_CreateRelease_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateReleaseRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ReleaseServiceServer).CreateRelease(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ReleaseService_CreateRelease_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ReleaseServiceServer).CreateRelease(ctx, req.(*CreateReleaseRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ReleaseService_GetRelease_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetReleaseRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ReleaseServiceServer).GetRelease(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ReleaseService_GetRelease_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ReleaseServiceServer).GetRelease(ctx, req.(*GetReleaseRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ReleaseService_GetReleases_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetReleasesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ReleaseServiceServer).GetReleases(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ReleaseService_GetReleases_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ReleaseServiceServer).GetReleases(ctx, req.(*GetReleasesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ReleaseService_UpdateRelease_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateReleaseRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ReleaseServiceServer).UpdateRelease(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ReleaseService_UpdateRelease_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ReleaseServiceServer).UpdateRelease(ctx, req.(*UpdateReleaseRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ReleaseService_DeleteRelease_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteReleaseRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ReleaseServiceServer).DeleteRelease(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ReleaseService_DeleteRelease_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ReleaseServiceServer).DeleteRelease(ctx, req.(*DeleteReleaseRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+// ReleaseService_ServiceDesc is the grpc.ServiceDesc for ReleaseService service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var ReleaseService_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "sparkly.backend.v1.ReleaseService",
+	HandlerType: (*ReleaseServiceServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "CreateRelease",
+			Handler:    _ReleaseService_CreateRelease_Handler,
+		},
+		{
+			MethodName: "GetRelease",
+			Handler:    _ReleaseService_GetRelease_Handler,
+		},
+		{
+			MethodName: "GetReleases",
+			Handler:    _ReleaseService_GetReleases_Handler,
+		},
+		{
+			MethodName: "UpdateRelease",
+			Handler:    _ReleaseService_UpdateRelease_Handler,
+		},
+		{
+			MethodName: "DeleteRelease",
+			Handler:    _ReleaseService_DeleteRelease_Handler,
+		},
+	},
+	Streams:  []grpc.StreamDesc{},
+	Metadata: "backend/proto/service.proto",
+}
