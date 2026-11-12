@@ -1,0 +1,14 @@
+[package]
+name = "sparkly-host-example"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+
+[dependencies]
+sparkly-agent = { path = "../..", default-features = false, features = ["std", "defmt"] }
+sparkly-linux = { path = "../../crates/sparkly-linux" }
+defmt = "1"
+
+[dev-dependencies]
+defmt-decoder = { version = "1.2", features = ["unstable"] }

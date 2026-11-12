@@ -59,11 +59,13 @@ fn byte_queue_eviction_keeps_newest_records_and_counts_evicted_boot() {
         } if value == expected));
     }
     assert_eq!(recorder.statistics().evicted, 1);
-    assert_eq!(decode(&batch).dropped_records, 1);
+    let parcel = decode(&batch);
+    assert_eq!(parcel.dropped_records, 1);
+    assert_eq!(parcel.initial_boot.boot_id.as_slice(), [7; 16]);
 }
 
 #[test]
-fn boot_is_exported_once_without_repeated_headers_in_later_batches() {
+fn boot_event_is_exported_once_with_context_in_later_headers() {
     let recorder = recorder::<1024>();
     let boot = recorder.take_batch().unwrap().unwrap();
     assert_eq!(decode(&boot).events.len(), 1);
@@ -72,6 +74,8 @@ fn boot_is_exported_once_without_repeated_headers_in_later_batches() {
     let next = recorder.take_batch().unwrap().unwrap();
     assert_ne!(boot.id, next.id);
     let parcel = decode(&next);
+    assert_eq!(parcel.initial_boot.build_id, "0123456789abcdef");
+    assert_eq!(parcel.initial_boot.boot_id.as_slice(), [7; 16]);
     assert_eq!(parcel.events.len(), 1);
     assert!(matches!(
         parcel.events[0].payload,
@@ -570,4 +574,29 @@ fn recorder_accepts_borrowed_and_heap_backed_rings() {
     capture(RingStorage::with_storage(
         vec![0_u8; 256].into_boxed_slice(),
     ));
+}
+
+#[test]
+fn header_retains_old_context_before_a_restored_boot_transition() {
+    let old = recorder::<2048>();
+    old.take_batch().unwrap().unwrap();
+    old.metric(1, MetricValue::Gauge(10.0)).unwrap();
+    let next = Recorder::new(
+        Session::new([8; 16], "new-build", "new-firmware", "reset").unwrap(),
+        old.into_storage(),
+        TestClock(AtomicU64::new(0)),
+        TestBacktrace,
+    )
+    .unwrap();
+    next.metric(1, MetricValue::Gauge(20.0)).unwrap();
+    let batch = next.take_batch().unwrap().unwrap();
+    let parcel = decode(&batch);
+    assert_eq!(parcel.initial_boot.boot_id.as_slice(), [7; 16]);
+    assert!(
+        matches!(&parcel.events[1].payload, Some(pb::Event_::Payload::Boot(b)) if b.boot_id.as_slice() == [8;16])
+    );
+    next.metric(1, MetricValue::Gauge(30.0)).unwrap();
+    let later = decode(&next.take_batch().unwrap().unwrap());
+    assert_eq!(later.initial_boot.boot_id.as_slice(), [8; 16]);
+    assert_eq!(decode(&batch), parcel);
 }

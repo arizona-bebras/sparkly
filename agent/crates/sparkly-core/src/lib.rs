@@ -2,6 +2,7 @@
 #![no_std]
 #![forbid(unsafe_code)]
 
+pub mod identity;
 pub mod record;
 pub mod storage;
 mod storage_codec;

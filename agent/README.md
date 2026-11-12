@@ -4,10 +4,23 @@ Rust workspace for bounded telemetry capture on `no_std` devices and Linux.
 Raw `log` records, encoded `defmt` frames, metrics and boot metadata are implemented.
 The host example supports token-based enrollment and mTLS; embedded transports and crash capture remain future work.
 
+The Linux host example uses defmt logs and captures up to 16 stack PCs for each log.
+It translates main-executable addresses to ELF virtual addresses. Its build script
+retains defmt's dictionary and disables PIE for this example so runtime string IDs
+match ELF addresses. Logging defaults to `info`; set `DEFMT_LOG` at build time to
+change the filter. Pass that exact unstripped ELF to the symbolicator. Shared-library
+frames are omitted because the current protocol has no per-frame module identity.
+Traces report `Partial`, or `Truncated` when a capture limit is reached. Capture
+uses raw unwinding with fixed-capacity storage; symbol lookup happens offline.
+
 Each startup appends one Boot event to storage. Parcels preserve the ordered
 retained stream and may span multiple boots. The byte ring evicts oldest complete
-records, including Boots, so capacity pressure can lose boot/build context for
-later telemetry. Evicted Boots count toward loss statistics. Initialization
+records, including Boots, and retains the boot metadata immediately before the
+queue head. Parcels include that metadata in singular `initial_boot`; Boot events
+within the parcel replace it for subsequent events. The header is context, not
+another reset. Custom storage must preserve this context through
+`RecordStorage::initial_boot`, or report it as unknown. Evicted Boots still count
+toward loss statistics. Initialization
 returns the original storage on failure. The provided RAM queue and pending
 exporter batch are volatile; durable flash/outbox storage remains an extension
 to implement.
@@ -41,27 +54,29 @@ cargo clippy --workspace --all-targets --features std,defmt -- -D warnings
 cargo fmt --all -- --check
 cargo build -p sparkly-cli --bins
 # Use a verified CA certificate and the park's enrollment token.
-cargo rustc --example host --features std -- -C linker=target/debug/sparkly-link -C linker-flavor=gcc
-SPARKLY_ENROLLMENT_TOKEN="$PARK_TOKEN" SPARKLY_INGEST_URL=https://localhost:10001/ingest target/debug/examples/host
-target/debug/sparkly inspect target/debug/examples/host
+cargo rustc -p sparkly-host-example -- -C linker=target/debug/sparkly-link -C linker-flavor=gcc
+SPARKLY_ENROLLMENT_TOKEN="$PARK_TOKEN" SPARKLY_INGEST_URL=https://localhost:10001/ingest target/debug/sparkly-host-example
+target/debug/sparkly inspect target/debug/sparkly-host-example
 ```
 
-The host example embeds its CA bundle from `SPARKLY_CA_CERT` and its park token
-from `SPARKLY_ENROLLMENT_TOKEN` **at build time**. `SPARKLY_CA_CERT` is required
-whenever the host example is compiled, including workspace tests and Clippy with
-all targets. Use an absolute path: `include_bytes!` resolves relative paths from
-`examples/host.rs`, not the working directory. Cargo tracks CA-file and
-build-variable changes. Verify the
-CA's fingerprint before building; the example never downloads or trusts a CA at
-runtime. The binary contains the enrollment token; it is not written to the
-credential directory or sent with telemetry. Library-only builds can omit both
-variables. CI generates a disposable CA certificate for compiling the example;
-no enrollment token is required for tests.
+The host is a separate workspace application in `examples/host/`. The portable
+`sparkly-agent` package has no TLS, filesystem or host-example dependencies.
+`sparkly-core::identity` provides the allocation-free enrollment lifecycle and platform
+traits. `sparkly-linux` supplies the monotonic clock, backtrace, filesystem store
+and rustls identity backend.
+
+The host embeds its CA bundle from `SPARKLY_CA_CERT` at build time. Use an absolute
+path: `include_bytes!` resolves relative paths from `examples/host/src/main.rs`.
+Cargo tracks CA-file and build-variable changes. The example does not fetch a CA
+at runtime. The enrollment token is read at runtime, is not saved to the credential
+directory, and is not sent with telemetry. Library-only checks need neither
+variable. Workspace builds/checks include the host crate and require a CA path;
+CI uses a disposable certificate and needs no enrollment token for tests.
 
 | Variable                   | When read | Purpose                                                                    |
 | -------------------------- | --------- | -------------------------------------------------------------------------- |
 | `SPARKLY_CA_CERT`          | Build     | Path to the PEM trust bundle to embed                                      |
-| `SPARKLY_ENROLLMENT_TOKEN` | Build     | Park enrollment token, required for first enrollment                       |
+| `SPARKLY_ENROLLMENT_TOKEN` | Runtime     | Park enrollment token, required for first enrollment                       |
 | `SPARKLY_INGEST_URL`       | Runtime   | Required HTTPS ingest URL, e.g. `https://localhost:10001/ingest`           |
 | `SPARKLY_ENROLLMENT_URL`   | Runtime   | HTTPS registration URL; defaults to `https://localhost:10002/devices/reg`  |
 | `SPARKLY_DEVICE_DIR`       | Runtime   | Credential directory; defaults to `.sparkly-host` in the working directory |
@@ -88,8 +103,8 @@ HTTPS with a 10-second timeout and redirects disabled. Ingest uses the device
 certificate for mTLS; the example does not supply device/park identity headers.
 Only `204 No Content` counts as an acknowledgment; analytics acknowledges its
 ClickHouse async buffer, which is not a guarantee of durable delivery. TLS and
-enrollment dependencies are development dependencies and do not affect the
-portable library. Run `cargo test --example host --features std` to exercise
+enrollment dependencies live in `sparkly-linux` and do not affect the portable
+library. Run `cargo test -p sparkly-host-example -p sparkly-linux -p sparkly-core` to exercise
 credential persistence and validation.
 
 `sparkly-link` finalizes the runtime build ID automatically after linking.

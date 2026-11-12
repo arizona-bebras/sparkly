@@ -23,8 +23,8 @@
       "options": {
         "commands": [
           "cargo build -p sparkly-cli --bins",
-          "cargo rustc --example host --features std -- -C linker=target/debug/sparkly-link -C linker-flavor=gcc",
-          "target/debug/examples/host"
+          "cargo rustc -p sparkly-host-example -- -C linker=target/debug/sparkly-link -C linker-flavor=gcc",
+          "target/debug/sparkly-host-example"
         ],
         "parallel": false,
         "cwd": "agent"

@@ -9,11 +9,13 @@ applications own hardware, tasks, networking and credential provisioning.
 | Crate | Responsibility | Target |
 | --- | --- | --- |
 | `sparkly-agent` | Recorder, global facades, metric handles, exporter | `no_std`, no allocator |
-| `sparkly-core` | Domain values and storage/clock/backtrace/transport/encoder contracts | `no_std`, no allocator |
+| `sparkly-core` | Domain values, enrollment lifecycle and storage/clock/backtrace/transport/encoder contracts | `no_std`, no allocator |
 | `sparkly-protocol` | Bounded micropb codec generated from `agent/proto/parcel.proto` | `no_std`, no allocator |
 | `sparkly-macros` | Compile-time metric IDs and ELF dictionary records | Build host proc macro |
 | `sparkly-build` | Shared ELF validation and post-link finalization | Build host |
 | `sparkly-cli` | `sparkly` setup/inspection and `sparkly-link` linker wrapper | Build host |
+| `sparkly-linux` | Monotonic clock, backtraces, HTTP transport, filesystem identities and rustls HTTPS/mTLS | Linux, `std` |
+| `sparkly-host-example` | Simulated device, enrollment setup, HTTP export and defmt linker settings | Linux application |
 | `sparkly-esp` | ESP32-S3 clock, backtrace and reset reason; portable build-ID reader | Xtensa adapter |
 
 The portable crates do not depend on ESP, Embassy, Tokio or a particular network
@@ -123,9 +125,10 @@ needs no additional full-record scratch buffer.
 When space is needed, the queue evicts as many oldest complete records as necessary,
 including Boot records, then appends the new record. A record larger than the byte
 budget returns `StorageFull` without changing history. Eviction statistics count
-records, not bytes, and include evicted Boots. Eviction reads each removed length
-header and advances the head without decoding discarded payloads. The host and
-ESP examples use a 2048-byte queue.
+records, not bytes, and include evicted Boots. Eviction decodes each removed
+record to retain Boot context before advancing the head. The ring also owns one
+optional Session outside its byte buffer; each pending batch owns a context copy.
+The host and ESP examples use a 2048-byte queue.
 
 Limits: text 256 bytes, target 64 bytes, defmt 512 bytes, trace 16 addresses,
 batch eight stored events, including any Boot events. These limits are explicit in
@@ -189,31 +192,32 @@ parcel atomically, so retained records cannot disappear between queue and outbox
 
 ## Boot context and protobuf
 
-Applications supply a fresh random 128-bit ID in each `Boot.boot_id`. A Boot
+Applications supply a fresh random 128-bit ID in each `Boot.boot_id`. A Boot event
 always represents an actual startup/reset. It carries firmware version, the
 agent version recorded at startup, build ID, reset description and optional
 hardware reason code. Stored metadata is serialized unchanged even after a
 firmware update; the codec does not substitute its current version.
 
-Boot context applies to all subsequent events until the next Boot, across parcel
-boundaries. This describes a stream whose Boot events were retained. Under capacity
-pressure the ring may evict an unexported Boot while retaining its later telemetry;
-boot/build context for those events is then unavailable. The loss delta counts the
-evicted Boot but does not identify the missing reset or reconstruct its metadata.
-Consumers cannot assume every reset is delivered or safely infer context across
-losses. Reliable attribution would require a separate context/recovery mechanism;
-it is not implemented. The current development receiver only decodes and prints
-parcels.
+`Parcel.initial_boot` is a singular Boot message describing context immediately
+before its first event. It is repeated metadata, not a reset event. Boot events
+replace the active context for subsequent events. The byte ring retains the last
+Boot removed from its head, whether popped for export or evicted, separately from
+its byte budget. This context survives `into_storage` handoff and is copied into
+the owned pending batch, keeping retries independent of later capture.
+Custom `RecordStorage` implementations must return the equivalent context through
+`initial_boot`; the default is unknown. Never substitute the current firmware
+for unknown restored history. A first Boot event establishes context even when
+the header is absent. Evicted events still count as losses.
 
 For streams with intact boot context, a parcel may contain old-boot events, a new
 reset, and new-boot events.
 It may also contain only ordinary events whose boot context was accepted in a
-previous parcel. The encoder does not add repeated headers. For example:
+previous parcel. Each parcel carries the corresponding initial context. For example:
 
 ```text
-parcel A: Boot(X), Log, Metric
-parcel B: Log, Boot(Y), Log
-parcel C: Metric
+parcel A [initial_boot: unknown]: Boot(X), Log, Metric
+parcel B [initial_boot: X]: Log, Boot(Y), Log
+parcel C [initial_boot: Y]: Metric
 ```
 
 The first event in B still belongs to X; its final log and all of C belong to Y.
@@ -336,3 +340,28 @@ TLS clock policy and secure flash are not implemented in this scaffold.
 - [GNU build IDs](https://sourceware.org/binutils/docs/ld/Options.html)
 - [Protobuf serialization is not canonical](https://protobuf.dev/programming-guides/serialization-not-canonical/)
 - [COSE Sign1](https://www.rfc-editor.org/rfc/rfc9052.html)
+
+## Identity lifecycle
+
+`sparkly-core::identity` provides the portable enrollment lifecycle without heap
+allocation or additional dependencies. It shares core's `no_std` contract. `CredentialStore` supplies exclusive credential storage and
+`IdentityBackend` supplies key generation, signing, authenticated enrollment and
+validated client construction. Associated types allow fixed buffers or opaque
+secure-element handles; PEM, a filesystem and rustls are not required by the
+shared lifecycle. Backends perform trust/time/client-auth/key-correspondence
+validation; storage implementations provide their platform's atomic persistence.
+The current interfaces are synchronous.
+
+`load_or_enroll` validates and reuses saved credentials without a token or network
+request. First enrollment persists a key before submitting its CSR and validates
+the returned certificate before saving it. Failures retain the key for retry;
+invalid saved credentials never cause silent re-enrollment. Automatic renewal is
+not implemented.
+
+`sparkly-linux::identity` implements these traits using a locked filesystem store,
+rcgen CSRs, verified HTTPS enrollment and rustls mTLS clients. It preserves the
+`device.key` / `device.crt` files and their permission checks. The convenience
+`load_or_enroll` function holds the identity lock across the shared lifecycle.
+The host application in `agent/examples/host/` owns its CA/token configuration,
+recorder, defmt linker script and export scheduling. Its build script does not
+apply to portable libraries or other platforms.

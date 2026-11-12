@@ -1,6 +1,5 @@
 //! Simulated IoT sensor: enrolls once, then exports over mTLS until interrupted.
-#[path = "host/identity.rs"]
-mod identity;
+use sparkly_linux::{HttpTransport, LinuxBacktrace, MonotonicClock, identity};
 
 use sparkly_agent::*;
 use std::{
@@ -12,50 +11,10 @@ use std::{
 
 const ROOT_CA_PEM: &[u8] = include_bytes!(env!("SPARKLY_CA_CERT"));
 
-struct HostClock(Instant);
-impl Clock for HostClock {
-    fn now_us(&self) -> u64 {
-        self.0.elapsed().as_micros() as u64
-    }
-}
+static RECORDER: OnceLock<Recorder<RamStorage<2048>, MonotonicClock, LinuxBacktrace>> =
+    OnceLock::new();
 
-/// A 204 acknowledges ClickHouse buffering, not durable delivery.
-/// The TLS client authenticates using the locally persisted device identity.
-struct HttpTransport {
-    endpoint: String,
-    client: ureq::Agent,
-}
-
-impl HttpTransport {
-    fn new(endpoint: String, client: ureq::Agent) -> Self {
-        Self { endpoint, client }
-    }
-}
-
-impl Transport for HttpTransport {
-    type Error = io::Error;
-
-    fn send(&mut self, batch: OutboundBatch<'_>) -> Result<Acknowledgment, Self::Error> {
-        let response = self
-            .client
-            .post(&self.endpoint)
-            .header("Content-Type", "application/x-protobuf")
-            .send(batch.bytes)
-            .map_err(io::Error::other)?;
-        if response.status() != 204 {
-            return Err(io::Error::other(format!(
-                "ingest returned {}; expected 204 No Content",
-                response.status()
-            )));
-        }
-        println!("sent {} bytes to {}", batch.bytes.len(), self.endpoint);
-        Ok(Acknowledgment { batch_id: batch.id })
-    }
-}
-
-static RECORDER: OnceLock<Recorder<RamStorage<2048>, HostClock, NoBacktrace>> = OnceLock::new();
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, defmt::Format)]
 enum DeviceState {
     Booting,
     Idle,
@@ -97,7 +56,7 @@ impl Device {
     }
 
     fn transition(&mut self, next: DeviceState) {
-        log::info!(target: "device", "state {:?} -> {:?}", self.state, next);
+        defmt::info!("state {} -> {}", self.state, next);
         counter!("device.state_transitions").increment(1);
         self.state = next;
         self.state_ticks = 0;
@@ -108,7 +67,7 @@ impl Device {
         let cpu_load = match self.state {
             DeviceState::Booting => {
                 if self.state_ticks >= 3 {
-                    log::info!(target: "device", "self-test passed; sensor initialized");
+                    defmt::info!("self-test passed; sensor initialized");
                     self.transition(DeviceState::Idle);
                 }
                 self.random.range(40.0, 65.0)
@@ -126,16 +85,20 @@ impl Device {
                 self.temperature += self.random.range(0.6, 1.4);
                 self.battery -= self.random.range(0.05, 0.12);
                 if self.random.range(0.0, 1.0) < 0.05 {
-                    log::error!(target: "sensor", "mock sensor timeout; scheduling bus reset");
+                    defmt::error!("mock sensor timeout; scheduling bus reset");
                     counter!("sensor.errors").increment(1);
                     self.transition(DeviceState::Recovering);
                 } else {
                     let humidity = self.random.range(35.0, 65.0);
                     metric!("sensor.humidity_percent").set(humidity);
                     counter!("sensor.samples").increment(1);
-                    log::info!(target: "sensor", "sample: temperature={:.1} C humidity={humidity:.1}%", self.temperature);
+                    defmt::info!(
+                        "sample: temperature={=f64} C humidity={=f64}%",
+                        self.temperature,
+                        humidity
+                    );
                     if self.temperature >= 35.0 {
-                        log::warn!(target: "device", "temperature limit reached; enabling cooling fan");
+                        defmt::warn!("temperature limit reached; enabling cooling fan");
                         self.transition(DeviceState::Cooling);
                     }
                 }
@@ -145,7 +108,7 @@ impl Device {
                 self.temperature -= self.random.range(0.8, 1.6);
                 self.battery -= 0.03;
                 if self.temperature <= 26.0 {
-                    log::info!(target: "device", "temperature normal; disabling cooling fan");
+                    defmt::info!("temperature normal; disabling cooling fan");
                     self.transition(DeviceState::Idle);
                 }
                 self.random.range(10.0, 20.0)
@@ -153,7 +116,7 @@ impl Device {
             DeviceState::Recovering => {
                 self.temperature += (24.0 - self.temperature) * 0.1;
                 if self.state_ticks >= 4 {
-                    log::info!(target: "sensor", "bus reset complete; sensor responding");
+                    defmt::info!("bus reset complete; sensor responding");
                     counter!("sensor.recoveries").increment(1);
                     self.transition(DeviceState::Idle);
                 }
@@ -189,18 +152,18 @@ fn main() -> io::Result<()> {
         &mut boot_id,
     )
     .unwrap();
+    let backtrace = LinuxBacktrace::new()?;
     let recorder = RECORDER.get_or_init(|| {
         Recorder::new(
             Session::new(boot_id, &build_id, "host-example", "process_start").unwrap(),
             RamStorage::new(),
-            HostClock(Instant::now()),
-            NoBacktrace,
+            MonotonicClock::new(),
+            backtrace,
         )
         .unwrap()
     });
     install(recorder).unwrap();
-    install_log(log::LevelFilter::Info).unwrap();
-    log::info!(target: "device", "booting mock environmental sensor");
+    defmt::info!("booting mock environmental sensor");
     let mut device = Device::new(u64::from_le_bytes(boot_id[..8].try_into().unwrap()));
     let mut exporter = Exporter::<_, _, 8192>::new(
         recorder,
@@ -230,5 +193,58 @@ fn main() -> io::Result<()> {
             last_export = Instant::now();
         }
         thread::sleep(Duration::from_secs(1));
+    }
+}
+
+#[cfg(all(test, target_os = "linux"))]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn defmt_sensor_logs_decode_with_the_host_elf_and_include_frames() {
+        let recorder = RECORDER.get_or_init(|| {
+            Recorder::new(
+                Session::new([1; 16], "test", "host-example", "test").unwrap(),
+                RamStorage::new(),
+                MonotonicClock::new(),
+                LinuxBacktrace::new().unwrap(),
+            )
+            .unwrap()
+        });
+        install(recorder).unwrap();
+        let mut device = Device::new(1);
+        device.transition(DeviceState::Sampling);
+        // Exercise typed floating-point formatting as well as the state enum.
+        defmt::warn!("sample: temperature={=f64} C humidity={=f64}%", 24.5, 50.0);
+        let batch = recorder.take_batch().unwrap().unwrap();
+        let elf = std::fs::read(std::env::current_exe().unwrap()).unwrap();
+        let table = defmt_decoder::Table::parse(&elf).unwrap().unwrap();
+        let mut messages = Vec::new();
+        for record in &batch.records {
+            match &record.payload {
+                Payload::Boot(_) | Payload::Metric { .. } => {}
+                Payload::Defmt(log) => {
+                    assert!(!log.trace.pcs.is_empty());
+                    assert!(matches!(
+                        log.trace.status,
+                        TraceStatus::Partial | TraceStatus::Truncated
+                    ));
+                    let mut decoder = table.new_stream_decoder();
+                    decoder.received(&log.frame);
+                    messages.push(decoder.decode().unwrap().display_message().to_string());
+                }
+                _ => panic!("expected defmt logs rather than raw text"),
+            }
+        }
+        assert!(
+            messages.iter().any(|s| s == "state Booting -> Sampling"),
+            "{messages:?}"
+        );
+        assert!(
+            messages
+                .iter()
+                .any(|s| s == "sample: temperature=24.5 C humidity=50.0%"),
+            "{messages:?}"
+        );
     }
 }

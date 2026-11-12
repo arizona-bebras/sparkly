@@ -1,4 +1,4 @@
-use crate::{Record, storage_codec};
+use crate::{Payload, Record, Session, storage_codec};
 
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub struct PushOutcome {
@@ -24,6 +24,13 @@ pub trait RecordStorage: Send {
 
     fn push(&mut self, record: Record) -> Result<PushOutcome, Self::Error>;
     fn pop(&mut self) -> Option<Record>;
+
+    /// Boot context immediately before the queue head. Preserve this alongside
+    /// restored history and advance it when a Boot is popped or evicted.
+    /// Storage without recoverable context must return None rather than guess.
+    fn initial_boot(&self) -> Option<&Session> {
+        None
+    }
 }
 
 /// Byte memory used by the ring. Its length must remain positive and unchanged
@@ -55,6 +62,7 @@ pub struct RingStorage<B> {
     backing: B,
     head: usize,
     used: usize,
+    initial_boot: Option<Session>,
 }
 
 /// An inline RAM ring with a compile-time byte budget. For borrowed or heap
@@ -68,6 +76,7 @@ impl<const N: usize> RingStorage<[u8; N]> {
             backing: [0; N],
             head: 0,
             used: 0,
+            initial_boot: None,
         }
     }
 }
@@ -85,6 +94,7 @@ impl<B: ByteStorage> RingStorage<B> {
             backing,
             head: 0,
             used: 0,
+            initial_boot: None,
         }
     }
 
@@ -150,7 +160,7 @@ impl<B: ByteStorage> RecordStorage for RingStorage<B> {
 
         let mut evicted = 0;
         while len > capacity - self.used {
-            self.discard_head(self.head_length());
+            self.pop();
             evicted += 1;
         }
         let start = (self.head + self.used) % capacity;
@@ -162,6 +172,10 @@ impl<B: ByteStorage> RecordStorage for RingStorage<B> {
         debug_assert!(len >= storage_codec::HEADER);
         self.used += len;
         Ok(PushOutcome { evicted })
+    }
+
+    fn initial_boot(&self) -> Option<&Session> {
+        self.initial_boot.as_ref()
     }
 
     fn pop(&mut self) -> Option<Record> {
@@ -176,6 +190,9 @@ impl<B: ByteStorage> RecordStorage for RingStorage<B> {
             &memory[..len - first],
         );
         self.discard_head(len);
+        if let Payload::Boot(boot) = &record.payload {
+            self.initial_boot = Some(boot.clone());
+        }
         Some(record)
     }
 }
