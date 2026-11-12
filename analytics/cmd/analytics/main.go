@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"log"
 	"net/http"
 	"os"
@@ -65,11 +66,11 @@ func main() {
 		log.Fatalf("failed to init group_membership consumer: %v", err)
 	}
 
-	consumerCtx, consumerCancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
-	defer consumerCancel()
-	if err := deviceGroupsConsumer.Listen(consumerCtx); err != nil {
+	appCtx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
+
+	if err := deviceGroupsConsumer.Listen(appCtx); err != nil {
 		log.Fatalf("failed to start group_membership consumer: %v", err)
-		return
 	}
 
 	httpServer := &http.Server{
@@ -80,8 +81,20 @@ func main() {
 		WriteTimeout:      15 * time.Second,
 		IdleTimeout:       60 * time.Second,
 	}
+
+	go func() {
+		<-appCtx.Done()
+		shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer shutdownCancel()
+		if err := httpServer.Shutdown(shutdownCtx); err != nil {
+			log.Printf("HTTP server shutdown error: %v", err)
+		}
+	}()
+
 	log.Printf("analytics listening on :%s", port)
-	log.Fatalf("server failed: %v", httpServer.ListenAndServe())
+	if err := httpServer.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+		log.Fatalf("server failed: %v", err)
+	}
 }
 
 func newMux(store handlers.RawBatchStore) *http.ServeMux {
