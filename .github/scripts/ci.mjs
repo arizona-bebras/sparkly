@@ -11,6 +11,7 @@ const components = {
   ml: { runtime: 'python', artifact: '' },
   proto: { runtime: 'node', artifact: '' },
   envoy: { runtime: 'node', artifact: '' },
+  symbolicator: { runtime: 'rust', artifact: 'symbolicator/target/debug/sparkly-symbolicator' },
 };
 
 const nx = (...args) =>

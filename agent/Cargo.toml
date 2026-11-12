@@ -5,8 +5,12 @@ edition = "2024"
 rust-version = "1.88"
 publish = false
 
+[profile.release]
+debug = 2
+strip = "none"
+
 [workspace]
-members = ["crates/*"]
+members = ["crates/*", "examples/host"]
 exclude = ["crates/sparkly-esp/examples/esp32s3"]
 resolver = "3"
 
@@ -23,7 +27,12 @@ sparkly-macros = { path = "crates/sparkly-macros" }
 heapless = { version = "0.9", default-features = false }
 critical-section = "1.2"
 log = { version = "0.4", default-features = false }
-micropb = { version = "0.6", default-features = false, features = ["encode", "decode", "enable-64bit", "container-heapless-0-9"] }
+micropb = { version = "0.6", default-features = false, features = [
+  "encode",
+  "decode",
+  "enable-64bit",
+  "container-heapless-0-9",
+] }
 
 [features]
 default = ["log"]
@@ -44,13 +53,3 @@ defmt = { version = "1", optional = true }
 [dev-dependencies]
 critical-section = { workspace = true, features = ["std"] }
 micropb.workspace = true
-ureq = { version = "3.5", default-features = false, features = ["rustls", "json"] }
-rcgen = { version = "0.14", default-features = false, features = ["crypto", "pem", "ring"] }
-rustls = { version = "0.23", default-features = false, features = ["ring", "std"] }
-serde = { version = "1", features = ["derive"] }
-fs2 = "0.4"
-tempfile = "3"
-
-[[example]]
-name = "host"
-required-features = ["std", "log"]

@@ -90,9 +90,9 @@ From `agent/`, build both tools and the native example:
 
 ```sh
 cargo build -p sparkly-cli --bins
-cargo rustc --example host --features std -- -C linker=target/debug/sparkly-link -C linker-flavor=gcc
-target/debug/examples/host
-target/debug/sparkly inspect target/debug/examples/host
+cargo rustc -p sparkly-host-example -- -C linker=target/debug/sparkly-link -C linker-flavor=gcc
+target/debug/sparkly-host-example
+target/debug/sparkly inspect target/debug/sparkly-host-example
 ```
 
 For the ESP example, put `agent/target/debug` on PATH, load `export-esp.sh`, and

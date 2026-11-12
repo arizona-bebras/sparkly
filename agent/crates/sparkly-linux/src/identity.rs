@@ -1,3 +1,5 @@
+//! Filesystem credentials and rustls enrollment/client adapters for the shared
+//! sparkly-core identity lifecycle. No recorder or global logging configuration.
 use fs2::FileExt;
 use rcgen::{CertificateParams, DistinguishedName, KeyPair};
 use rustls::{
@@ -7,10 +9,11 @@ use rustls::{
     sign::CertifiedKey,
 };
 use serde::{Deserialize, Serialize};
+use sparkly_core::identity::{CredentialStore, IdentityBackend};
 use std::{
     fs::{self, File, OpenOptions},
     io::{self, Write},
-    path::Path,
+    path::{Path, PathBuf},
     sync::Arc,
     time::Duration,
 };
@@ -36,60 +39,130 @@ struct EnrollmentResponse {
     certificate_chain_pem: String,
 }
 
-/// Load a device identity or enroll once. Neither the token nor the private key
-/// is sent to the telemetry endpoint; TLS proves possession of the private key.
+/// Filesystem store holding an exclusive identity lock for its entire lifetime.
+pub struct FileIdentityStore {
+    directory: PathBuf,
+    _lock: File,
+}
+
+impl FileIdentityStore {
+    pub fn open(directory: impl AsRef<Path>) -> io::Result<Self> {
+        let directory = directory.as_ref();
+        let lock = lock_directory(directory)?;
+        Ok(Self {
+            directory: directory.to_owned(),
+            _lock: lock,
+        })
+    }
+}
+
+impl CredentialStore for FileIdentityStore {
+    type Error = io::Error;
+    type Key = KeyPair;
+    type Certificate = Vec<u8>;
+
+    fn load_key(&mut self) -> io::Result<Option<KeyPair>> {
+        match fs::read_to_string(self.directory.join(KEY_FILE)) {
+            Ok(key) => KeyPair::from_pem(&key).map(Some).map_err(io::Error::other),
+            Err(error) if error.kind() == io::ErrorKind::NotFound => Ok(None),
+            Err(error) => Err(error),
+        }
+    }
+
+    fn save_key(&mut self, key: &KeyPair) -> io::Result<()> {
+        write_private_file(
+            &self.directory.join(KEY_FILE),
+            key.serialize_pem().as_bytes(),
+        )
+    }
+
+    fn load_certificate(&mut self) -> io::Result<Option<Vec<u8>>> {
+        match fs::read(self.directory.join(CERTIFICATE_FILE)) {
+            Ok(certificate) => Ok(Some(certificate)),
+            Err(error) if error.kind() == io::ErrorKind::NotFound => Ok(None),
+            Err(error) => Err(error),
+        }
+    }
+
+    fn save_certificate(&mut self, certificate: &Vec<u8>) -> io::Result<()> {
+        write_certificate(&self.directory, certificate)
+    }
+}
+
+/// PEM/PKCS#8 keys, signed CSRs, verified HTTPS enrollment and rustls mTLS clients.
+/// Other platforms implement IdentityBackend using their native TLS and signer.
+pub struct RustlsIdentity {
+    endpoint: String,
+    roots: Vec<Certificate<'static>>,
+}
+
+impl RustlsIdentity {
+    pub fn new(endpoint: &str, ca_pem: &[u8]) -> io::Result<Self> {
+        Ok(Self {
+            endpoint: endpoint.to_owned(),
+            roots: certificates(ca_pem)?,
+        })
+    }
+}
+
+impl IdentityBackend for RustlsIdentity {
+    type Error = io::Error;
+    type Key = KeyPair;
+    type Certificate = Vec<u8>;
+    type Csr = String;
+    type Client = Agent;
+
+    fn generate_key(&self) -> io::Result<KeyPair> {
+        KeyPair::generate().map_err(io::Error::other)
+    }
+
+    fn create_csr(&self, key: &KeyPair) -> io::Result<String> {
+        let mut params = CertificateParams::new(Vec::<String>::new()).map_err(io::Error::other)?;
+        // The backend assigns the identity; its CSR contract forbids CN/SANs.
+        params.distinguished_name = DistinguishedName::new();
+        params
+            .serialize_request(key)
+            .map_err(io::Error::other)?
+            .pem()
+            .map_err(io::Error::other)
+    }
+
+    fn enroll(&self, csr: &String, token: &str) -> io::Result<Vec<u8>> {
+        enroll(&self.endpoint, &self.roots, csr, token)
+    }
+
+    fn authenticated_client(&self, key: &KeyPair, certificate: &Vec<u8>) -> io::Result<Agent> {
+        authenticated_agent(&self.roots, certificate, &key.serialize_pem())
+    }
+}
+
+/// Convenience entry point: hold the filesystem lock through validation and
+/// persistence, then return a client. Lifecycle decisions live in no_std code.
 pub fn load_or_enroll(
     endpoint: &str,
     directory: &Path,
     ca_pem: &[u8],
     enrollment_token: &str,
 ) -> io::Result<Agent> {
-    let roots = certificates(ca_pem).map_err(|_| {
-        io::Error::other(
-            "build the host example with SPARKLY_CA_CERT pointing to a valid PEM CA bundle",
-        )
-    })?;
-    let _lock = lock_directory(directory)?;
-    match fs::read(directory.join(CERTIFICATE_FILE)) {
-        Ok(certificate) => {
-            let key = fs::read_to_string(directory.join(KEY_FILE))?;
-            return authenticated_agent(&roots, &certificate, &key);
-        }
-        Err(error) if error.kind() == io::ErrorKind::NotFound => {}
-        Err(error) => return Err(error),
-    }
-    if enrollment_token.is_empty() {
-        return Err(io::Error::other(
-            "first enrollment requires SPARKLY_ENROLLMENT_TOKEN",
-        ));
-    }
-    let key = load_or_generate_key(directory)?;
-    let certificate = enroll(endpoint, &roots, &key, enrollment_token)?;
-    let client = authenticated_agent(&roots, &certificate, &key.serialize_pem())?;
-    write_certificate(directory, &certificate)?;
-    println!(
-        "enrolled device; credentials saved in {}",
-        directory.display()
-    );
-    Ok(client)
+    let backend = RustlsIdentity::new(endpoint, ca_pem)?;
+    let mut store = FileIdentityStore::open(directory)?;
+    let identity = sparkly_core::identity::load_or_enroll(&mut store, &backend, enrollment_token)
+        .map_err(io::Error::other)?;
+    Ok(identity.client)
 }
 
 fn enroll(
     endpoint: &str,
     roots: &[Certificate<'static>],
-    key: &KeyPair,
+    csr_pem: &str,
     token: &str,
 ) -> io::Result<Vec<u8>> {
-    let mut params = CertificateParams::new(Vec::<String>::new()).map_err(io::Error::other)?;
-    // The backend assigns the identity; its CSR contract forbids CN/SANs.
-    params.distinguished_name = DistinguishedName::new();
-    let csr = params.serialize_request(key).map_err(io::Error::other)?;
-    let csr_pem = csr.pem().map_err(io::Error::other)?;
+    require_https(endpoint)?;
     let mut response = agent(roots, None)
         .post(endpoint)
         .send_json(EnrollmentRequest {
             park_token: token,
-            csr_pem: &csr_pem,
+            csr_pem,
         })
         .map_err(io::Error::other)?;
     if response.status() != 201 {
@@ -206,6 +279,7 @@ fn lock_directory(directory: &Path) -> io::Result<File> {
     Ok(lock)
 }
 
+#[cfg(test)]
 fn load_or_generate_key(directory: &Path) -> io::Result<KeyPair> {
     let path = directory.join(KEY_FILE);
     match fs::read_to_string(&path) {
@@ -266,6 +340,20 @@ mod tests {
         let mut params = CertificateParams::default();
         params.extended_key_usages = vec![ExtendedKeyUsagePurpose::ClientAuth];
         params.signed_by(key, issuer).unwrap()
+    }
+
+    #[test]
+    fn store_lock_is_held_for_its_lifetime_and_existing_keys_cannot_be_replaced() {
+        let directory = private_directory();
+        let mut store = FileIdentityStore::open(directory.path()).unwrap();
+        assert!(FileIdentityStore::open(directory.path()).is_err());
+        let key = KeyPair::generate().unwrap();
+        store.save_key(&key).unwrap();
+        let before = fs::read(directory.path().join(KEY_FILE)).unwrap();
+        assert!(store.save_key(&KeyPair::generate().unwrap()).is_err());
+        assert_eq!(before, fs::read(directory.path().join(KEY_FILE)).unwrap());
+        drop(store);
+        assert!(FileIdentityStore::open(directory.path()).is_ok());
     }
 
     #[test]

@@ -21,26 +21,15 @@ fn encode_batch(batch: &Batch, encoder: &mut PbEncoder<&mut [u8]>) -> Result<(),
     encoder.encode_bytes(&batch.id)?;
     encoder.encode_tag(Tag::from_parts(3, WIRE_TYPE_VARINT))?;
     encoder.encode_varint64(batch.dropped_records)?;
+    if let Some(boot) = &batch.initial_boot {
+        let boot = make_boot(boot)?;
+        encoder.encode_tag(Tag::from_parts(4, WIRE_TYPE_LEN))?;
+        encoder.encode_varint32(boot.compute_size() as u32)?;
+        boot.encode(encoder)?;
+    }
     for record in &batch.records {
         let payload = match &record.payload {
-            Payload::Boot(session) => {
-                let mut boot = pb::Boot {
-                    boot_id: session.boot_id.as_slice().try_into().map_err(|_| ())?,
-                    build_id: session.build_id.clone(),
-                    firmware_version: session
-                        .firmware_version
-                        .as_str()
-                        .try_into()
-                        .map_err(|_| ())?,
-                    agent_version: session.agent_version.as_str().try_into().map_err(|_| ())?,
-                    reset_reason: session.reset_reason.clone(),
-                    ..Default::default()
-                };
-                if let Some(reason) = session.raw_reset_reason {
-                    boot.set_raw_reset_reason(reason);
-                }
-                pb::Event_::Payload::Boot(boot)
-            }
+            Payload::Boot(session) => pb::Event_::Payload::Boot(make_boot(session)?),
             Payload::Metric { id, value } => pb::Event_::Payload::Metric(pb::Metric {
                 metric_id: *id,
                 measurement: Some(match value {
@@ -98,4 +87,23 @@ fn write_event(encoder: &mut PbEncoder<&mut [u8]>, event: &pb::Event) -> Result<
     encoder.encode_tag(Tag::from_parts(2, WIRE_TYPE_LEN))?;
     encoder.encode_varint32(event.compute_size() as u32)?;
     event.encode(encoder)
+}
+
+fn make_boot(session: &Session) -> Result<pb::Boot, ()> {
+    let mut boot = pb::Boot {
+        boot_id: session.boot_id.as_slice().try_into().map_err(|_| ())?,
+        build_id: session.build_id.clone(),
+        firmware_version: session
+            .firmware_version
+            .as_str()
+            .try_into()
+            .map_err(|_| ())?,
+        agent_version: session.agent_version.as_str().try_into().map_err(|_| ())?,
+        reset_reason: session.reset_reason.clone(),
+        ..Default::default()
+    };
+    if let Some(reason) = session.raw_reset_reason {
+        boot.set_raw_reset_reason(reason);
+    }
+    Ok(boot)
 }

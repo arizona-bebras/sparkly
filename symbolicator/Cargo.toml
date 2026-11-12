@@ -1,0 +1,26 @@
+[package]
+name = "sparkly-symbolicator"
+version = "0.1.0"
+edition = "2024"
+publish = false
+
+[dependencies]
+addr2line = "0.27"
+anyhow = "1"
+defmt-decoder = { version = "1.1", features = ["unstable"] }
+hex = "0.4"
+prost = "0.14"
+pbjson = "0.9"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+sha2 = "0.10"
+sparkly-build = { path = "../agent/crates/sparkly-build" }
+
+[build-dependencies]
+prost-build = "0.14"
+pbjson-build = "0.9"
+
+[dev-dependencies]
+tempfile = "3"
+sparkly-core = { path = "../agent/crates/sparkly-core" }
+sparkly-protocol = { path = "../agent/crates/sparkly-protocol" }

@@ -9,6 +9,9 @@ message Parcel {
   repeated Event events = 2;
   // Losses since the previous parcel was assembled. Count once after deduplication.
   uint64 dropped_records = 3;
+  // Context immediately before the first event. Repeated metadata, not a reset.
+  // Boot events replace this context for subsequent events. Absent if unknown.
+  Boot initial_boot = 4;
 }
 
 message Event {

@@ -1,0 +1,52 @@
+{
+  "$schema": "../node_modules/nx/schemas/project-schema.json",
+  "name": "symbolicator",
+  "projectType": "application",
+  "sourceRoot": "symbolicator/src",
+  "targets": {
+    "build": {
+      "executor": "nx:run-commands",
+      "cache": false,
+      "options": {
+        "command": "cargo build --locked",
+        "cwd": "symbolicator"
+      }
+    },
+    "test": {
+      "executor": "nx:run-commands",
+      "cache": false,
+      "options": {
+        "command": "cargo test --locked",
+        "cwd": "symbolicator"
+      }
+    },
+    "lint": {
+      "executor": "nx:run-commands",
+      "cache": false,
+      "options": {
+        "command": "cargo clippy --locked --all-targets -- -D warnings",
+        "cwd": "symbolicator"
+      }
+    },
+    "format": {
+      "executor": "nx:run-commands",
+      "cache": false,
+      "options": {
+        "command": "cargo fmt",
+        "cwd": "symbolicator"
+      }
+    },
+    "format:check": {
+      "executor": "nx:run-commands",
+      "cache": false,
+      "options": {
+        "command": "cargo fmt -- --check",
+        "cwd": "symbolicator"
+      }
+    },
+    "check": {
+      "executor": "nx:noop",
+      "dependsOn": ["lint", "format:check", "test"]
+    }
+  }
+}

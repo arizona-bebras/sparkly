@@ -137,6 +137,8 @@ pub struct Statistics {
 #[derive(Clone, Debug, PartialEq)]
 pub struct Batch {
     pub id: BatchId,
+    /// Context before the first record; metadata only, not another reset.
+    pub initial_boot: Option<Session>,
     pub records: Vec<Record, MAX_BATCH_RECORDS>,
     /// Loss delta since the previous batch was assembled, counted once on ingest.
     pub dropped_records: u64,

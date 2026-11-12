@@ -213,6 +213,7 @@ impl<S: RecordStorage, C: Clock, B: Backtrace> BatchSource for Recorder<S, C, B>
                 .next_batch
                 .checked_add(1)
                 .ok_or(CaptureError::BatchIdsExhausted)?;
+            let initial_boot = state.storage.initial_boot().cloned();
             let mut records = Vec::new();
             while !records.is_full() {
                 match state.storage.pop() {
@@ -237,6 +238,7 @@ impl<S: RecordStorage, C: Clock, B: Backtrace> BatchSource for Recorder<S, C, B>
             state.reported_losses = losses;
             Ok(Some(Batch {
                 id,
+                initial_boot,
                 records,
                 dropped_records,
             }))

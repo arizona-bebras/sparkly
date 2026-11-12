@@ -54,8 +54,9 @@
   Persist queue-to-parcel transfers atomically, replay old pending parcels before
   new ones, and retain loss deltas with the original parcel IDs. Test power loss
   at each commit/ack boundary and startup with a full ring.
-- Design context recovery for telemetry whose Boot was evicted; loss deltas alone
-  cannot reconstruct firmware/build identity or missing reset boundaries.
+- Preserve `RecordStorage::initial_boot` metadata in future persistent storage;
+  the RAM ring now retains head context across Boot eviction and parcels carry it
+  in `initial_boot`. Loss deltas still cannot reconstruct evicted telemetry.
 - Add cumulative counters, bounded labels, units and histograms with explicit
   overflow/reset semantics and dictionary versioning.
 - Add configurable backtrace depth/filtering, structured log fields and optional
@@ -67,8 +68,11 @@
 
 ## Additional platforms
 
-- Linux: package the example's clock/ELF integration, add backtraces with module
-  load addresses for PIE/shared libraries, and optional `metrics` facade support.
+- Linux: add per-frame module identity for shared libraries. `sparkly-linux`
+  now provides reusable clock, stack and rustls identity adapters; the separate
+  host application owns its linker/defmt configuration. It captures main-executable
+  stacks with ELF address normalization; its defmt build uses a non-PIE binary
+  to preserve string IDs. Add optional `metrics` facade support.
 - STM32: choose a first MCU family, implement reset decoding, a suitable stack
   walker and linker note mapping; reuse the existing recorder/exporter.
 - Zephyr: expose a C ABI with opaque handles, pointer/length buffers and status
