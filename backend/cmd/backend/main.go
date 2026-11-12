@@ -104,7 +104,7 @@ func main() {
 	issuesHandler := handlers.NewIssuesHandler(issueService)
 	backendv1connect.RegisterIssueServiceHandler(server, issuesHandler)
 
-	groupMembershipQueue, err := msgq.NewDeviceGroupsQueue(broker)
+	groupMembershipQueue, err := msgq.NewDeviceGroupsQueueProducer(broker)
 	if err != nil {
 		log.Fatalf("failed to init group_membership queue in broker: %v", err)
 	}
