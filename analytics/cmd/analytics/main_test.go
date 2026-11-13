@@ -9,11 +9,13 @@ import (
 	"testing"
 
 	"sparkly/analytics/internal/domain"
+	"sparkly/analytics/internal/parcel"
+	"sparkly/analytics/internal/services"
 )
 
 func TestRoutes(t *testing.T) {
 	var store routeStore
-	mux := newMux(&store)
+	mux := newMux(services.NewIngestService(parcel.Codec{}, &store))
 	request := httptest.NewRequest(http.MethodPost, "/sparkly.analytics.v1.AnalyticsService/GetSummary", strings.NewReader("{}"))
 	request.Header.Set("Content-Type", "application/json")
 	response := httptest.NewRecorder()
@@ -40,7 +42,7 @@ func TestRoutes(t *testing.T) {
 
 type routeStore struct{ payload []byte }
 
-func (s *routeStore) StoreRawBatch(_ context.Context, batch domain.RawBatch) error {
+func (s *routeStore) PublishRawBatch(_ context.Context, batch domain.RawBatch) error {
 	s.payload = append([]byte(nil), batch.Payload...)
 	return nil
 }

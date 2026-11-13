@@ -15,15 +15,18 @@ import (
 	"google.golang.org/protobuf/proto"
 
 	"sparkly/analytics/internal/domain"
+	"sparkly/analytics/internal/parcel"
+	"sparkly/analytics/internal/services"
 	agentv1 "sparkly/analytics/proto/agent/v1"
 )
 
-func TestIngestStoresParcel(t *testing.T) {
+func TestIngestPublishesParcel(t *testing.T) {
 	want := &agentv1.Parcel{
 		BatchId: []byte("batch-id"),
 		Events: []*agentv1.Event{
 			{Payload: &agentv1.Event_Boot{Boot: &agentv1.Boot{BuildId: "firmware-build", ResetReason: "power_on"}}},
 			{MonotonicUs: 10, Payload: &agentv1.Event_Metric{Metric: &agentv1.Metric{MetricId: 42, Measurement: &agentv1.Metric_Gauge{Gauge: 23.5}}}},
+			{MonotonicUs: ^uint64(0), Payload: &agentv1.Event_Metric{Metric: &agentv1.Metric{MetricId: ^uint64(0), Measurement: &agentv1.Metric_CounterDelta{CounterDelta: ^uint64(0)}}}},
 		},
 	}
 	body, err := proto.Marshal(want)
@@ -32,7 +35,7 @@ func TestIngestStoresParcel(t *testing.T) {
 	}
 	var store recordingStore
 	response := httptest.NewRecorder()
-	NewIngestHandler(&store).ServeHTTP(response, authenticatedIngestRequest(body))
+	NewIngestHandler(services.NewIngestService(parcel.Codec{}, &store)).ServeHTTP(response, authenticatedIngestRequest(body))
 	if response.Code != http.StatusNoContent {
 		t.Fatalf("status = %d, body = %s", response.Code, response.Body)
 	}
@@ -41,6 +44,9 @@ func TestIngestStoresParcel(t *testing.T) {
 	}
 	if store.batch.Identity.DeviceID().String() != testDeviceID || store.batch.Identity.ParkID().String() != testParkID {
 		t.Fatalf("stored identity = %s/%s", store.batch.Identity.ParkID(), store.batch.Identity.DeviceID())
+	}
+	if store.batch.ID == uuid.Nil || store.batch.ID.Version() != 7 {
+		t.Fatalf("batch ID = %s, want nonzero UUIDv7", store.batch.ID)
 	}
 	var got agentv1.Parcel
 	if err := protojson.Unmarshal(store.batch.Payload, &got); err != nil {
@@ -64,7 +70,7 @@ func TestIngestRejectsInvalidBodies(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			var store recordingStore
 			response := httptest.NewRecorder()
-			NewIngestHandler(&store).ServeHTTP(response, authenticatedIngestRequest(tc.body))
+			NewIngestHandler(services.NewIngestService(parcel.Codec{}, &store)).ServeHTTP(response, authenticatedIngestRequest(tc.body))
 			if response.Code != tc.code || store.calls != 0 {
 				t.Fatalf("status = %d, store calls = %d", response.Code, store.calls)
 			}
@@ -78,16 +84,16 @@ type recordingStore struct {
 	err   error
 }
 
-func (s *recordingStore) StoreRawBatch(_ context.Context, batch domain.RawBatch) error {
+func (s *recordingStore) PublishRawBatch(_ context.Context, batch domain.RawBatch) error {
 	s.calls++
 	s.batch = batch
 	s.batch.Payload = bytes.Clone(batch.Payload)
 	return s.err
 }
 
-func TestIngestStorageFailure(t *testing.T) {
+func TestIngestPublishFailure(t *testing.T) {
 	response := httptest.NewRecorder()
-	NewIngestHandler(&recordingStore{err: errors.New("database unavailable")}).ServeHTTP(response, authenticatedIngestRequest([]byte{0x0a, 1, 1}))
+	NewIngestHandler(services.NewIngestService(parcel.Codec{}, &recordingStore{err: errors.New("broker unavailable")})).ServeHTTP(response, authenticatedIngestRequest([]byte{0x0a, 1, 1}))
 	if response.Code != http.StatusServiceUnavailable {
 		t.Fatalf("status = %d", response.Code)
 	}
@@ -134,7 +140,7 @@ func TestIngestRejectsInvalidIdentity(t *testing.T) {
 			}
 			var store recordingStore
 			response := httptest.NewRecorder()
-			NewIngestHandler(&store).ServeHTTP(response, request)
+			NewIngestHandler(services.NewIngestService(parcel.Codec{}, &store)).ServeHTTP(response, request)
 			if response.Code != http.StatusUnauthorized || store.calls != 0 {
 				t.Fatalf("status = %d, store calls = %d", response.Code, store.calls)
 			}

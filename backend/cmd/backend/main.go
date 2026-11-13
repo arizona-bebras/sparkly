@@ -28,8 +28,7 @@ func main() {
 		POSTGRES_PASSWORD string
 		POSTGRES_PORT     string
 		MAIN_PORT         string
-		RABBITMQ_HOST     string
-		RABBITMQ_PORT     string
+		RABBITMQ_URL      string
 	}{}
 
 	readEnv := func() {
@@ -46,14 +45,7 @@ func main() {
 		if env.MAIN_PORT == "" {
 			env.MAIN_PORT = "8080"
 		}
-		env.RABBITMQ_HOST, _ = os.LookupEnv("RABBITMQ_HOST")
-		if env.RABBITMQ_HOST == "" {
-			env.RABBITMQ_HOST = "localhost"
-		}
-		env.RABBITMQ_PORT, _ = os.LookupEnv("RABBITMQ_PORT")
-		if env.RABBITMQ_PORT == "" {
-			env.RABBITMQ_PORT = "5672"
-		}
+		env.RABBITMQ_URL = os.Getenv("RABBITMQ_URL")
 	}
 	readEnv()
 
@@ -70,7 +62,7 @@ func main() {
 		log.Fatalf("db init failed: %v", err)
 	}
 
-	broker, err := msgq.NewMessageBroker(env.RABBITMQ_HOST, env.RABBITMQ_PORT)
+	broker, err := msgq.NewMessageBroker(env.RABBITMQ_URL)
 	if err != nil {
 		log.Fatalf("failed to init rabbitmq broker: %v", err)
 	}
