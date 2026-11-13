@@ -2,7 +2,7 @@ use anyhow::{Context, Result, ensure};
 use sparkly_symbolicator::{
     Symbols,
     application::SymbolicationService,
-    config::{Config, FIXED_ELF_PATH},
+    config::Config,
     infrastructure::{
         amqp::{AmqpWorker, QueueNames},
         fixed_elf::FixedElfProvider,
@@ -10,17 +10,17 @@ use sparkly_symbolicator::{
     },
     parse_parcel_json, symbolicate,
 };
-use std::io::Write;
+use std::{io::Write, path::Path};
 
 #[tokio::main]
 async fn main() -> Result<()> {
     let args: Vec<_> = std::env::args_os().skip(1).collect();
-    if args.is_empty() || (args.len() == 1 && args[0] == "worker") {
-        return run_worker().await;
+    if args.is_empty() || (args.len() == 2 && args[0] == "worker") {
+        return run_worker(&args[1]).await;
     }
     ensure!(
         args.len() == 2,
-        "usage: sparkly-symbolicator [worker | <parcel.json> <firmware.elf>]"
+        "usage: sparkly-symbolicator [worker <firmware.elf> | <parcel.json> <firmware.elf>]"
     );
     let bytes = std::fs::read(&args[0]).context("read protobuf JSON parcel")?;
     ensure!(
@@ -41,12 +41,12 @@ async fn main() -> Result<()> {
     Ok(())
 }
 
-async fn run_worker() -> Result<()> {
+async fn run_worker(symbols: impl AsRef<Path>) -> Result<()> {
     let config = Config::from_env()?;
-    let provider = FixedElfProvider::load(FIXED_ELF_PATH)?;
+    let provider = FixedElfProvider::load(symbols)?;
     let mut service = SymbolicationService::new(provider);
     let worker = AmqpWorker::connect(&config.rabbitmq_url, QueueNames::default()).await?;
-    eprintln!("symbolicator consuming symbolication_requests using {FIXED_ELF_PATH}");
+    eprintln!("symbolicator consuming symbolication_requests");
     let processing = worker.run(&mut service, shutdown_signal()).await;
     let closing = worker.close().await;
     processing.and(closing)

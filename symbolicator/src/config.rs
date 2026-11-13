@@ -1,8 +1,5 @@
 use anyhow::{Context, Result};
 
-// Temporary symbol source: every task uses this one local ELF, loaded at startup.
-pub const FIXED_ELF_PATH: &str = env!("FIXED_ELF_PATH");
-
 pub struct Config {
     pub rabbitmq_url: String,
 }
