@@ -61,7 +61,9 @@ acknowledgement can produce duplicate rows with the same batch ID; the current
 MergeTree table does not deduplicate them. All raw workers cancel pending writes
 and wait for shutdown before the database is closed.
 
-`symbolication_requests` and `symbolication_results` have no consumers yet.
+The [symbolicator worker](../symbolicator/README.md) consumes `symbolication_requests`
+and publishes results to `symbolication_results`. Analytics has no result consumer
+yet, so symbolicated results remain queued.
 The existing group-membership consumer and ClickHouse startup checks/migrations
 still run. Set `RABBITMQ_URL` to the AMQP connection URL (default
 `amqp://localhost:5672/`); Compose supplies its configured credentials and vhost.

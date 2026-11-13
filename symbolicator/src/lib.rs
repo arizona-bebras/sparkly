@@ -1,3 +1,8 @@
+pub mod application;
+pub mod config;
+pub mod domain;
+pub mod infrastructure;
+
 use anyhow::{Context, Result};
 use serde::Serialize;
 use sha2::{Digest, Sha256};
@@ -152,49 +157,43 @@ impl Symbols {
         })
     }
 
-    fn frames(
-        &self,
-        pcs: &[wire::Frame],
-        matches: bool,
-        event: usize,
-        out: &mut Output,
-    ) -> Vec<Frame> {
+    pub fn build_id(&self) -> &str {
+        &self.build_id
+    }
+
+    fn frames(&self, pcs: &[wire::Frame], event: usize, out: &mut Output) -> Vec<Frame> {
         let mut result = Vec::new();
         for pc in pcs {
             let start = result.len();
-            if matches {
-                let resolved = (|| -> Result<()> {
-                    let mut frames = self
-                        .loader
-                        .find_frames(pc.pc)
-                        .map_err(|e| anyhow::anyhow!(e.to_string()))?;
-                    while let Some(frame) = frames.next()? {
-                        result.push(Frame {
-                            pc: pc.pc,
-                            module: Some(self.build_id.clone()),
-                            function: frame
-                                .function
-                                .and_then(|f| f.demangle().ok().map(|s| s.into_owned())),
-                            file: frame
-                                .location
-                                .as_ref()
-                                .and_then(|l| l.file.map(str::to_owned)),
-                            line: frame.location.as_ref().and_then(|l| l.line),
-                        });
-                    }
-                    Ok(())
-                })();
-                if let Err(error) = resolved {
-                    diagnostic(out, event, format!("PC {:#x}: {error}", pc.pc));
+            let resolved = (|| -> Result<()> {
+                let mut frames = self
+                    .loader
+                    .find_frames(pc.pc)
+                    .map_err(|e| anyhow::anyhow!(e.to_string()))?;
+                while let Some(frame) = frames.next()? {
+                    result.push(Frame {
+                        pc: pc.pc,
+                        module: Some(self.build_id.clone()),
+                        function: frame
+                            .function
+                            .and_then(|f| f.demangle().ok().map(|s| s.into_owned())),
+                        file: frame
+                            .location
+                            .as_ref()
+                            .and_then(|l| l.file.map(str::to_owned)),
+                        line: frame.location.as_ref().and_then(|l| l.line),
+                    });
                 }
+                Ok(())
+            })();
+            if let Err(error) = resolved {
+                diagnostic(out, event, format!("PC {:#x}: {error}", pc.pc));
             }
             if result.len() == start {
                 result.push(Frame {
                     pc: pc.pc,
-                    module: matches.then(|| self.build_id.clone()),
-                    function: matches
-                        .then(|| self.loader.find_symbol(pc.pc).map(str::to_owned))
-                        .flatten(),
+                    module: Some(self.build_id.clone()),
+                    function: self.loader.find_symbol(pc.pc).map(str::to_owned),
                     file: None,
                     line: None,
                 });
@@ -224,14 +223,39 @@ fn common(index: usize, event: &wire::Event, boot: Option<&wire::Boot>) -> Commo
     }
 }
 
+fn resolve_frames(
+    pcs: &[wire::Frame],
+    symbols: Option<&Symbols>,
+    event: usize,
+    out: &mut Output,
+) -> Vec<Frame> {
+    match symbols {
+        Some(symbols) => symbols.frames(pcs, event, out),
+        None => pcs
+            .iter()
+            .map(|frame| Frame {
+                pc: frame.pc,
+                module: None,
+                function: None,
+                file: None,
+                line: None,
+            })
+            .collect(),
+    }
+}
+
 pub fn symbolicate(parcel: &wire::Parcel, symbols: &Symbols) -> Output {
+    symbolicate_optional(parcel, Some(symbols))
+}
+
+pub(crate) fn symbolicate_optional(parcel: &wire::Parcel, symbols: Option<&Symbols>) -> Output {
     let mut out = Output {
         producer_batch_id: hex::encode(&parcel.batch_id),
         dropped_records: parcel.dropped_records,
-        symbol_build_id: symbols.build_id.clone(),
+        symbol_build_id: symbols.map(|s| s.build_id.clone()).unwrap_or_default(),
         ..Output::default()
     };
-    if let Some(error) = &symbols.defmt_error {
+    if let Some(error) = symbols.and_then(|s| s.defmt_error.as_ref()) {
         out.diagnostics.push(Diagnostic {
             event_index: None,
             message: format!("defmt metadata: {error}"),
@@ -243,7 +267,9 @@ pub fn symbolicate(parcel: &wire::Parcel, symbols: &Symbols) -> Output {
             boot = Some(next);
         }
         let common = common(index, event, boot);
-        let matches = common.build_id.as_deref() == Some(symbols.build_id.as_str());
+        let matching_symbols =
+            symbols.filter(|s| common.build_id.as_deref() == Some(s.build_id.as_str()));
+        let matches = matching_symbols.is_some();
         if !matches {
             diagnostic(
                 &mut out,
@@ -260,9 +286,8 @@ pub fn symbolicate(parcel: &wire::Parcel, symbols: &Symbols) -> Output {
                 agent_version: boot.agent_version.clone(),
             }),
             Some(wire::event::Payload::Metric(metric)) => {
-                let definition = matches
-                    .then(|| symbols.metrics.iter().find(|m| m.id == metric.metric_id))
-                    .flatten();
+                let definition = matching_symbols
+                    .and_then(|s| s.metrics.iter().find(|m| m.id == metric.metric_id));
                 let (value, counter_delta, kind) = match metric.measurement {
                     Some(wire::metric::Measurement::Gauge(v)) => {
                         (v.is_finite().then_some(v), None, Some("gauge"))
@@ -296,7 +321,7 @@ pub fn symbolicate(parcel: &wire::Parcel, symbols: &Symbols) -> Output {
                 });
             }
             Some(wire::event::Payload::Log(log)) => {
-                let frames = symbols.frames(&log.frames, matches, index, &mut out);
+                let frames = resolve_frames(&log.frames, matching_symbols, index, &mut out);
                 let mut row = LogRow {
                     common,
                     fingerprint: String::new(),
@@ -329,7 +354,9 @@ pub fn symbolicate(parcel: &wire::Parcel, symbols: &Symbols) -> Output {
                     }
                     Some(wire::log::Content::DefmtLog(bytes)) => {
                         row.defmt_raw_hex = Some(hex::encode(bytes));
-                        if matches && let Some(table) = &symbols.defmt {
+                        if let Some(symbols) = matching_symbols
+                            && let Some(table) = &symbols.defmt
+                        {
                             let mut decoder = table.new_stream_decoder();
                             decoder.received(bytes);
                             match decoder.decode() {
@@ -376,7 +403,7 @@ pub fn symbolicate(parcel: &wire::Parcel, symbols: &Symbols) -> Output {
                 out.logs.push(row);
             }
             Some(wire::event::Payload::Crash(crash)) => {
-                let frames = symbols.frames(&crash.frames, matches, index, &mut out);
+                let frames = resolve_frames(&crash.frames, matching_symbols, index, &mut out);
                 out.crashes.push(CrashRow {
                     common,
                     sp: crash.sp,
