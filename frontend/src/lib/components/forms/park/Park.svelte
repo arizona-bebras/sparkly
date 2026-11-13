@@ -1,16 +1,16 @@
 <script lang="ts">
-import { createMutation, useQueryClient } from "@tanstack/svelte-query";
-import { onMount } from "svelte";
-import type { HTMLAttributes } from "svelte/elements";
-import SubmitBtn from "$lib/components/forms/SubmitBtn.svelte";
-import { FieldGroup } from "$lib/components/ui/field/index.js";
-import * as Form from "$lib/components/ui/form/index.js";
-import { Input } from "$lib/components/ui/input/index.js";
-import { spaForm } from "$lib/form-spa-util.svelte";
-import { cn } from "$lib/utils.js";
-import { client } from "$proto";
-import type { Park } from "../../../../../proto/gen/backend/proto/service_pb.js";
-import { formSchema } from "./schema.js";
+  import { createMutation, useQueryClient } from '@tanstack/svelte-query';
+  import { onMount } from 'svelte';
+  import type { HTMLAttributes } from 'svelte/elements';
+  import SubmitBtn from '$lib/components/forms/SubmitBtn.svelte';
+  import { FieldGroup } from '$lib/components/ui/field/index.js';
+  import * as Form from '$lib/components/ui/form/index.js';
+  import { Input } from '$lib/components/ui/input/index.js';
+  import { spaForm } from '$lib/form-spa-util.svelte';
+  import { cn } from '$lib/utils.js';
+  import { client } from '$proto';
+  import type { Park } from '../../../../../proto/gen/backend/proto/service_pb.js';
+  import { formSchema } from './schema.js';
 
   let {
     class: className,
@@ -22,44 +22,44 @@ import { formSchema } from "./schema.js";
     park?: Park;
   } = $props();
 
-const queryClient = useQueryClient();
+  const queryClient = useQueryClient();
 
-const createParkMutation = createMutation(() => ({
-	mutationKey: ["createPark"],
-	mutationFn: async (data: { name: string; description: string }) => {
-		return await client.park.createPark({
-			name: data.name,
-			description: data.description,
-		});
-	},
-	onSuccess: (response) => {
-		if (response.park) {
-			queryClient.setQueryData(["park", response.park.id], { park: response.park });
-			queryClient.invalidateQueries({ queryKey: ["park", response.park.id] });
-		}
-		queryClient.invalidateQueries({ queryKey: ["parks"] });
-		onSuccess?.(response.park);
-	},
-}));
+  const createParkMutation = createMutation(() => ({
+    mutationKey: ['createPark'],
+    mutationFn: async (data: { name: string; description: string }) => {
+      return await client.park.createPark({
+        name: data.name,
+        description: data.description,
+      });
+    },
+    onSuccess: (response) => {
+      if (response.park) {
+        queryClient.setQueryData(['park', response.park.id], { park: response.park });
+        queryClient.invalidateQueries({ queryKey: ['park', response.park.id] });
+      }
+      queryClient.invalidateQueries({ queryKey: ['parks'] });
+      onSuccess?.(response.park);
+    },
+  }));
 
-const updateParkMutation = createMutation(() => ({
-	mutationKey: ["updatePark"],
-	mutationFn: async (data: { name: string; description: string }) => {
-		return await client.park.updatePark({
-			id: park?.id,
-			name: data.name,
-			description: data.description,
-		});
-	},
-	onSuccess: (response) => {
-		if (response.park) {
-			queryClient.setQueryData(["park", response.park.id], { park: response.park });
-			queryClient.invalidateQueries({ queryKey: ["park", response.park.id] });
-		}
-		queryClient.invalidateQueries({ queryKey: ["parks"] });
-		onSuccess?.(response.park);
-	},
-}));
+  const updateParkMutation = createMutation(() => ({
+    mutationKey: ['updatePark'],
+    mutationFn: async (data: { name: string; description: string }) => {
+      return await client.park.updatePark({
+        id: park?.id,
+        name: data.name,
+        description: data.description,
+      });
+    },
+    onSuccess: (response) => {
+      if (response.park) {
+        queryClient.setQueryData(['park', response.park.id], { park: response.park });
+        queryClient.invalidateQueries({ queryKey: ['park', response.park.id] });
+      }
+      queryClient.invalidateQueries({ queryKey: ['parks'] });
+      onSuccess?.(response.park);
+    },
+  }));
 
   let currentAction = $derived(park ? updateParkMutation : createParkMutation);
 

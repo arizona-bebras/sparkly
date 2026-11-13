@@ -1,149 +1,166 @@
 <script lang="ts">
-	import type { DateRange } from "bits-ui";
-	import { getLocalTimeZone } from "@internationalized/date";
-	import { client, type IssueSeverity } from "$proto";
-	import { createQuery } from "@tanstack/svelte-query";
-	import CircleAlertIcon from "@lucide/svelte/icons/circle-alert";
-	import RefreshCwIcon from "@lucide/svelte/icons/refresh-cw";
-	import { Button } from "$lib/components/ui/button/index.js";
-	import { Skeleton } from "$lib/components/ui/skeleton/index.js";
-	import DataTable from "$lib/components/ui/data-table/data-table.svelte";
-	import { columns } from "./columns.js";
-	import { getMockIssues } from "./mock.js";
-	import IssueFilters from "./IssueFilters.svelte";
+  import type { DateRange } from 'bits-ui';
+  import { getLocalTimeZone } from '@internationalized/date';
+  import { timestampFromDate } from '@bufbuild/protobuf/wkt';
+  import { client, type Issue, type IssueSeverity } from '$proto';
+  import { createQuery, keepPreviousData, useQueryClient } from '@tanstack/svelte-query';
+  import { CircleAlert, RefreshCw } from '@lucide/svelte';
+  import { Button } from '$lib/components/ui/button/index.js';
+  import { Skeleton } from '$lib/components/ui/skeleton/index.js';
+  import DataTable from '$lib/components/ui/data-table/data-table.svelte';
+  import { columns } from './columns.js';
+  import IssueFilters from './IssueFilters.svelte';
 
-	let { parkId }: { parkId: string } = $props();
+  let { parkId }: { parkId: string } = $props();
 
-	let selectedStatus = $state<"all" | "open" | "resolved">("all");
-	let selectedSeverities = $state<IssueSeverity[]>([]);
-	let dateRange = $state<DateRange | undefined>(undefined);
-	let searchQuery = $state("");
+  let selectedStatus = $state<'all' | 'open' | 'resolved'>('all');
+  let selectedSeverities = $state<IssueSeverity[]>([]);
+  let dateRange = $state<DateRange | undefined>(undefined);
+  let searchQuery = $state('');
 
-	const issuesQuery = createQuery(() => ({
-		queryKey: ["issues", parkId],
-		queryFn: async () => {
-			try {
-				const response = await client.issue.getAllIssues({
-					parkId,
-				});
-				if (response.issues.length > 0) return response;
-			} catch {}
-			return {
-				issues: getMockIssues(parkId),
-				pagination: {
-					totalItems: getMockIssues(parkId).length,
-					totalPages: 1,
-					currentPage: 1,
-				},
-			};
-		},
-		enabled: !!parkId,
-	}));
+  const searchParam = $derived.by(() => {
+    const trimmed = searchQuery.trim();
+    return trimmed.length > 0 ? trimmed : undefined;
+  });
 
-	const filteredIssues = $derived.by(() => {
-		const all = issuesQuery.data?.issues ?? [];
-		return all.filter((issue) => {
-			if (selectedStatus === "open") {
-				const isResolved =
-					!!issue.resolvedAt && Number(issue.resolvedAt.seconds) > 0;
-				if (isResolved) return false;
-			} else if (selectedStatus === "resolved") {
-				const isResolved =
-					!!issue.resolvedAt && Number(issue.resolvedAt.seconds) > 0;
-				if (!isResolved) return false;
-			}
+  const queryClient = useQueryClient();
 
-			if (selectedSeverities.length > 0) {
-				if (!selectedSeverities.includes(issue.severity)) return false;
-			}
+  const issuesQuery = createQuery(() => ({
+    queryKey: [
+      'issues',
+      parkId,
+      selectedStatus,
+      selectedSeverities,
+      dateRange?.start?.toString(),
+      dateRange?.end?.toString(),
+      searchParam,
+    ],
+    queryFn: async () => {
+      const currentKey = [
+        'issues',
+        parkId,
+        selectedStatus,
+        selectedSeverities,
+        dateRange?.start?.toString(),
+        dateRange?.end?.toString(),
+        searchParam,
+      ];
+      const hasCached = !!queryClient.getQueryData(currentKey);
 
-			if (dateRange?.start) {
-				const startMs = dateRange.start
-					.toDate(getLocalTimeZone())
-					.setHours(0, 0, 0, 0);
-				const endMs = dateRange.end
-					? dateRange.end
-							.toDate(getLocalTimeZone())
-							.setHours(23, 59, 59, 999)
-					: dateRange.start
-							.toDate(getLocalTimeZone())
-							.setHours(23, 59, 59, 999);
-				const firstMs =
-					issue.firstAt && Number(issue.firstAt.seconds) > 0
-						? Number(issue.firstAt.seconds) * 1000
-						: 0;
-				const lastMs =
-					issue.lastAt && Number(issue.lastAt.seconds) > 0
-						? Number(issue.lastAt.seconds) * 1000
-						: firstMs;
-				if (lastMs < startMs || firstMs > endMs) return false;
-			}
+      const isResolvedParam =
+        selectedStatus === 'open' ? false : selectedStatus === 'resolved' ? true : undefined;
+      const severityParam = selectedSeverities.length === 1 ? selectedSeverities[0] : undefined;
 
-			return true;
-		});
-	});
+      let fromTime = undefined;
+      let toTime = undefined;
+      if (dateRange?.start) {
+        const startDate = dateRange.start.toDate(getLocalTimeZone());
+        startDate.setHours(0, 0, 0, 0);
+        fromTime = timestampFromDate(startDate);
+
+        const endDate = dateRange.end
+          ? dateRange.end.toDate(getLocalTimeZone())
+          : dateRange.start.toDate(getLocalTimeZone());
+        endDate.setHours(23, 59, 59, 999);
+        toTime = timestampFromDate(endDate);
+      }
+
+      const [response] = await Promise.all([
+        client.issue.getIssues({
+          parkId,
+          isResolved: isResolvedParam,
+          severity: severityParam,
+          fromTime,
+          toTime,
+          title: searchParam,
+        }),
+        !hasCached ? new Promise((resolve) => setTimeout(resolve, 350)) : Promise.resolve(),
+      ]);
+      return response;
+    },
+    placeholderData: keepPreviousData,
+    staleTime: 1000 * 60,
+    enabled: !!parkId,
+  }));
+
+  const filteredIssues = $derived.by(() => {
+    const all = issuesQuery.data?.issues ?? [];
+
+    if (selectedSeverities.length > 1) {
+      return all.filter((issue: Issue) => selectedSeverities.includes(issue.severity));
+    }
+
+    return all;
+  });
 </script>
 
 {#snippet filterToolbar()}
-	<IssueFilters
-		bind:selectedStatus
-		bind:selectedSeverities
-		bind:dateRange
-		bind:searchQuery
-	/>
+  <IssueFilters bind:selectedStatus bind:selectedSeverities bind:dateRange bind:searchQuery />
 {/snippet}
 
 <div class="flex flex-col gap-4">
-	<div class="flex items-center justify-end">
-		<Button
-			variant="outline"
-			size="sm"
-			class="gap-2"
-			disabled={issuesQuery.isFetching}
-			onclick={() => issuesQuery.refetch()}
-		>
-			<RefreshCwIcon
-				class="size-4 {issuesQuery.isFetching ? 'animate-spin' : ''}"
-			/>
-			<span>Обновить</span>
-		</Button>
-	</div>
+  <div class="flex items-center justify-end">
+    <Button
+      variant="outline"
+      size="sm"
+      class="gap-2"
+      disabled={issuesQuery.isFetching}
+      onclick={() => issuesQuery.refetch()}
+    >
+      <RefreshCw class="size-4 {issuesQuery.isFetching ? 'animate-spin' : ''}" />
+      <span>Обновить</span>
+    </Button>
+  </div>
 
-	{#if issuesQuery.isPending}
-		<div class="flex flex-col gap-3">
-			<Skeleton class="h-10 w-64 rounded-md" />
-			<div class="rounded-xl border p-4 flex flex-col gap-3">
-				{#each Array(5) as _}
-					<Skeleton class="h-10 w-full" />
-				{/each}
-			</div>
-		</div>
-	{:else if issuesQuery.isError}
-		<div
-			class="rounded-xl border p-8 flex flex-col items-center justify-center gap-3 text-destructive"
-		>
-			<CircleAlertIcon class="size-8" />
-			<p class="font-medium">Ошибка загрузки данных</p>
-			<p class="text-xs text-muted-foreground">
-				{issuesQuery.error?.message}
-			</p>
-			<Button
-				variant="outline"
-				size="sm"
-				onclick={() => issuesQuery.refetch()}
-			>
-				Повторить
-			</Button>
-		</div>
-	{:else}
-		<DataTable
-			data={filteredIssues}
-			{columns}
-			searchColumn="title"
-			searchPlaceholder="Поиск по проблемам..."
-			emptyMessage="Проблемы не найдены."
-			bind:searchValue={searchQuery}
-			toolbar={filterToolbar}
-		/>
-	{/if}
+  {#if issuesQuery.isPending && !issuesQuery.data}
+    <div class="flex flex-col gap-3">
+      <Skeleton class="h-10 w-64 rounded-md" />
+      <div class="rounded-xl border p-4 flex flex-col gap-3">
+        {#each Array(5) as _, i (i)}
+          <Skeleton class="h-10 w-full" />
+        {/each}
+      </div>
+    </div>
+  {:else if issuesQuery.isError && !issuesQuery.data}
+    <div
+      class="rounded-xl border p-8 flex flex-col items-center justify-center gap-3 text-destructive"
+    >
+      <CircleAlert class="size-8" />
+      <p class="font-medium">Ошибка загрузки данных</p>
+      <p class="text-xs text-muted-foreground">
+        {issuesQuery.error?.message}
+      </p>
+      <Button variant="outline" size="sm" onclick={() => issuesQuery.refetch()}>Повторить</Button>
+    </div>
+  {:else}
+    <div class="relative">
+      {#if issuesQuery.isPlaceholderData}
+        <div
+          class="absolute inset-0 z-10 flex items-center justify-center rounded-lg bg-background/40 backdrop-blur-[1px] transition-all duration-200"
+        >
+          <div
+            class="flex items-center gap-2 rounded-full border bg-background/95 px-3 py-1.5 text-xs font-medium text-foreground shadow-sm"
+          >
+            <RefreshCw class="size-3.5 animate-spin text-primary" />
+            <span>Загрузка проблем...</span>
+          </div>
+        </div>
+      {/if}
+      <div
+        class="transition-opacity duration-200 {issuesQuery.isPlaceholderData
+          ? 'opacity-60 pointer-events-none'
+          : 'opacity-100'}"
+      >
+        <DataTable
+          data={filteredIssues}
+          {columns}
+          searchColumn=""
+          searchPlaceholder="Поиск по проблемам..."
+          emptyMessage="Проблемы не найдены."
+          bind:searchValue={searchQuery}
+          toolbar={filterToolbar}
+        />
+      </div>
+    </div>
+  {/if}
 </div>
