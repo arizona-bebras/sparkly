@@ -1,12 +1,7 @@
 package db_test
 
 import (
-	"bytes"
 	"context"
-	"database/sql"
-	"errors"
-	"net/http"
-	"net/http/httptest"
 	"os"
 	"testing"
 	"time"
@@ -16,12 +11,12 @@ import (
 	"google.golang.org/protobuf/proto"
 
 	"sparkly/analytics/internal/db"
-	"sparkly/analytics/internal/handlers"
+	"sparkly/analytics/internal/domain"
 	"sparkly/analytics/internal/repos"
 	agentv1 "sparkly/analytics/proto/agent/v1"
 )
 
-func TestClickHouseIngest(t *testing.T) {
+func TestClickHouseRawBatchRepository(t *testing.T) {
 	if os.Getenv("CLICKHOUSE_TEST") != "1" {
 		t.Skip("set CLICKHOUSE_TEST=1 to test against ClickHouse")
 	}
@@ -65,43 +60,34 @@ func TestClickHouseIngest(t *testing.T) {
 			}}},
 		},
 	}
-	body, err := proto.Marshal(want)
+	payloadJSON, err := protojson.Marshal(want)
 	if err != nil {
 		t.Fatal(err)
 	}
 	before := time.Now().UTC().Truncate(time.Millisecond)
-	response := httptest.NewRecorder()
 	deviceID, parkID := uuid.New(), uuid.New()
-	request := httptest.NewRequest(http.MethodPost, "/ingest", bytes.NewReader(body)).WithContext(ctx)
-	request.Header.Set("X-Device-Id", deviceID.String())
-	request.Header.Set("X-Park-Id", parkID.String())
-	handlers.NewIngestHandler(repos.NewRawBatchesRepo(conn)).ServeHTTP(response, request)
-	if response.Code != http.StatusNoContent {
-		t.Fatalf("status = %d, body = %s", response.Code, response.Body)
+	identity, err := domain.NewDeviceIdentity(deviceID, parkID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	wantID := uuid.Must(uuid.NewV7())
+	if err := repos.NewRawBatchesRepo(conn).StoreRawBatch(ctx, domain.RawBatch{
+		ID: wantID, Identity: identity, ReceivedAt: before, Payload: payloadJSON,
+	}); err != nil {
+		t.Fatal(err)
 	}
 	var id, device, park, payload string
 	var groups uint64
 	var received time.Time
-	// A successful response only acknowledges buffering; wait for the async flush.
-	flushCtx, flushCancel := context.WithTimeout(ctx, 15*time.Second)
-	defer flushCancel()
-	ticker := time.NewTicker(50 * time.Millisecond)
-	defer ticker.Stop()
-	for {
-		err = conn.QueryRowContext(flushCtx, `SELECT toString(batch_id), toString(device_id), toString(park_id),
-			length(group_ids), received_at, toJSONString(payload_raw) FROM raw_batches`).Scan(
-			&id, &device, &park, &groups, &received, &payload)
-		if err == nil {
-			break
-		}
-		if !errors.Is(err, sql.ErrNoRows) {
-			t.Fatal(err)
-		}
-		select {
-		case <-flushCtx.Done():
-			t.Fatalf("waiting for async batch persistence: %v", flushCtx.Err())
-		case <-ticker.C:
-		}
+	// A successful write must be immediately visible, without polling for a flush.
+	err = conn.QueryRowContext(ctx, `SELECT toString(batch_id), toString(device_id), toString(park_id),
+   length(group_ids), received_at, toJSONString(payload_raw) FROM raw_batches`).Scan(
+		&id, &device, &park, &groups, &received, &payload)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if id != wantID.String() {
+		t.Fatalf("batch ID = %s, want %s", id, wantID)
 	}
 	batchID, err := uuid.Parse(id)
 	if err != nil || batchID.Version() != 7 {

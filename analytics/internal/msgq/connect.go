@@ -11,15 +11,10 @@ type MessageBroker struct {
 	ch   *amqp.Channel
 }
 
-func NewMessageBroker(host string, port string) (*MessageBroker, error) {
-	if host == "" {
-		host = "localhost"
+func NewMessageBroker(url string) (*MessageBroker, error) {
+	if url == "" {
+		url = "amqp://localhost:5672/"
 	}
-	if port == "" {
-		port = "5672"
-	}
-
-	url := fmt.Sprintf("amqp://%s:%s/", host, port)
 
 	conn, err := amqp.Dial(url)
 	if err != nil {

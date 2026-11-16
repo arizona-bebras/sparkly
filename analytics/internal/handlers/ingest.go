@@ -8,21 +8,18 @@ import (
 	"net/http"
 	"time"
 
-	"google.golang.org/protobuf/encoding/protojson"
-	"google.golang.org/protobuf/proto"
-
 	"sparkly/analytics/internal/domain"
-	agentv1 "sparkly/analytics/proto/agent/v1"
+	"sparkly/analytics/internal/services"
 )
 
 const maxParcelBytes = 1 << 20
 
-type RawBatchStore interface {
-	StoreRawBatch(context.Context, domain.RawBatch) error
+type ParcelIngester interface {
+	IngestParcel(context.Context, domain.DeviceIdentity, []byte, time.Time) error
 }
 
-// NewIngestHandler requires gateway identity and persists validated parcels as JSON.
-func NewIngestHandler(store RawBatchStore) http.Handler {
+// NewIngestHandler authenticates gateway identity, bounds the request, and invokes ingest.
+func NewIngestHandler(ingester ParcelIngester) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		receivedAt := time.Now().UTC()
 		identity, err := deviceIdentityFromHeaders(r.Header)
@@ -46,20 +43,17 @@ func NewIngestHandler(store RawBatchStore) http.Handler {
 			http.Error(w, "empty parcel", http.StatusBadRequest)
 			return
 		}
-		var parcel agentv1.Parcel
-		if err := proto.Unmarshal(body, &parcel); err != nil {
-			http.Error(w, "invalid protobuf parcel", http.StatusBadRequest)
-			return
-		}
-		data, err := protojson.Marshal(&parcel)
-		if err != nil {
-			http.Error(w, "could not format parcel", http.StatusInternalServerError)
-			return
-		}
-		batch := domain.RawBatch{Identity: identity, Payload: data, ReceivedAt: receivedAt}
-		if err := store.StoreRawBatch(r.Context(), batch); err != nil {
-			log.Printf("store raw batch: %v", err)
-			http.Error(w, "could not store parcel", http.StatusServiceUnavailable)
+		if err := ingester.IngestParcel(r.Context(), identity, body, receivedAt); err != nil {
+			switch {
+			case errors.Is(err, services.ErrInvalidParcel):
+				http.Error(w, "invalid protobuf parcel", http.StatusBadRequest)
+			case errors.Is(err, services.ErrIngestUnavailable):
+				log.Printf("ingest parcel: %v", err)
+				http.Error(w, "could not queue parcel", http.StatusServiceUnavailable)
+			default:
+				log.Printf("ingest parcel: %v", err)
+				http.Error(w, "could not prepare parcel", http.StatusInternalServerError)
+			}
 			return
 		}
 		w.WriteHeader(http.StatusNoContent)

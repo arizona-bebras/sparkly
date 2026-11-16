@@ -12,9 +12,14 @@ hex = "0.4"
 prost = "0.14"
 pbjson = "0.9"
 serde = { version = "1", features = ["derive"] }
-serde_json = "1"
+serde_json = { version = "1", features = ["raw_value"] }
 sha2 = "0.10"
+chrono = { version = "0.4", default-features = false, features = ["serde", "std"] }
+uuid = { version = "1", features = ["serde"] }
+futures-lite = "2"
+tokio = { version = "1", features = ["macros", "rt-multi-thread", "signal", "time", "sync"] }
 sparkly-build = { path = "../agent/crates/sparkly-build" }
+lapin = { version = "4.12.3", default-features = false, features = ["tokio", "rustls", "rustls--ring", "rustls-native-certs"] }
 
 [build-dependencies]
 prost-build = "0.14"

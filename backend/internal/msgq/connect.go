@@ -2,7 +2,6 @@ package msgq
 
 import (
 	"fmt"
-	"strings"
 
 	amqp "github.com/rabbitmq/amqp091-go"
 )
@@ -12,17 +11,9 @@ type MessageBroker struct {
 	ch   *amqp.Channel
 }
 
-func NewMessageBroker(host string, port string) (*MessageBroker, error) {
-	if host == "" {
-		host = "localhost"
-	}
-	if port == "" {
-		port = "5672"
-	}
-
-	url := fmt.Sprintf("amqp://%s:%s/", host, port)
-	if strings.HasPrefix(host, "amqp://") || strings.HasPrefix(host, "amqps://") {
-		url = host
+func NewMessageBroker(url string) (*MessageBroker, error) {
+	if url == "" {
+		url = "amqp://localhost:5672/"
 	}
 
 	conn, err := amqp.Dial(url)
