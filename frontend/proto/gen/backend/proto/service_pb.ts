@@ -2,78 +2,23 @@
 // @generated from file backend/proto/service.proto (package sparkly.backend.v1, syntax proto3)
 /* eslint-disable */
 
-import type { GenEnum, GenFile, GenMessage, GenService } from '@bufbuild/protobuf/codegenv2';
-import { enumDesc, fileDesc, messageDesc, serviceDesc } from '@bufbuild/protobuf/codegenv2';
-import { file_buf_validate_validate } from '../../buf/validate/validate_pb';
-import type { Timestamp } from '@bufbuild/protobuf/wkt';
-import { file_google_protobuf_timestamp } from '@bufbuild/protobuf/wkt';
-import type { Message } from '@bufbuild/protobuf';
+import type { GenEnum, GenFile, GenMessage, GenService } from "@bufbuild/protobuf/codegenv2";
+import { enumDesc, fileDesc, messageDesc, serviceDesc } from "@bufbuild/protobuf/codegenv2";
+import { file_buf_validate_validate } from "../../buf/validate/validate_pb";
+import type { Timestamp } from "@bufbuild/protobuf/wkt";
+import { file_google_protobuf_timestamp } from "@bufbuild/protobuf/wkt";
+import type { Message } from "@bufbuild/protobuf";
 
 /**
  * Describes the file backend/proto/service.proto.
  */
-export const file_backend_proto_service: GenFile =
-  /*@__PURE__*/
-  fileDesc(
-    'ChtiYWNrZW5kL3Byb3RvL3NlcnZpY2UucHJvdG8SEnNwYXJrbHkuYmFja2VuZC52MSJIChFQYWdpbmF0aW9uUmVxdWVzdBIVCgRwYWdlGAEgASgFQge6SAQaAigBEhwKCXBhZ2Vfc2l6ZRgCIAEoBUIJukgGGgQYZCgBIlQKElBhZ2luYXRpb25SZXNwb25zZRITCgt0b3RhbF9pdGVtcxgBIAEoBRITCgt0b3RhbF9wYWdlcxgCIAEoBRIUCgxjdXJyZW50X3BhZ2UYAyABKAUigQEKBFVzZXISCgoCaWQYASABKAkSDQoFZW1haWwYAiABKAkSLgoKY3JlYXRlZF9hdBgDIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXASLgoKdXBkYXRlZF9hdBgEIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXAiyQEKBFBhcmsSCgoCaWQYASABKAkSDAoEbmFtZRgCIAEoCRITCgtkZXNjcmlwdGlvbhgDIAEoCRIUCgxkZXZpY2VfY291bnQYBCABKAUSEgoFdG9rZW4YBSABKAlIAIgBARIuCgpjcmVhdGVkX2F0GAYgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBIuCgp1cGRhdGVkX2F0GAcgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcEIICgZfdG9rZW4i4QEKC0RldmljZUdyb3VwEgoKAmlkGAEgASgJEg8KB3BhcmtfaWQYAiABKAkSDAoEbmFtZRgDIAEoCRITCgtkZXNjcmlwdGlvbhgEIAEoCRIUCgxkZXZpY2VfY291bnQYBSABKAUSEgoFdG9rZW4YBiABKAlIAIgBARIuCgpjcmVhdGVkX2F0GAcgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBIuCgp1cGRhdGVkX2F0GAggASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcEIICgZfdG9rZW4iuQIKBkRldmljZRIKCgJpZBgBIAEoCRIMCgRuYW1lGAIgASgJEg8KB3BhcmtfaWQYAyABKAkSLwoGZ3JvdXBzGAQgAygLMh8uc3BhcmtseS5iYWNrZW5kLnYxLkRldmljZUdyb3VwEhIKCmlwX2FkZHJlc3MYBSABKAkSLQoJam9pbmVkX2F0GAYgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBIwCgxsYXN0X3NlZW5fYXQYByABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wEi4KCmNyZWF0ZWRfYXQYCCABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wEi4KCnVwZGF0ZWRfYXQYCSABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wIrMCCgVJc3N1ZRIKCgJpZBgBIAEoCRIPCgdwYXJrX2lkGAIgASgJEg0KBXRpdGxlGAMgASgJEhMKC2Rlc2NyaXB0aW9uGAQgASgJEhMKC2lzX3Jlc29sdmVkGAUgASgIEjQKC3Jlc29sdmVkX2F0GAYgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcEgAiAEBEjMKCHNldmVyaXR5GAcgASgOMiEuc3BhcmtseS5iYWNrZW5kLnYxLklzc3VlU2V2ZXJpdHkSLAoIZmlyc3RfYXQYCCABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wEisKB2xhc3RfYXQYCSABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wQg4KDF9yZXNvbHZlZF9hdCL+AQoHUmVsZWFzZRIKCgJpZBgBIAEoCRIPCgdwYXJrX2lkGAIgASgJEg8KB3ZlcnNpb24YAyABKAkSDgoGY29tbWl0GAQgASgJEhIKCmJpbmFyeV91cmwYBSABKAkSFwoPY2hlY2tzdW1fc2hhMjU2GAYgASgJEhYKDmVsZl9vYmplY3Rfa2V5GAcgASgJEhgKEGR3YXJmX29iamVjdF9rZXkYCCABKAkSEwoLZGVzY3JpcHRpb24YCSABKAkSEQoJZmlsZV9zaXplGAogASgDEi4KCmNyZWF0ZWRfYXQYCyABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wIj8KClJlZ1JlcXVlc3QSFgoFZW1haWwYASABKAlCB7pIBHICYAESGQoIcGFzc3dvcmQYAiABKAlCB7pIBHICEAYiVgoLUmVnUmVzcG9uc2USDQoFZW1haWwYASABKAkSDQoFdG9rZW4YAiABKAkSFQoNcmVmcmVzaF90b2tlbhgDIAEoCRISCgpleHBpcmVzX2luGAQgASgDIkQKD0dldFRva2VuUmVxdWVzdBIWCgVlbWFpbBgBIAEoCUIHukgEcgJgARIZCghwYXNzd29yZBgCIAEoCUIHukgEcgIQBiJbChBHZXRUb2tlblJlc3BvbnNlEg0KBWVtYWlsGAEgASgJEg0KBXRva2VuGAIgASgJEhUKDXJlZnJlc2hfdG9rZW4YAyABKAkSEgoKZXhwaXJlc19pbhgEIAEoAyIUChJSZXZva2VUb2tlblJlcXVlc3QiJgoTUmV2b2tlVG9rZW5SZXNwb25zZRIPCgdzdWNjZXNzGAEgASgIIhIKEENoZWNrQXV0aFJlcXVlc3QiMAoRQ2hlY2tBdXRoUmVzcG9uc2USDQoFZW1haWwYASABKAkSDAoEYXV0aBgCIAEoCCJ9ChFVcGRhdGVVc2VyUmVxdWVzdBIUCgJpZBgBIAEoCUIIukgFcgOwAQESGwoFZW1haWwYAiABKAlCB7pIBHICYAFIAIgBARIeCghwYXNzd29yZBgDIAEoCUIHukgEcgIQBkgBiAEBQggKBl9lbWFpbEILCglfcGFzc3dvcmQiPAoSVXBkYXRlVXNlclJlc3BvbnNlEiYKBHVzZXIYASABKAsyGC5zcGFya2x5LmJhY2tlbmQudjEuVXNlciIpChFEZWxldGVVc2VyUmVxdWVzdBIUCgJpZBgBIAEoCUIIukgFcgOwAQEiJQoSRGVsZXRlVXNlclJlc3BvbnNlEg8KB3N1Y2Nlc3MYASABKAgiSgoRQ3JlYXRlUGFya1JlcXVlc3QSFwoEbmFtZRgBIAEoCUIJukgGcgQQARgeEhwKC2Rlc2NyaXB0aW9uGAIgASgJQge6SARyAhABIlAKEkNyZWF0ZVBhcmtSZXNwb25zZRImCgRwYXJrGAEgASgLMhguc3BhcmtseS5iYWNrZW5kLnYxLlBhcmsSEgoKcGFya190b2tlbhgCIAEoCSImCg5HZXRQYXJrUmVxdWVzdBIUCgJpZBgBIAEoCUIIukgFcgOwAQEiOQoPR2V0UGFya1Jlc3BvbnNlEiYKBHBhcmsYASABKAsyGC5zcGFya2x5LmJhY2tlbmQudjEuUGFyayJPChJHZXRBbGxQYXJrc1JlcXVlc3QSOQoKcGFnaW5hdGlvbhgBIAEoCzIlLnNwYXJrbHkuYmFja2VuZC52MS5QYWdpbmF0aW9uUmVxdWVzdCJ6ChNHZXRBbGxQYXJrc1Jlc3BvbnNlEicKBXBhcmtzGAEgAygLMhguc3BhcmtseS5iYWNrZW5kLnYxLlBhcmsSOgoKcGFnaW5hdGlvbhgCIAEoCzImLnNwYXJrbHkuYmFja2VuZC52MS5QYWdpbmF0aW9uUmVzcG9uc2UigwEKEVVwZGF0ZVBhcmtSZXF1ZXN0EhQKAmlkGAEgASgJQgi6SAVyA7ABARIcCgRuYW1lGAIgASgJQgm6SAZyBBABGB5IAIgBARIhCgtkZXNjcmlwdGlvbhgDIAEoCUIHukgEcgIQAUgBiAEBQgcKBV9uYW1lQg4KDF9kZXNjcmlwdGlvbiI8ChJVcGRhdGVQYXJrUmVzcG9uc2USJgoEcGFyaxgBIAEoCzIYLnNwYXJrbHkuYmFja2VuZC52MS5QYXJrIikKEURlbGV0ZVBhcmtSZXF1ZXN0EhQKAmlkGAEgASgJQgi6SAVyA7ABASIlChJEZWxldGVQYXJrUmVzcG9uc2USDwoHc3VjY2VzcxgBIAEoCCJmChJDcmVhdGVHcm91cFJlcXVlc3QSGQoHcGFya19pZBgBIAEoCUIIukgFcgOwAQESFwoEbmFtZRgCIAEoCUIJukgGcgQQARgeEhwKC2Rlc2NyaXB0aW9uGAMgASgJQge6SARyAhABIkUKE0NyZWF0ZUdyb3VwUmVzcG9uc2USLgoFZ3JvdXAYASABKAsyHy5zcGFya2x5LmJhY2tlbmQudjEuRGV2aWNlR3JvdXAiJwoPR2V0R3JvdXBSZXF1ZXN0EhQKAmlkGAEgASgJQgi6SAVyA7ABASJCChBHZXRHcm91cFJlc3BvbnNlEi4KBWdyb3VwGAEgASgLMh8uc3BhcmtseS5iYWNrZW5kLnYxLkRldmljZUdyb3VwImgKEEdldEdyb3Vwc1JlcXVlc3QSGQoHcGFya19pZBgBIAEoCUIIukgFcgOwAQESOQoKcGFnaW5hdGlvbhgCIAEoCzIlLnNwYXJrbHkuYmFja2VuZC52MS5QYWdpbmF0aW9uUmVxdWVzdCKAAQoRR2V0R3JvdXBzUmVzcG9uc2USLwoGZ3JvdXBzGAEgAygLMh8uc3BhcmtseS5iYWNrZW5kLnYxLkRldmljZUdyb3VwEjoKCnBhZ2luYXRpb24YAiABKAsyJi5zcGFya2x5LmJhY2tlbmQudjEuUGFnaW5hdGlvblJlc3BvbnNlIoQBChJVcGRhdGVHcm91cFJlcXVlc3QSFAoCaWQYASABKAlCCLpIBXIDsAEBEhwKBG5hbWUYAiABKAlCCbpIBnIEEAEYHkgAiAEBEiEKC2Rlc2NyaXB0aW9uGAMgASgJQge6SARyAhABSAGIAQFCBwoFX25hbWVCDgoMX2Rlc2NyaXB0aW9uIkUKE1VwZGF0ZUdyb3VwUmVzcG9uc2USLgoFZ3JvdXAYASABKAsyHy5zcGFya2x5LmJhY2tlbmQudjEuRGV2aWNlR3JvdXAiKgoSRGVsZXRlR3JvdXBSZXF1ZXN0EhQKAmlkGAEgASgJQgi6SAVyA7ABASImChNEZWxldGVHcm91cFJlc3BvbnNlEg8KB3N1Y2Nlc3MYASABKAgiUgoXQWRkRGV2aWNlVG9Hcm91cFJlcXVlc3QSGgoIZ3JvdXBfaWQYASABKAlCCLpIBXIDsAEBEhsKCWRldmljZV9pZBgCIAEoCUIIukgFcgOwAQEiKwoYQWRkRGV2aWNlVG9Hcm91cFJlc3BvbnNlEg8KB3N1Y2Nlc3MYASABKAgiVwocUmVtb3ZlRGV2aWNlRnJvbUdyb3VwUmVxdWVzdBIaCghncm91cF9pZBgBIAEoCUIIukgFcgOwAQESGwoJZGV2aWNlX2lkGAIgASgJQgi6SAVyA7ABASIwCh1SZW1vdmVEZXZpY2VGcm9tR3JvdXBSZXNwb25zZRIPCgdzdWNjZXNzGAEgASgIIigKEEdldERldmljZVJlcXVlc3QSFAoCaWQYASABKAlCCLpIBXIDsAEBIj8KEUdldERldmljZVJlc3BvbnNlEioKBmRldmljZRgBIAEoCzIaLnNwYXJrbHkuYmFja2VuZC52MS5EZXZpY2Ui9wEKEUdldERldmljZXNSZXF1ZXN0EhkKB3BhcmtfaWQYASABKAlCCLpIBXIDsAEBEiEKCmRldmljZV9pZHMYAiADKAlCDbpICpIBByIFcgOwAQESIAoJZ3JvdXBfaWRzGAMgAygJQg26SAqSAQciBXIDsAEBEhwKBG5hbWUYBCABKAlCCbpIBnIEEAEYHkgAiAEBEiAKCWJ1aWxkX2lkcxgFIAMoCUINukgKkgEHIgVyA7ABARI5CgpwYWdpbmF0aW9uGAYgASgLMiUuc3BhcmtseS5iYWNrZW5kLnYxLlBhZ2luYXRpb25SZXF1ZXN0QgcKBV9uYW1lIn0KEkdldERldmljZXNSZXNwb25zZRIrCgdkZXZpY2VzGAEgAygLMhouc3BhcmtseS5iYWNrZW5kLnYxLkRldmljZRI6CgpwYWdpbmF0aW9uGAIgASgLMiYuc3BhcmtseS5iYWNrZW5kLnYxLlBhZ2luYXRpb25SZXNwb25zZSInCg9HZXRJc3N1ZVJlcXVlc3QSFAoCaWQYASABKAlCCLpIBXIDsAEBIjwKEEdldElzc3VlUmVzcG9uc2USKAoFaXNzdWUYASABKAsyGS5zcGFya2x5LmJhY2tlbmQudjEuSXNzdWUigQMKEEdldElzc3Vlc1JlcXVlc3QSGQoHcGFya19pZBgBIAEoCUIIukgFcgOwAQESEgoFdGl0bGUYAiABKAlIAIgBARJCCghzZXZlcml0eRgDIAEoDjIhLnNwYXJrbHkuYmFja2VuZC52MS5Jc3N1ZVNldmVyaXR5Qgi6SAWCAQIQAUgBiAEBEhgKC2lzX3Jlc29sdmVkGAQgASgISAKIAQESMgoJZnJvbV90aW1lGAUgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcEgDiAEBEjAKB3RvX3RpbWUYBiABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wSASIAQESOQoKcGFnaW5hdGlvbhgHIAEoCzIlLnNwYXJrbHkuYmFja2VuZC52MS5QYWdpbmF0aW9uUmVxdWVzdEIICgZfdGl0bGVCCwoJX3NldmVyaXR5Qg4KDF9pc19yZXNvbHZlZEIMCgpfZnJvbV90aW1lQgoKCF90b190aW1lInoKEUdldElzc3Vlc1Jlc3BvbnNlEikKBmlzc3VlcxgBIAMoCzIZLnNwYXJrbHkuYmFja2VuZC52MS5Jc3N1ZRI6CgpwYWdpbmF0aW9uGAIgASgLMiYuc3BhcmtseS5iYWNrZW5kLnYxLlBhZ2luYXRpb25SZXNwb25zZSIrChNSZXNvbHZlSXNzdWVSZXF1ZXN0EhQKAmlkGAEgASgJQgi6SAVyA7ABASJAChRSZXNvbHZlSXNzdWVSZXNwb25zZRIoCgVpc3N1ZRgBIAEoCzIZLnNwYXJrbHkuYmFja2VuZC52MS5Jc3N1ZSLVAQoSVXBkYXRlSXNzdWVSZXF1ZXN0EhQKAmlkGAEgASgJQgi6SAVyA7ABARIbCgV0aXRsZRgCIAEoCUIHukgEcgIQAUgAiAEBEiEKC2Rlc2NyaXB0aW9uGAMgASgJQge6SARyAhABSAGIAQESQgoIc2V2ZXJpdHkYBCABKA4yIS5zcGFya2x5LmJhY2tlbmQudjEuSXNzdWVTZXZlcml0eUIIukgFggECEAFIAogBAUIICgZfdGl0bGVCDgoMX2Rlc2NyaXB0aW9uQgsKCV9zZXZlcml0eSI/ChNVcGRhdGVJc3N1ZVJlc3BvbnNlEigKBWlzc3VlGAEgASgLMhkuc3BhcmtseS5iYWNrZW5kLnYxLklzc3VlIioKEkRlbGV0ZUlzc3VlUmVxdWVzdBIUCgJpZBgBIAEoCUIIukgFcgOwAQEiJgoTRGVsZXRlSXNzdWVSZXNwb25zZRIPCgdzdWNjZXNzGAEgASgIKrEBCg1Jc3N1ZVNldmVyaXR5Eh4KGklTU1VFX1NFVkVSSVRZX1VOU1BFQ0lGSUVEEAASFwoTSVNTVUVfU0VWRVJJVFlfSU5GTxABEhYKEklTU1VFX1NFVkVSSVRZX0xPVxACEhkKFUlTU1VFX1NFVkVSSVRZX01FRElVTRADEhcKE0lTU1VFX1NFVkVSSVRZX0hJR0gQBBIbChdJU1NVRV9TRVZFUklUWV9DUklUSUNBTBAFMqAECgtVc2VyU2VydmljZRJGCgNSZWcSHi5zcGFya2x5LmJhY2tlbmQudjEuUmVnUmVxdWVzdBofLnNwYXJrbHkuYmFja2VuZC52MS5SZWdSZXNwb25zZRJVCghHZXRUb2tlbhIjLnNwYXJrbHkuYmFja2VuZC52MS5HZXRUb2tlblJlcXVlc3QaJC5zcGFya2x5LmJhY2tlbmQudjEuR2V0VG9rZW5SZXNwb25zZRJYCglDaGVja0F1dGgSJC5zcGFya2x5LmJhY2tlbmQudjEuQ2hlY2tBdXRoUmVxdWVzdBolLnNwYXJrbHkuYmFja2VuZC52MS5DaGVja0F1dGhSZXNwb25zZRJeCgtSZXZva2VUb2tlbhImLnNwYXJrbHkuYmFja2VuZC52MS5SZXZva2VUb2tlblJlcXVlc3QaJy5zcGFya2x5LmJhY2tlbmQudjEuUmV2b2tlVG9rZW5SZXNwb25zZRJbCgpVcGRhdGVVc2VyEiUuc3BhcmtseS5iYWNrZW5kLnYxLlVwZGF0ZVVzZXJSZXF1ZXN0GiYuc3BhcmtseS5iYWNrZW5kLnYxLlVwZGF0ZVVzZXJSZXNwb25zZRJbCgpEZWxldGVVc2VyEiUuc3BhcmtseS5iYWNrZW5kLnYxLkRlbGV0ZVVzZXJSZXF1ZXN0GiYuc3BhcmtseS5iYWNrZW5kLnYxLkRlbGV0ZVVzZXJSZXNwb25zZTKWCQoLUGFya1NlcnZpY2USWwoKQ3JlYXRlUGFyaxIlLnNwYXJrbHkuYmFja2VuZC52MS5DcmVhdGVQYXJrUmVxdWVzdBomLnNwYXJrbHkuYmFja2VuZC52MS5DcmVhdGVQYXJrUmVzcG9uc2USUgoHR2V0UGFyaxIiLnNwYXJrbHkuYmFja2VuZC52MS5HZXRQYXJrUmVxdWVzdBojLnNwYXJrbHkuYmFja2VuZC52MS5HZXRQYXJrUmVzcG9uc2USXgoLR2V0QWxsUGFya3MSJi5zcGFya2x5LmJhY2tlbmQudjEuR2V0QWxsUGFya3NSZXF1ZXN0Gicuc3BhcmtseS5iYWNrZW5kLnYxLkdldEFsbFBhcmtzUmVzcG9uc2USWwoKVXBkYXRlUGFyaxIlLnNwYXJrbHkuYmFja2VuZC52MS5VcGRhdGVQYXJrUmVxdWVzdBomLnNwYXJrbHkuYmFja2VuZC52MS5VcGRhdGVQYXJrUmVzcG9uc2USWwoKRGVsZXRlUGFyaxIlLnNwYXJrbHkuYmFja2VuZC52MS5EZWxldGVQYXJrUmVxdWVzdBomLnNwYXJrbHkuYmFja2VuZC52MS5EZWxldGVQYXJrUmVzcG9uc2USXgoLQ3JlYXRlR3JvdXASJi5zcGFya2x5LmJhY2tlbmQudjEuQ3JlYXRlR3JvdXBSZXF1ZXN0Gicuc3BhcmtseS5iYWNrZW5kLnYxLkNyZWF0ZUdyb3VwUmVzcG9uc2USVQoIR2V0R3JvdXASIy5zcGFya2x5LmJhY2tlbmQudjEuR2V0R3JvdXBSZXF1ZXN0GiQuc3BhcmtseS5iYWNrZW5kLnYxLkdldEdyb3VwUmVzcG9uc2USWAoJR2V0R3JvdXBzEiQuc3BhcmtseS5iYWNrZW5kLnYxLkdldEdyb3Vwc1JlcXVlc3QaJS5zcGFya2x5LmJhY2tlbmQudjEuR2V0R3JvdXBzUmVzcG9uc2USXgoLVXBkYXRlR3JvdXASJi5zcGFya2x5LmJhY2tlbmQudjEuVXBkYXRlR3JvdXBSZXF1ZXN0Gicuc3BhcmtseS5iYWNrZW5kLnYxLlVwZGF0ZUdyb3VwUmVzcG9uc2USXgoLRGVsZXRlR3JvdXASJi5zcGFya2x5LmJhY2tlbmQudjEuRGVsZXRlR3JvdXBSZXF1ZXN0Gicuc3BhcmtseS5iYWNrZW5kLnYxLkRlbGV0ZUdyb3VwUmVzcG9uc2USbQoQQWRkRGV2aWNlVG9Hcm91cBIrLnNwYXJrbHkuYmFja2VuZC52MS5BZGREZXZpY2VUb0dyb3VwUmVxdWVzdBosLnNwYXJrbHkuYmFja2VuZC52MS5BZGREZXZpY2VUb0dyb3VwUmVzcG9uc2USfAoVUmVtb3ZlRGV2aWNlRnJvbUdyb3VwEjAuc3BhcmtseS5iYWNrZW5kLnYxLlJlbW92ZURldmljZUZyb21Hcm91cFJlcXVlc3QaMS5zcGFya2x5LmJhY2tlbmQudjEuUmVtb3ZlRGV2aWNlRnJvbUdyb3VwUmVzcG9uc2UyxgEKDURldmljZVNlcnZpY2USWAoJR2V0RGV2aWNlEiQuc3BhcmtseS5iYWNrZW5kLnYxLkdldERldmljZVJlcXVlc3QaJS5zcGFya2x5LmJhY2tlbmQudjEuR2V0RGV2aWNlUmVzcG9uc2USWwoKR2V0RGV2aWNlcxIlLnNwYXJrbHkuYmFja2VuZC52MS5HZXREZXZpY2VzUmVxdWVzdBomLnNwYXJrbHkuYmFja2VuZC52MS5HZXREZXZpY2VzUmVzcG9uc2Uy4gMKDElzc3VlU2VydmljZRJVCghHZXRJc3N1ZRIjLnNwYXJrbHkuYmFja2VuZC52MS5HZXRJc3N1ZVJlcXVlc3QaJC5zcGFya2x5LmJhY2tlbmQudjEuR2V0SXNzdWVSZXNwb25zZRJYCglHZXRJc3N1ZXMSJC5zcGFya2x5LmJhY2tlbmQudjEuR2V0SXNzdWVzUmVxdWVzdBolLnNwYXJrbHkuYmFja2VuZC52MS5HZXRJc3N1ZXNSZXNwb25zZRJhCgxSZXNvbHZlSXNzdWUSJy5zcGFya2x5LmJhY2tlbmQudjEuUmVzb2x2ZUlzc3VlUmVxdWVzdBooLnNwYXJrbHkuYmFja2VuZC52MS5SZXNvbHZlSXNzdWVSZXNwb25zZRJeCgtVcGRhdGVJc3N1ZRImLnNwYXJrbHkuYmFja2VuZC52MS5VcGRhdGVJc3N1ZVJlcXVlc3QaJy5zcGFya2x5LmJhY2tlbmQudjEuVXBkYXRlSXNzdWVSZXNwb25zZRJeCgtEZWxldGVJc3N1ZRImLnNwYXJrbHkuYmFja2VuZC52MS5EZWxldGVJc3N1ZVJlcXVlc3QaJy5zcGFya2x5LmJhY2tlbmQudjEuRGVsZXRlSXNzdWVSZXNwb25zZUIkWiJzcGFya2x5L2JhY2tlbmQvcHJvdG8vdjE7YmFja2VuZHYxYgZwcm90bzM',
-    [file_buf_validate_validate, file_google_protobuf_timestamp],
-  );
-
-/**
- * @generated from message sparkly.backend.v1.PaginationRequest
- */
-export type PaginationRequest = Message<'sparkly.backend.v1.PaginationRequest'> & {
-  /**
-   * @generated from field: int32 page = 1;
-   */
-  page: number;
-
-  /**
-   * @generated from field: int32 page_size = 2;
-   */
-  pageSize: number;
-};
-
-/**
- * Describes the message sparkly.backend.v1.PaginationRequest.
- * Use `create(PaginationRequestSchema)` to create a new message.
- */
-export const PaginationRequestSchema: GenMessage<PaginationRequest> =
-  /*@__PURE__*/
-  messageDesc(file_backend_proto_service, 0);
-
-/**
- * @generated from message sparkly.backend.v1.PaginationResponse
- */
-export type PaginationResponse = Message<'sparkly.backend.v1.PaginationResponse'> & {
-  /**
-   * @generated from field: int32 total_items = 1;
-   */
-  totalItems: number;
-
-  /**
-   * @generated from field: int32 total_pages = 2;
-   */
-  totalPages: number;
-
-  /**
-   * @generated from field: int32 current_page = 3;
-   */
-  currentPage: number;
-};
-
-/**
- * Describes the message sparkly.backend.v1.PaginationResponse.
- * Use `create(PaginationResponseSchema)` to create a new message.
- */
-export const PaginationResponseSchema: GenMessage<PaginationResponse> =
-  /*@__PURE__*/
-  messageDesc(file_backend_proto_service, 1);
+export const file_backend_proto_service: GenFile = /*@__PURE__*/
+  fileDesc("ChtiYWNrZW5kL3Byb3RvL3NlcnZpY2UucHJvdG8SEnNwYXJrbHkuYmFja2VuZC52MSKBAQoEVXNlchIKCgJpZBgBIAEoCRINCgVlbWFpbBgCIAEoCRIuCgpjcmVhdGVkX2F0GAMgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBIuCgp1cGRhdGVkX2F0GAQgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcCLJAQoEUGFyaxIKCgJpZBgBIAEoCRIMCgRuYW1lGAIgASgJEhMKC2Rlc2NyaXB0aW9uGAMgASgJEhQKDGRldmljZV9jb3VudBgEIAEoBRISCgV0b2tlbhgFIAEoCUgAiAEBEi4KCmNyZWF0ZWRfYXQYBiABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wEi4KCnVwZGF0ZWRfYXQYByABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wQggKBl90b2tlbiLhAQoLRGV2aWNlR3JvdXASCgoCaWQYASABKAkSDwoHcGFya19pZBgCIAEoCRIMCgRuYW1lGAMgASgJEhMKC2Rlc2NyaXB0aW9uGAQgASgJEhQKDGRldmljZV9jb3VudBgFIAEoBRISCgV0b2tlbhgGIAEoCUgAiAEBEi4KCmNyZWF0ZWRfYXQYByABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wEi4KCnVwZGF0ZWRfYXQYCCABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wQggKBl90b2tlbiK5AgoGRGV2aWNlEgoKAmlkGAEgASgJEgwKBG5hbWUYAiABKAkSDwoHcGFya19pZBgDIAEoCRIvCgZncm91cHMYBCADKAsyHy5zcGFya2x5LmJhY2tlbmQudjEuRGV2aWNlR3JvdXASEgoKaXBfYWRkcmVzcxgFIAEoCRItCglqb2luZWRfYXQYBiABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wEjAKDGxhc3Rfc2Vlbl9hdBgHIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXASLgoKY3JlYXRlZF9hdBgIIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXASLgoKdXBkYXRlZF9hdBgJIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXAiswIKBUlzc3VlEgoKAmlkGAEgASgJEg8KB3BhcmtfaWQYAiABKAkSDQoFdGl0bGUYAyABKAkSEwoLZGVzY3JpcHRpb24YBCABKAkSEwoLaXNfcmVzb2x2ZWQYBSABKAgSNAoLcmVzb2x2ZWRfYXQYBiABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wSACIAQESMwoIc2V2ZXJpdHkYByABKA4yIS5zcGFya2x5LmJhY2tlbmQudjEuSXNzdWVTZXZlcml0eRIsCghmaXJzdF9hdBgIIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXASKwoHbGFzdF9hdBgJIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXBCDgoMX3Jlc29sdmVkX2F0IqcBCgVCdWlsZBIKCgJpZBgBIAEoCRIPCgdwYXJrX2lkGAIgASgJEg8KB3ZlcnNpb24YAyABKAkSDgoGY29tbWl0GAQgASgJEhYKDmVsZl9vYmplY3Rfa2V5GAUgASgJEhgKEGR3YXJmX29iamVjdF9rZXkYBiABKAkSLgoKY3JlYXRlZF9hdBgHIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXAidQoHUmVsZWFzZRIKCgJpZBgBIAEoCRIPCgdwYXJrX2lkGAIgASgJEgwKBG5hbWUYAyABKAkSDwoHdmVyc2lvbhgEIAEoCRIuCgpjcmVhdGVkX2F0GAUgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcCI/CgpSZWdSZXF1ZXN0EhYKBWVtYWlsGAEgASgJQge6SARyAmABEhkKCHBhc3N3b3JkGAIgASgJQge6SARyAhAGIlYKC1JlZ1Jlc3BvbnNlEg0KBWVtYWlsGAEgASgJEg0KBXRva2VuGAIgASgJEhUKDXJlZnJlc2hfdG9rZW4YAyABKAkSEgoKZXhwaXJlc19pbhgEIAEoAyJECg9HZXRUb2tlblJlcXVlc3QSFgoFZW1haWwYASABKAlCB7pIBHICYAESGQoIcGFzc3dvcmQYAiABKAlCB7pIBHICEAYiWwoQR2V0VG9rZW5SZXNwb25zZRINCgVlbWFpbBgBIAEoCRINCgV0b2tlbhgCIAEoCRIVCg1yZWZyZXNoX3Rva2VuGAMgASgJEhIKCmV4cGlyZXNfaW4YBCABKAMiFAoSUmV2b2tlVG9rZW5SZXF1ZXN0IiYKE1Jldm9rZVRva2VuUmVzcG9uc2USDwoHc3VjY2VzcxgBIAEoCCISChBDaGVja0F1dGhSZXF1ZXN0IjAKEUNoZWNrQXV0aFJlc3BvbnNlEg0KBWVtYWlsGAEgASgJEgwKBGF1dGgYAiABKAgifQoRVXBkYXRlVXNlclJlcXVlc3QSFAoCaWQYASABKAlCCLpIBXIDsAEBEhsKBWVtYWlsGAIgASgJQge6SARyAmABSACIAQESHgoIcGFzc3dvcmQYAyABKAlCB7pIBHICEAZIAYgBAUIICgZfZW1haWxCCwoJX3Bhc3N3b3JkIjwKElVwZGF0ZVVzZXJSZXNwb25zZRImCgR1c2VyGAEgASgLMhguc3BhcmtseS5iYWNrZW5kLnYxLlVzZXIiKQoRRGVsZXRlVXNlclJlcXVlc3QSFAoCaWQYASABKAlCCLpIBXIDsAEBIiUKEkRlbGV0ZVVzZXJSZXNwb25zZRIPCgdzdWNjZXNzGAEgASgIIkoKEUNyZWF0ZVBhcmtSZXF1ZXN0EhcKBG5hbWUYASABKAlCCbpIBnIEEAEYHhIcCgtkZXNjcmlwdGlvbhgCIAEoCUIHukgEcgIQASJQChJDcmVhdGVQYXJrUmVzcG9uc2USJgoEcGFyaxgBIAEoCzIYLnNwYXJrbHkuYmFja2VuZC52MS5QYXJrEhIKCnBhcmtfdG9rZW4YAiABKAkiJgoOR2V0UGFya1JlcXVlc3QSFAoCaWQYASABKAlCCLpIBXIDsAEBIjkKD0dldFBhcmtSZXNwb25zZRImCgRwYXJrGAEgASgLMhguc3BhcmtseS5iYWNrZW5kLnYxLlBhcmsiFAoSR2V0QWxsUGFya3NSZXF1ZXN0Ij4KE0dldEFsbFBhcmtzUmVzcG9uc2USJwoFcGFya3MYASADKAsyGC5zcGFya2x5LmJhY2tlbmQudjEuUGFyayKDAQoRVXBkYXRlUGFya1JlcXVlc3QSFAoCaWQYASABKAlCCLpIBXIDsAEBEhwKBG5hbWUYAiABKAlCCbpIBnIEEAEYHkgAiAEBEiEKC2Rlc2NyaXB0aW9uGAMgASgJQge6SARyAhABSAGIAQFCBwoFX25hbWVCDgoMX2Rlc2NyaXB0aW9uIjwKElVwZGF0ZVBhcmtSZXNwb25zZRImCgRwYXJrGAEgASgLMhguc3BhcmtseS5iYWNrZW5kLnYxLlBhcmsiKQoRRGVsZXRlUGFya1JlcXVlc3QSFAoCaWQYASABKAlCCLpIBXIDsAEBIiUKEkRlbGV0ZVBhcmtSZXNwb25zZRIPCgdzdWNjZXNzGAEgASgIImYKEkNyZWF0ZUdyb3VwUmVxdWVzdBIZCgdwYXJrX2lkGAEgASgJQgi6SAVyA7ABARIXCgRuYW1lGAIgASgJQgm6SAZyBBABGB4SHAoLZGVzY3JpcHRpb24YAyABKAlCB7pIBHICEAEiRQoTQ3JlYXRlR3JvdXBSZXNwb25zZRIuCgVncm91cBgBIAEoCzIfLnNwYXJrbHkuYmFja2VuZC52MS5EZXZpY2VHcm91cCInCg9HZXRHcm91cFJlcXVlc3QSFAoCaWQYASABKAlCCLpIBXIDsAEBIkIKEEdldEdyb3VwUmVzcG9uc2USLgoFZ3JvdXAYASABKAsyHy5zcGFya2x5LmJhY2tlbmQudjEuRGV2aWNlR3JvdXAiLQoQR2V0R3JvdXBzUmVxdWVzdBIZCgdwYXJrX2lkGAEgASgJQgi6SAVyA7ABASJEChFHZXRHcm91cHNSZXNwb25zZRIvCgZncm91cHMYASADKAsyHy5zcGFya2x5LmJhY2tlbmQudjEuRGV2aWNlR3JvdXAihAEKElVwZGF0ZUdyb3VwUmVxdWVzdBIUCgJpZBgBIAEoCUIIukgFcgOwAQESHAoEbmFtZRgCIAEoCUIJukgGcgQQARgeSACIAQESIQoLZGVzY3JpcHRpb24YAyABKAlCB7pIBHICEAFIAYgBAUIHCgVfbmFtZUIOCgxfZGVzY3JpcHRpb24iRQoTVXBkYXRlR3JvdXBSZXNwb25zZRIuCgVncm91cBgBIAEoCzIfLnNwYXJrbHkuYmFja2VuZC52MS5EZXZpY2VHcm91cCIqChJEZWxldGVHcm91cFJlcXVlc3QSFAoCaWQYASABKAlCCLpIBXIDsAEBIiYKE0RlbGV0ZUdyb3VwUmVzcG9uc2USDwoHc3VjY2VzcxgBIAEoCCJSChdBZGREZXZpY2VUb0dyb3VwUmVxdWVzdBIaCghncm91cF9pZBgBIAEoCUIIukgFcgOwAQESGwoJZGV2aWNlX2lkGAIgASgJQgi6SAVyA7ABASIrChhBZGREZXZpY2VUb0dyb3VwUmVzcG9uc2USDwoHc3VjY2VzcxgBIAEoCCJXChxSZW1vdmVEZXZpY2VGcm9tR3JvdXBSZXF1ZXN0EhoKCGdyb3VwX2lkGAEgASgJQgi6SAVyA7ABARIbCglkZXZpY2VfaWQYAiABKAlCCLpIBXIDsAEBIjAKHVJlbW92ZURldmljZUZyb21Hcm91cFJlc3BvbnNlEg8KB3N1Y2Nlc3MYASABKAgiKAoQR2V0RGV2aWNlUmVxdWVzdBIUCgJpZBgBIAEoCUIIukgFcgOwAQEiPwoRR2V0RGV2aWNlUmVzcG9uc2USKgoGZGV2aWNlGAEgASgLMhouc3BhcmtseS5iYWNrZW5kLnYxLkRldmljZSK8AQoRR2V0RGV2aWNlc1JlcXVlc3QSGQoHcGFya19pZBgBIAEoCUIIukgFcgOwAQESIQoKZGV2aWNlX2lkcxgCIAMoCUINukgKkgEHIgVyA7ABARIgCglncm91cF9pZHMYAyADKAlCDbpICpIBByIFcgOwAQESHAoEbmFtZRgEIAEoCUIJukgGcgQQARgeSACIAQESIAoJYnVpbGRfaWRzGAUgAygJQg26SAqSAQciBXIDsAEBQgcKBV9uYW1lIkEKEkdldERldmljZXNSZXNwb25zZRIrCgdkZXZpY2VzGAEgAygLMhouc3BhcmtseS5iYWNrZW5kLnYxLkRldmljZSInCg9HZXRJc3N1ZVJlcXVlc3QSFAoCaWQYASABKAlCCLpIBXIDsAEBIjwKEEdldElzc3VlUmVzcG9uc2USKAoFaXNzdWUYASABKAsyGS5zcGFya2x5LmJhY2tlbmQudjEuSXNzdWUixgIKEEdldElzc3Vlc1JlcXVlc3QSGQoHcGFya19pZBgBIAEoCUIIukgFcgOwAQESEgoFdGl0bGUYAiABKAlIAIgBARJCCghzZXZlcml0eRgDIAEoDjIhLnNwYXJrbHkuYmFja2VuZC52MS5Jc3N1ZVNldmVyaXR5Qgi6SAWCAQIQAUgBiAEBEhgKC2lzX3Jlc29sdmVkGAQgASgISAKIAQESMgoJZnJvbV90aW1lGAUgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcEgDiAEBEjAKB3RvX3RpbWUYBiABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wSASIAQFCCAoGX3RpdGxlQgsKCV9zZXZlcml0eUIOCgxfaXNfcmVzb2x2ZWRCDAoKX2Zyb21fdGltZUIKCghfdG9fdGltZSI+ChFHZXRJc3N1ZXNSZXNwb25zZRIpCgZpc3N1ZXMYASADKAsyGS5zcGFya2x5LmJhY2tlbmQudjEuSXNzdWUiKwoTUmVzb2x2ZUlzc3VlUmVxdWVzdBIUCgJpZBgBIAEoCUIIukgFcgOwAQEiQAoUUmVzb2x2ZUlzc3VlUmVzcG9uc2USKAoFaXNzdWUYASABKAsyGS5zcGFya2x5LmJhY2tlbmQudjEuSXNzdWUi1QEKElVwZGF0ZUlzc3VlUmVxdWVzdBIUCgJpZBgBIAEoCUIIukgFcgOwAQESGwoFdGl0bGUYAiABKAlCB7pIBHICEAFIAIgBARIhCgtkZXNjcmlwdGlvbhgDIAEoCUIHukgEcgIQAUgBiAEBEkIKCHNldmVyaXR5GAQgASgOMiEuc3BhcmtseS5iYWNrZW5kLnYxLklzc3VlU2V2ZXJpdHlCCLpIBYIBAhABSAKIAQFCCAoGX3RpdGxlQg4KDF9kZXNjcmlwdGlvbkILCglfc2V2ZXJpdHkiPwoTVXBkYXRlSXNzdWVSZXNwb25zZRIoCgVpc3N1ZRgBIAEoCzIZLnNwYXJrbHkuYmFja2VuZC52MS5Jc3N1ZSIqChJEZWxldGVJc3N1ZVJlcXVlc3QSFAoCaWQYASABKAlCCLpIBXIDsAEBIiYKE0RlbGV0ZUlzc3VlUmVzcG9uc2USDwoHc3VjY2VzcxgBIAEoCCKCAQoSQ3JlYXRlQnVpbGRSZXF1ZXN0EhkKB3BhcmtfaWQYASABKAlCCLpIBXIDsAEBEg8KB3ZlcnNpb24YAiABKAkSDgoGY29tbWl0GAMgASgJEhYKDmVsZl9vYmplY3Rfa2V5GAQgASgJEhgKEGR3YXJmX29iamVjdF9rZXkYBSABKAkiPwoTQ3JlYXRlQnVpbGRSZXNwb25zZRIoCgVidWlsZBgBIAEoCzIZLnNwYXJrbHkuYmFja2VuZC52MS5CdWlsZCInCg9HZXRCdWlsZFJlcXVlc3QSFAoCaWQYASABKAlCCLpIBXIDsAEBIjwKEEdldEJ1aWxkUmVzcG9uc2USKAoFYnVpbGQYASABKAsyGS5zcGFya2x5LmJhY2tlbmQudjEuQnVpbGQi7wEKEEdldEJ1aWxkc1JlcXVlc3QSGQoHcGFya19pZBgBIAEoCUIIukgFcgOwAQESFAoHdmVyc2lvbhgCIAEoCUgAiAEBEhMKBmNvbW1pdBgDIAEoCUgBiAEBEjIKCWZyb21fdGltZRgEIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXBIAogBARIwCgd0b190aW1lGAUgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcEgDiAEBQgoKCF92ZXJzaW9uQgkKB19jb21taXRCDAoKX2Zyb21fdGltZUIKCghfdG9fdGltZSI+ChFHZXRCdWlsZHNSZXNwb25zZRIpCgZidWlsZHMYASADKAsyGS5zcGFya2x5LmJhY2tlbmQudjEuQnVpbGQi0AEKElVwZGF0ZUJ1aWxkUmVxdWVzdBIUCgJpZBgBIAEoCUIIukgFcgOwAQESFAoHdmVyc2lvbhgCIAEoCUgAiAEBEhMKBmNvbW1pdBgDIAEoCUgBiAEBEhsKDmVsZl9vYmplY3Rfa2V5GAUgASgJSAKIAQESHQoQZHdhcmZfb2JqZWN0X2tleRgGIAEoCUgDiAEBQgoKCF92ZXJzaW9uQgkKB19jb21taXRCEQoPX2VsZl9vYmplY3Rfa2V5QhMKEV9kd2FyZl9vYmplY3Rfa2V5IkAKE1VwZGF0ZUJ1aWxkUmVzcG9uc2USKQoGYnVpbGRzGAEgAygLMhkuc3BhcmtseS5iYWNrZW5kLnYxLkJ1aWxkIioKEkRlbGV0ZUJ1aWxkUmVxdWVzdBIUCgJpZBgBIAEoCUIIukgFcgOwAQEiJgoTRGVsZXRlQnVpbGRSZXNwb25zZRIPCgdzdWNjZXNzGAEgASgIIlAKFENyZWF0ZVJlbGVhc2VSZXF1ZXN0EhkKB3BhcmtfaWQYASABKAlCCLpIBXIDsAEBEgwKBG5hbWUYAiABKAkSDwoHdmVyc2lvbhgDIAEoCSJFChVDcmVhdGVSZWxlYXNlUmVzcG9uc2USLAoHcmVsZWFzZRgBIAEoCzIbLnNwYXJrbHkuYmFja2VuZC52MS5SZWxlYXNlIikKEUdldFJlbGVhc2VSZXF1ZXN0EhQKAmlkGAEgASgJQgi6SAVyA7ABASJCChJHZXRSZWxlYXNlUmVzcG9uc2USLAoHcmVsZWFzZRgBIAEoCzIbLnNwYXJrbHkuYmFja2VuZC52MS5SZWxlYXNlIu0BChJHZXRSZWxlYXNlc1JlcXVlc3QSGQoHcGFya19pZBgBIAEoCUIIukgFcgOwAQESEQoEbmFtZRgCIAEoCUgAiAEBEhQKB3ZlcnNpb24YAyABKAlIAYgBARIyCglmcm9tX3RpbWUYBCABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wSAKIAQESMAoHdG9fdGltZRgFIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXBIA4gBAUIHCgVfbmFtZUIKCghfdmVyc2lvbkIMCgpfZnJvbV90aW1lQgoKCF90b190aW1lIkQKE0dldFJlbGVhc2VzUmVzcG9uc2USLQoIcmVsZWFzZXMYASADKAsyGy5zcGFya2x5LmJhY2tlbmQudjEuUmVsZWFzZSJqChRVcGRhdGVSZWxlYXNlUmVxdWVzdBIUCgJpZBgBIAEoCUIIukgFcgOwAQESEQoEbmFtZRgCIAEoCUgAiAEBEhQKB3ZlcnNpb24YAyABKAlIAYgBAUIHCgVfbmFtZUIKCghfdmVyc2lvbiJFChVVcGRhdGVSZWxlYXNlUmVzcG9uc2USLAoHcmVsZWFzZRgBIAEoCzIbLnNwYXJrbHkuYmFja2VuZC52MS5SZWxlYXNlIiwKFERlbGV0ZVJlbGVhc2VSZXF1ZXN0EhQKAmlkGAEgASgJQgi6SAVyA7ABASIoChVEZWxldGVSZWxlYXNlUmVzcG9uc2USDwoHc3VjY2VzcxgBIAEoCCqxAQoNSXNzdWVTZXZlcml0eRIeChpJU1NVRV9TRVZFUklUWV9VTlNQRUNJRklFRBAAEhcKE0lTU1VFX1NFVkVSSVRZX0lORk8QARIWChJJU1NVRV9TRVZFUklUWV9MT1cQAhIZChVJU1NVRV9TRVZFUklUWV9NRURJVU0QAxIXChNJU1NVRV9TRVZFUklUWV9ISUdIEAQSGwoXSVNTVUVfU0VWRVJJVFlfQ1JJVElDQUwQBTKgBAoLVXNlclNlcnZpY2USRgoDUmVnEh4uc3BhcmtseS5iYWNrZW5kLnYxLlJlZ1JlcXVlc3QaHy5zcGFya2x5LmJhY2tlbmQudjEuUmVnUmVzcG9uc2USVQoIR2V0VG9rZW4SIy5zcGFya2x5LmJhY2tlbmQudjEuR2V0VG9rZW5SZXF1ZXN0GiQuc3BhcmtseS5iYWNrZW5kLnYxLkdldFRva2VuUmVzcG9uc2USWAoJQ2hlY2tBdXRoEiQuc3BhcmtseS5iYWNrZW5kLnYxLkNoZWNrQXV0aFJlcXVlc3QaJS5zcGFya2x5LmJhY2tlbmQudjEuQ2hlY2tBdXRoUmVzcG9uc2USXgoLUmV2b2tlVG9rZW4SJi5zcGFya2x5LmJhY2tlbmQudjEuUmV2b2tlVG9rZW5SZXF1ZXN0Gicuc3BhcmtseS5iYWNrZW5kLnYxLlJldm9rZVRva2VuUmVzcG9uc2USWwoKVXBkYXRlVXNlchIlLnNwYXJrbHkuYmFja2VuZC52MS5VcGRhdGVVc2VyUmVxdWVzdBomLnNwYXJrbHkuYmFja2VuZC52MS5VcGRhdGVVc2VyUmVzcG9uc2USWwoKRGVsZXRlVXNlchIlLnNwYXJrbHkuYmFja2VuZC52MS5EZWxldGVVc2VyUmVxdWVzdBomLnNwYXJrbHkuYmFja2VuZC52MS5EZWxldGVVc2VyUmVzcG9uc2UylgkKC1BhcmtTZXJ2aWNlElsKCkNyZWF0ZVBhcmsSJS5zcGFya2x5LmJhY2tlbmQudjEuQ3JlYXRlUGFya1JlcXVlc3QaJi5zcGFya2x5LmJhY2tlbmQudjEuQ3JlYXRlUGFya1Jlc3BvbnNlElIKB0dldFBhcmsSIi5zcGFya2x5LmJhY2tlbmQudjEuR2V0UGFya1JlcXVlc3QaIy5zcGFya2x5LmJhY2tlbmQudjEuR2V0UGFya1Jlc3BvbnNlEl4KC0dldEFsbFBhcmtzEiYuc3BhcmtseS5iYWNrZW5kLnYxLkdldEFsbFBhcmtzUmVxdWVzdBonLnNwYXJrbHkuYmFja2VuZC52MS5HZXRBbGxQYXJrc1Jlc3BvbnNlElsKClVwZGF0ZVBhcmsSJS5zcGFya2x5LmJhY2tlbmQudjEuVXBkYXRlUGFya1JlcXVlc3QaJi5zcGFya2x5LmJhY2tlbmQudjEuVXBkYXRlUGFya1Jlc3BvbnNlElsKCkRlbGV0ZVBhcmsSJS5zcGFya2x5LmJhY2tlbmQudjEuRGVsZXRlUGFya1JlcXVlc3QaJi5zcGFya2x5LmJhY2tlbmQudjEuRGVsZXRlUGFya1Jlc3BvbnNlEl4KC0NyZWF0ZUdyb3VwEiYuc3BhcmtseS5iYWNrZW5kLnYxLkNyZWF0ZUdyb3VwUmVxdWVzdBonLnNwYXJrbHkuYmFja2VuZC52MS5DcmVhdGVHcm91cFJlc3BvbnNlElUKCEdldEdyb3VwEiMuc3BhcmtseS5iYWNrZW5kLnYxLkdldEdyb3VwUmVxdWVzdBokLnNwYXJrbHkuYmFja2VuZC52MS5HZXRHcm91cFJlc3BvbnNlElgKCUdldEdyb3VwcxIkLnNwYXJrbHkuYmFja2VuZC52MS5HZXRHcm91cHNSZXF1ZXN0GiUuc3BhcmtseS5iYWNrZW5kLnYxLkdldEdyb3Vwc1Jlc3BvbnNlEl4KC1VwZGF0ZUdyb3VwEiYuc3BhcmtseS5iYWNrZW5kLnYxLlVwZGF0ZUdyb3VwUmVxdWVzdBonLnNwYXJrbHkuYmFja2VuZC52MS5VcGRhdGVHcm91cFJlc3BvbnNlEl4KC0RlbGV0ZUdyb3VwEiYuc3BhcmtseS5iYWNrZW5kLnYxLkRlbGV0ZUdyb3VwUmVxdWVzdBonLnNwYXJrbHkuYmFja2VuZC52MS5EZWxldGVHcm91cFJlc3BvbnNlEm0KEEFkZERldmljZVRvR3JvdXASKy5zcGFya2x5LmJhY2tlbmQudjEuQWRkRGV2aWNlVG9Hcm91cFJlcXVlc3QaLC5zcGFya2x5LmJhY2tlbmQudjEuQWRkRGV2aWNlVG9Hcm91cFJlc3BvbnNlEnwKFVJlbW92ZURldmljZUZyb21Hcm91cBIwLnNwYXJrbHkuYmFja2VuZC52MS5SZW1vdmVEZXZpY2VGcm9tR3JvdXBSZXF1ZXN0GjEuc3BhcmtseS5iYWNrZW5kLnYxLlJlbW92ZURldmljZUZyb21Hcm91cFJlc3BvbnNlMsYBCg1EZXZpY2VTZXJ2aWNlElgKCUdldERldmljZRIkLnNwYXJrbHkuYmFja2VuZC52MS5HZXREZXZpY2VSZXF1ZXN0GiUuc3BhcmtseS5iYWNrZW5kLnYxLkdldERldmljZVJlc3BvbnNlElsKCkdldERldmljZXMSJS5zcGFya2x5LmJhY2tlbmQudjEuR2V0RGV2aWNlc1JlcXVlc3QaJi5zcGFya2x5LmJhY2tlbmQudjEuR2V0RGV2aWNlc1Jlc3BvbnNlMuIDCgxJc3N1ZVNlcnZpY2USVQoIR2V0SXNzdWUSIy5zcGFya2x5LmJhY2tlbmQudjEuR2V0SXNzdWVSZXF1ZXN0GiQuc3BhcmtseS5iYWNrZW5kLnYxLkdldElzc3VlUmVzcG9uc2USWAoJR2V0SXNzdWVzEiQuc3BhcmtseS5iYWNrZW5kLnYxLkdldElzc3Vlc1JlcXVlc3QaJS5zcGFya2x5LmJhY2tlbmQudjEuR2V0SXNzdWVzUmVzcG9uc2USYQoMUmVzb2x2ZUlzc3VlEicuc3BhcmtseS5iYWNrZW5kLnYxLlJlc29sdmVJc3N1ZVJlcXVlc3QaKC5zcGFya2x5LmJhY2tlbmQudjEuUmVzb2x2ZUlzc3VlUmVzcG9uc2USXgoLVXBkYXRlSXNzdWUSJi5zcGFya2x5LmJhY2tlbmQudjEuVXBkYXRlSXNzdWVSZXF1ZXN0Gicuc3BhcmtseS5iYWNrZW5kLnYxLlVwZGF0ZUlzc3VlUmVzcG9uc2USXgoLRGVsZXRlSXNzdWUSJi5zcGFya2x5LmJhY2tlbmQudjEuRGVsZXRlSXNzdWVSZXF1ZXN0Gicuc3BhcmtseS5iYWNrZW5kLnYxLkRlbGV0ZUlzc3VlUmVzcG9uc2Uy3wMKDEJ1aWxkU2VydmljZRJeCgtDcmVhdGVCdWlsZBImLnNwYXJrbHkuYmFja2VuZC52MS5DcmVhdGVCdWlsZFJlcXVlc3QaJy5zcGFya2x5LmJhY2tlbmQudjEuQ3JlYXRlQnVpbGRSZXNwb25zZRJVCghHZXRCdWlsZBIjLnNwYXJrbHkuYmFja2VuZC52MS5HZXRCdWlsZFJlcXVlc3QaJC5zcGFya2x5LmJhY2tlbmQudjEuR2V0QnVpbGRSZXNwb25zZRJYCglHZXRCdWlsZHMSJC5zcGFya2x5LmJhY2tlbmQudjEuR2V0QnVpbGRzUmVxdWVzdBolLnNwYXJrbHkuYmFja2VuZC52MS5HZXRCdWlsZHNSZXNwb25zZRJeCgtVcGRhdGVCdWlsZBImLnNwYXJrbHkuYmFja2VuZC52MS5VcGRhdGVCdWlsZFJlcXVlc3QaJy5zcGFya2x5LmJhY2tlbmQudjEuVXBkYXRlQnVpbGRSZXNwb25zZRJeCgtEZWxldGVCdWlsZBImLnNwYXJrbHkuYmFja2VuZC52MS5EZWxldGVCdWlsZFJlcXVlc3QaJy5zcGFya2x5LmJhY2tlbmQudjEuRGVsZXRlQnVpbGRSZXNwb25zZTL/AwoOUmVsZWFzZVNlcnZpY2USZAoNQ3JlYXRlUmVsZWFzZRIoLnNwYXJrbHkuYmFja2VuZC52MS5DcmVhdGVSZWxlYXNlUmVxdWVzdBopLnNwYXJrbHkuYmFja2VuZC52MS5DcmVhdGVSZWxlYXNlUmVzcG9uc2USWwoKR2V0UmVsZWFzZRIlLnNwYXJrbHkuYmFja2VuZC52MS5HZXRSZWxlYXNlUmVxdWVzdBomLnNwYXJrbHkuYmFja2VuZC52MS5HZXRSZWxlYXNlUmVzcG9uc2USXgoLR2V0UmVsZWFzZXMSJi5zcGFya2x5LmJhY2tlbmQudjEuR2V0UmVsZWFzZXNSZXF1ZXN0Gicuc3BhcmtseS5iYWNrZW5kLnYxLkdldFJlbGVhc2VzUmVzcG9uc2USZAoNVXBkYXRlUmVsZWFzZRIoLnNwYXJrbHkuYmFja2VuZC52MS5VcGRhdGVSZWxlYXNlUmVxdWVzdBopLnNwYXJrbHkuYmFja2VuZC52MS5VcGRhdGVSZWxlYXNlUmVzcG9uc2USZAoNRGVsZXRlUmVsZWFzZRIoLnNwYXJrbHkuYmFja2VuZC52MS5EZWxldGVSZWxlYXNlUmVxdWVzdBopLnNwYXJrbHkuYmFja2VuZC52MS5EZWxldGVSZWxlYXNlUmVzcG9uc2VCJFoic3BhcmtseS9iYWNrZW5kL3Byb3RvL3YxO2JhY2tlbmR2MWIGcHJvdG8z", [file_buf_validate_validate, file_google_protobuf_timestamp]);
 
 /**
  * @generated from message sparkly.backend.v1.User
  */
-export type User = Message<'sparkly.backend.v1.User'> & {
+export type User = Message<"sparkly.backend.v1.User"> & {
   /**
    * @generated from field: string id = 1;
    */
@@ -99,14 +44,13 @@ export type User = Message<'sparkly.backend.v1.User'> & {
  * Describes the message sparkly.backend.v1.User.
  * Use `create(UserSchema)` to create a new message.
  */
-export const UserSchema: GenMessage<User> =
-  /*@__PURE__*/
-  messageDesc(file_backend_proto_service, 2);
+export const UserSchema: GenMessage<User> = /*@__PURE__*/
+  messageDesc(file_backend_proto_service, 0);
 
 /**
  * @generated from message sparkly.backend.v1.Park
  */
-export type Park = Message<'sparkly.backend.v1.Park'> & {
+export type Park = Message<"sparkly.backend.v1.Park"> & {
   /**
    * @generated from field: string id = 1;
    */
@@ -147,14 +91,13 @@ export type Park = Message<'sparkly.backend.v1.Park'> & {
  * Describes the message sparkly.backend.v1.Park.
  * Use `create(ParkSchema)` to create a new message.
  */
-export const ParkSchema: GenMessage<Park> =
-  /*@__PURE__*/
-  messageDesc(file_backend_proto_service, 3);
+export const ParkSchema: GenMessage<Park> = /*@__PURE__*/
+  messageDesc(file_backend_proto_service, 1);
 
 /**
  * @generated from message sparkly.backend.v1.DeviceGroup
  */
-export type DeviceGroup = Message<'sparkly.backend.v1.DeviceGroup'> & {
+export type DeviceGroup = Message<"sparkly.backend.v1.DeviceGroup"> & {
   /**
    * @generated from field: string id = 1;
    */
@@ -200,14 +143,13 @@ export type DeviceGroup = Message<'sparkly.backend.v1.DeviceGroup'> & {
  * Describes the message sparkly.backend.v1.DeviceGroup.
  * Use `create(DeviceGroupSchema)` to create a new message.
  */
-export const DeviceGroupSchema: GenMessage<DeviceGroup> =
-  /*@__PURE__*/
-  messageDesc(file_backend_proto_service, 4);
+export const DeviceGroupSchema: GenMessage<DeviceGroup> = /*@__PURE__*/
+  messageDesc(file_backend_proto_service, 2);
 
 /**
  * @generated from message sparkly.backend.v1.Device
  */
-export type Device = Message<'sparkly.backend.v1.Device'> & {
+export type Device = Message<"sparkly.backend.v1.Device"> & {
   /**
    * @generated from field: string id = 1;
    */
@@ -258,14 +200,13 @@ export type Device = Message<'sparkly.backend.v1.Device'> & {
  * Describes the message sparkly.backend.v1.Device.
  * Use `create(DeviceSchema)` to create a new message.
  */
-export const DeviceSchema: GenMessage<Device> =
-  /*@__PURE__*/
-  messageDesc(file_backend_proto_service, 5);
+export const DeviceSchema: GenMessage<Device> = /*@__PURE__*/
+  messageDesc(file_backend_proto_service, 3);
 
 /**
  * @generated from message sparkly.backend.v1.Issue
  */
-export type Issue = Message<'sparkly.backend.v1.Issue'> & {
+export type Issue = Message<"sparkly.backend.v1.Issue"> & {
   /**
    * @generated from field: string id = 1;
    */
@@ -316,14 +257,13 @@ export type Issue = Message<'sparkly.backend.v1.Issue'> & {
  * Describes the message sparkly.backend.v1.Issue.
  * Use `create(IssueSchema)` to create a new message.
  */
-export const IssueSchema: GenMessage<Issue> =
-  /*@__PURE__*/
-  messageDesc(file_backend_proto_service, 6);
+export const IssueSchema: GenMessage<Issue> = /*@__PURE__*/
+  messageDesc(file_backend_proto_service, 4);
 
 /**
- * @generated from message sparkly.backend.v1.Release
+ * @generated from message sparkly.backend.v1.Build
  */
-export type Release = Message<'sparkly.backend.v1.Release'> & {
+export type Build = Message<"sparkly.backend.v1.Build"> & {
   /**
    * @generated from field: string id = 1;
    */
@@ -345,37 +285,54 @@ export type Release = Message<'sparkly.backend.v1.Release'> & {
   commit: string;
 
   /**
-   * @generated from field: string binary_url = 5;
-   */
-  binaryUrl: string;
-
-  /**
-   * @generated from field: string checksum_sha256 = 6;
-   */
-  checksumSha256: string;
-
-  /**
-   * @generated from field: string elf_object_key = 7;
+   * @generated from field: string elf_object_key = 5;
    */
   elfObjectKey: string;
 
   /**
-   * @generated from field: string dwarf_object_key = 8;
+   * @generated from field: string dwarf_object_key = 6;
    */
   dwarfObjectKey: string;
 
   /**
-   * @generated from field: string description = 9;
+   * @generated from field: google.protobuf.Timestamp created_at = 7;
    */
-  description: string;
+  createdAt?: Timestamp | undefined;
+};
+
+/**
+ * Describes the message sparkly.backend.v1.Build.
+ * Use `create(BuildSchema)` to create a new message.
+ */
+export const BuildSchema: GenMessage<Build> = /*@__PURE__*/
+  messageDesc(file_backend_proto_service, 5);
+
+/**
+ * @generated from message sparkly.backend.v1.Release
+ */
+export type Release = Message<"sparkly.backend.v1.Release"> & {
+  /**
+   * @generated from field: string id = 1;
+   */
+  id: string;
 
   /**
-   * @generated from field: int64 file_size = 10;
+   * @generated from field: string park_id = 2;
    */
-  fileSize: bigint;
+  parkId: string;
 
   /**
-   * @generated from field: google.protobuf.Timestamp created_at = 11;
+   * @generated from field: string name = 3;
+   */
+  name: string;
+
+  /**
+   * @generated from field: string version = 4;
+   */
+  version: string;
+
+  /**
+   * @generated from field: google.protobuf.Timestamp created_at = 5;
    */
   createdAt?: Timestamp | undefined;
 };
@@ -384,14 +341,13 @@ export type Release = Message<'sparkly.backend.v1.Release'> & {
  * Describes the message sparkly.backend.v1.Release.
  * Use `create(ReleaseSchema)` to create a new message.
  */
-export const ReleaseSchema: GenMessage<Release> =
-  /*@__PURE__*/
-  messageDesc(file_backend_proto_service, 7);
+export const ReleaseSchema: GenMessage<Release> = /*@__PURE__*/
+  messageDesc(file_backend_proto_service, 6);
 
 /**
  * @generated from message sparkly.backend.v1.RegRequest
  */
-export type RegRequest = Message<'sparkly.backend.v1.RegRequest'> & {
+export type RegRequest = Message<"sparkly.backend.v1.RegRequest"> & {
   /**
    * @generated from field: string email = 1;
    */
@@ -407,14 +363,13 @@ export type RegRequest = Message<'sparkly.backend.v1.RegRequest'> & {
  * Describes the message sparkly.backend.v1.RegRequest.
  * Use `create(RegRequestSchema)` to create a new message.
  */
-export const RegRequestSchema: GenMessage<RegRequest> =
-  /*@__PURE__*/
-  messageDesc(file_backend_proto_service, 8);
+export const RegRequestSchema: GenMessage<RegRequest> = /*@__PURE__*/
+  messageDesc(file_backend_proto_service, 7);
 
 /**
  * @generated from message sparkly.backend.v1.RegResponse
  */
-export type RegResponse = Message<'sparkly.backend.v1.RegResponse'> & {
+export type RegResponse = Message<"sparkly.backend.v1.RegResponse"> & {
   /**
    * @generated from field: string email = 1;
    */
@@ -440,14 +395,13 @@ export type RegResponse = Message<'sparkly.backend.v1.RegResponse'> & {
  * Describes the message sparkly.backend.v1.RegResponse.
  * Use `create(RegResponseSchema)` to create a new message.
  */
-export const RegResponseSchema: GenMessage<RegResponse> =
-  /*@__PURE__*/
-  messageDesc(file_backend_proto_service, 9);
+export const RegResponseSchema: GenMessage<RegResponse> = /*@__PURE__*/
+  messageDesc(file_backend_proto_service, 8);
 
 /**
  * @generated from message sparkly.backend.v1.GetTokenRequest
  */
-export type GetTokenRequest = Message<'sparkly.backend.v1.GetTokenRequest'> & {
+export type GetTokenRequest = Message<"sparkly.backend.v1.GetTokenRequest"> & {
   /**
    * @generated from field: string email = 1;
    */
@@ -463,14 +417,13 @@ export type GetTokenRequest = Message<'sparkly.backend.v1.GetTokenRequest'> & {
  * Describes the message sparkly.backend.v1.GetTokenRequest.
  * Use `create(GetTokenRequestSchema)` to create a new message.
  */
-export const GetTokenRequestSchema: GenMessage<GetTokenRequest> =
-  /*@__PURE__*/
-  messageDesc(file_backend_proto_service, 10);
+export const GetTokenRequestSchema: GenMessage<GetTokenRequest> = /*@__PURE__*/
+  messageDesc(file_backend_proto_service, 9);
 
 /**
  * @generated from message sparkly.backend.v1.GetTokenResponse
  */
-export type GetTokenResponse = Message<'sparkly.backend.v1.GetTokenResponse'> & {
+export type GetTokenResponse = Message<"sparkly.backend.v1.GetTokenResponse"> & {
   /**
    * @generated from field: string email = 1;
    */
@@ -496,27 +449,26 @@ export type GetTokenResponse = Message<'sparkly.backend.v1.GetTokenResponse'> & 
  * Describes the message sparkly.backend.v1.GetTokenResponse.
  * Use `create(GetTokenResponseSchema)` to create a new message.
  */
-export const GetTokenResponseSchema: GenMessage<GetTokenResponse> =
-  /*@__PURE__*/
-  messageDesc(file_backend_proto_service, 11);
+export const GetTokenResponseSchema: GenMessage<GetTokenResponse> = /*@__PURE__*/
+  messageDesc(file_backend_proto_service, 10);
 
 /**
  * @generated from message sparkly.backend.v1.RevokeTokenRequest
  */
-export type RevokeTokenRequest = Message<'sparkly.backend.v1.RevokeTokenRequest'> & {};
+export type RevokeTokenRequest = Message<"sparkly.backend.v1.RevokeTokenRequest"> & {
+};
 
 /**
  * Describes the message sparkly.backend.v1.RevokeTokenRequest.
  * Use `create(RevokeTokenRequestSchema)` to create a new message.
  */
-export const RevokeTokenRequestSchema: GenMessage<RevokeTokenRequest> =
-  /*@__PURE__*/
-  messageDesc(file_backend_proto_service, 12);
+export const RevokeTokenRequestSchema: GenMessage<RevokeTokenRequest> = /*@__PURE__*/
+  messageDesc(file_backend_proto_service, 11);
 
 /**
  * @generated from message sparkly.backend.v1.RevokeTokenResponse
  */
-export type RevokeTokenResponse = Message<'sparkly.backend.v1.RevokeTokenResponse'> & {
+export type RevokeTokenResponse = Message<"sparkly.backend.v1.RevokeTokenResponse"> & {
   /**
    * @generated from field: bool success = 1;
    */
@@ -527,27 +479,26 @@ export type RevokeTokenResponse = Message<'sparkly.backend.v1.RevokeTokenRespons
  * Describes the message sparkly.backend.v1.RevokeTokenResponse.
  * Use `create(RevokeTokenResponseSchema)` to create a new message.
  */
-export const RevokeTokenResponseSchema: GenMessage<RevokeTokenResponse> =
-  /*@__PURE__*/
-  messageDesc(file_backend_proto_service, 13);
+export const RevokeTokenResponseSchema: GenMessage<RevokeTokenResponse> = /*@__PURE__*/
+  messageDesc(file_backend_proto_service, 12);
 
 /**
  * @generated from message sparkly.backend.v1.CheckAuthRequest
  */
-export type CheckAuthRequest = Message<'sparkly.backend.v1.CheckAuthRequest'> & {};
+export type CheckAuthRequest = Message<"sparkly.backend.v1.CheckAuthRequest"> & {
+};
 
 /**
  * Describes the message sparkly.backend.v1.CheckAuthRequest.
  * Use `create(CheckAuthRequestSchema)` to create a new message.
  */
-export const CheckAuthRequestSchema: GenMessage<CheckAuthRequest> =
-  /*@__PURE__*/
-  messageDesc(file_backend_proto_service, 14);
+export const CheckAuthRequestSchema: GenMessage<CheckAuthRequest> = /*@__PURE__*/
+  messageDesc(file_backend_proto_service, 13);
 
 /**
  * @generated from message sparkly.backend.v1.CheckAuthResponse
  */
-export type CheckAuthResponse = Message<'sparkly.backend.v1.CheckAuthResponse'> & {
+export type CheckAuthResponse = Message<"sparkly.backend.v1.CheckAuthResponse"> & {
   /**
    * @generated from field: string email = 1;
    */
@@ -563,14 +514,13 @@ export type CheckAuthResponse = Message<'sparkly.backend.v1.CheckAuthResponse'> 
  * Describes the message sparkly.backend.v1.CheckAuthResponse.
  * Use `create(CheckAuthResponseSchema)` to create a new message.
  */
-export const CheckAuthResponseSchema: GenMessage<CheckAuthResponse> =
-  /*@__PURE__*/
-  messageDesc(file_backend_proto_service, 15);
+export const CheckAuthResponseSchema: GenMessage<CheckAuthResponse> = /*@__PURE__*/
+  messageDesc(file_backend_proto_service, 14);
 
 /**
  * @generated from message sparkly.backend.v1.UpdateUserRequest
  */
-export type UpdateUserRequest = Message<'sparkly.backend.v1.UpdateUserRequest'> & {
+export type UpdateUserRequest = Message<"sparkly.backend.v1.UpdateUserRequest"> & {
   /**
    * @generated from field: string id = 1;
    */
@@ -591,14 +541,13 @@ export type UpdateUserRequest = Message<'sparkly.backend.v1.UpdateUserRequest'> 
  * Describes the message sparkly.backend.v1.UpdateUserRequest.
  * Use `create(UpdateUserRequestSchema)` to create a new message.
  */
-export const UpdateUserRequestSchema: GenMessage<UpdateUserRequest> =
-  /*@__PURE__*/
-  messageDesc(file_backend_proto_service, 16);
+export const UpdateUserRequestSchema: GenMessage<UpdateUserRequest> = /*@__PURE__*/
+  messageDesc(file_backend_proto_service, 15);
 
 /**
  * @generated from message sparkly.backend.v1.UpdateUserResponse
  */
-export type UpdateUserResponse = Message<'sparkly.backend.v1.UpdateUserResponse'> & {
+export type UpdateUserResponse = Message<"sparkly.backend.v1.UpdateUserResponse"> & {
   /**
    * @generated from field: sparkly.backend.v1.User user = 1;
    */
@@ -609,14 +558,13 @@ export type UpdateUserResponse = Message<'sparkly.backend.v1.UpdateUserResponse'
  * Describes the message sparkly.backend.v1.UpdateUserResponse.
  * Use `create(UpdateUserResponseSchema)` to create a new message.
  */
-export const UpdateUserResponseSchema: GenMessage<UpdateUserResponse> =
-  /*@__PURE__*/
-  messageDesc(file_backend_proto_service, 17);
+export const UpdateUserResponseSchema: GenMessage<UpdateUserResponse> = /*@__PURE__*/
+  messageDesc(file_backend_proto_service, 16);
 
 /**
  * @generated from message sparkly.backend.v1.DeleteUserRequest
  */
-export type DeleteUserRequest = Message<'sparkly.backend.v1.DeleteUserRequest'> & {
+export type DeleteUserRequest = Message<"sparkly.backend.v1.DeleteUserRequest"> & {
   /**
    * @generated from field: string id = 1;
    */
@@ -627,14 +575,13 @@ export type DeleteUserRequest = Message<'sparkly.backend.v1.DeleteUserRequest'> 
  * Describes the message sparkly.backend.v1.DeleteUserRequest.
  * Use `create(DeleteUserRequestSchema)` to create a new message.
  */
-export const DeleteUserRequestSchema: GenMessage<DeleteUserRequest> =
-  /*@__PURE__*/
-  messageDesc(file_backend_proto_service, 18);
+export const DeleteUserRequestSchema: GenMessage<DeleteUserRequest> = /*@__PURE__*/
+  messageDesc(file_backend_proto_service, 17);
 
 /**
  * @generated from message sparkly.backend.v1.DeleteUserResponse
  */
-export type DeleteUserResponse = Message<'sparkly.backend.v1.DeleteUserResponse'> & {
+export type DeleteUserResponse = Message<"sparkly.backend.v1.DeleteUserResponse"> & {
   /**
    * @generated from field: bool success = 1;
    */
@@ -645,14 +592,13 @@ export type DeleteUserResponse = Message<'sparkly.backend.v1.DeleteUserResponse'
  * Describes the message sparkly.backend.v1.DeleteUserResponse.
  * Use `create(DeleteUserResponseSchema)` to create a new message.
  */
-export const DeleteUserResponseSchema: GenMessage<DeleteUserResponse> =
-  /*@__PURE__*/
-  messageDesc(file_backend_proto_service, 19);
+export const DeleteUserResponseSchema: GenMessage<DeleteUserResponse> = /*@__PURE__*/
+  messageDesc(file_backend_proto_service, 18);
 
 /**
  * @generated from message sparkly.backend.v1.CreateParkRequest
  */
-export type CreateParkRequest = Message<'sparkly.backend.v1.CreateParkRequest'> & {
+export type CreateParkRequest = Message<"sparkly.backend.v1.CreateParkRequest"> & {
   /**
    * @generated from field: string name = 1;
    */
@@ -668,14 +614,13 @@ export type CreateParkRequest = Message<'sparkly.backend.v1.CreateParkRequest'> 
  * Describes the message sparkly.backend.v1.CreateParkRequest.
  * Use `create(CreateParkRequestSchema)` to create a new message.
  */
-export const CreateParkRequestSchema: GenMessage<CreateParkRequest> =
-  /*@__PURE__*/
-  messageDesc(file_backend_proto_service, 20);
+export const CreateParkRequestSchema: GenMessage<CreateParkRequest> = /*@__PURE__*/
+  messageDesc(file_backend_proto_service, 19);
 
 /**
  * @generated from message sparkly.backend.v1.CreateParkResponse
  */
-export type CreateParkResponse = Message<'sparkly.backend.v1.CreateParkResponse'> & {
+export type CreateParkResponse = Message<"sparkly.backend.v1.CreateParkResponse"> & {
   /**
    * @generated from field: sparkly.backend.v1.Park park = 1;
    */
@@ -691,14 +636,13 @@ export type CreateParkResponse = Message<'sparkly.backend.v1.CreateParkResponse'
  * Describes the message sparkly.backend.v1.CreateParkResponse.
  * Use `create(CreateParkResponseSchema)` to create a new message.
  */
-export const CreateParkResponseSchema: GenMessage<CreateParkResponse> =
-  /*@__PURE__*/
-  messageDesc(file_backend_proto_service, 21);
+export const CreateParkResponseSchema: GenMessage<CreateParkResponse> = /*@__PURE__*/
+  messageDesc(file_backend_proto_service, 20);
 
 /**
  * @generated from message sparkly.backend.v1.GetParkRequest
  */
-export type GetParkRequest = Message<'sparkly.backend.v1.GetParkRequest'> & {
+export type GetParkRequest = Message<"sparkly.backend.v1.GetParkRequest"> & {
   /**
    * @generated from field: string id = 1;
    */
@@ -709,14 +653,13 @@ export type GetParkRequest = Message<'sparkly.backend.v1.GetParkRequest'> & {
  * Describes the message sparkly.backend.v1.GetParkRequest.
  * Use `create(GetParkRequestSchema)` to create a new message.
  */
-export const GetParkRequestSchema: GenMessage<GetParkRequest> =
-  /*@__PURE__*/
-  messageDesc(file_backend_proto_service, 22);
+export const GetParkRequestSchema: GenMessage<GetParkRequest> = /*@__PURE__*/
+  messageDesc(file_backend_proto_service, 21);
 
 /**
  * @generated from message sparkly.backend.v1.GetParkResponse
  */
-export type GetParkResponse = Message<'sparkly.backend.v1.GetParkResponse'> & {
+export type GetParkResponse = Message<"sparkly.backend.v1.GetParkResponse"> & {
   /**
    * @generated from field: sparkly.backend.v1.Park park = 1;
    */
@@ -727,55 +670,43 @@ export type GetParkResponse = Message<'sparkly.backend.v1.GetParkResponse'> & {
  * Describes the message sparkly.backend.v1.GetParkResponse.
  * Use `create(GetParkResponseSchema)` to create a new message.
  */
-export const GetParkResponseSchema: GenMessage<GetParkResponse> =
-  /*@__PURE__*/
-  messageDesc(file_backend_proto_service, 23);
+export const GetParkResponseSchema: GenMessage<GetParkResponse> = /*@__PURE__*/
+  messageDesc(file_backend_proto_service, 22);
 
 /**
  * @generated from message sparkly.backend.v1.GetAllParksRequest
  */
-export type GetAllParksRequest = Message<'sparkly.backend.v1.GetAllParksRequest'> & {
-  /**
-   * @generated from field: sparkly.backend.v1.PaginationRequest pagination = 1;
-   */
-  pagination?: PaginationRequest | undefined;
+export type GetAllParksRequest = Message<"sparkly.backend.v1.GetAllParksRequest"> & {
 };
 
 /**
  * Describes the message sparkly.backend.v1.GetAllParksRequest.
  * Use `create(GetAllParksRequestSchema)` to create a new message.
  */
-export const GetAllParksRequestSchema: GenMessage<GetAllParksRequest> =
-  /*@__PURE__*/
-  messageDesc(file_backend_proto_service, 24);
+export const GetAllParksRequestSchema: GenMessage<GetAllParksRequest> = /*@__PURE__*/
+  messageDesc(file_backend_proto_service, 23);
 
 /**
  * @generated from message sparkly.backend.v1.GetAllParksResponse
  */
-export type GetAllParksResponse = Message<'sparkly.backend.v1.GetAllParksResponse'> & {
+export type GetAllParksResponse = Message<"sparkly.backend.v1.GetAllParksResponse"> & {
   /**
    * @generated from field: repeated sparkly.backend.v1.Park parks = 1;
    */
   parks: Park[];
-
-  /**
-   * @generated from field: sparkly.backend.v1.PaginationResponse pagination = 2;
-   */
-  pagination?: PaginationResponse | undefined;
 };
 
 /**
  * Describes the message sparkly.backend.v1.GetAllParksResponse.
  * Use `create(GetAllParksResponseSchema)` to create a new message.
  */
-export const GetAllParksResponseSchema: GenMessage<GetAllParksResponse> =
-  /*@__PURE__*/
-  messageDesc(file_backend_proto_service, 25);
+export const GetAllParksResponseSchema: GenMessage<GetAllParksResponse> = /*@__PURE__*/
+  messageDesc(file_backend_proto_service, 24);
 
 /**
  * @generated from message sparkly.backend.v1.UpdateParkRequest
  */
-export type UpdateParkRequest = Message<'sparkly.backend.v1.UpdateParkRequest'> & {
+export type UpdateParkRequest = Message<"sparkly.backend.v1.UpdateParkRequest"> & {
   /**
    * @generated from field: string id = 1;
    */
@@ -796,14 +727,13 @@ export type UpdateParkRequest = Message<'sparkly.backend.v1.UpdateParkRequest'> 
  * Describes the message sparkly.backend.v1.UpdateParkRequest.
  * Use `create(UpdateParkRequestSchema)` to create a new message.
  */
-export const UpdateParkRequestSchema: GenMessage<UpdateParkRequest> =
-  /*@__PURE__*/
-  messageDesc(file_backend_proto_service, 26);
+export const UpdateParkRequestSchema: GenMessage<UpdateParkRequest> = /*@__PURE__*/
+  messageDesc(file_backend_proto_service, 25);
 
 /**
  * @generated from message sparkly.backend.v1.UpdateParkResponse
  */
-export type UpdateParkResponse = Message<'sparkly.backend.v1.UpdateParkResponse'> & {
+export type UpdateParkResponse = Message<"sparkly.backend.v1.UpdateParkResponse"> & {
   /**
    * @generated from field: sparkly.backend.v1.Park park = 1;
    */
@@ -814,14 +744,13 @@ export type UpdateParkResponse = Message<'sparkly.backend.v1.UpdateParkResponse'
  * Describes the message sparkly.backend.v1.UpdateParkResponse.
  * Use `create(UpdateParkResponseSchema)` to create a new message.
  */
-export const UpdateParkResponseSchema: GenMessage<UpdateParkResponse> =
-  /*@__PURE__*/
-  messageDesc(file_backend_proto_service, 27);
+export const UpdateParkResponseSchema: GenMessage<UpdateParkResponse> = /*@__PURE__*/
+  messageDesc(file_backend_proto_service, 26);
 
 /**
  * @generated from message sparkly.backend.v1.DeleteParkRequest
  */
-export type DeleteParkRequest = Message<'sparkly.backend.v1.DeleteParkRequest'> & {
+export type DeleteParkRequest = Message<"sparkly.backend.v1.DeleteParkRequest"> & {
   /**
    * @generated from field: string id = 1;
    */
@@ -832,14 +761,13 @@ export type DeleteParkRequest = Message<'sparkly.backend.v1.DeleteParkRequest'> 
  * Describes the message sparkly.backend.v1.DeleteParkRequest.
  * Use `create(DeleteParkRequestSchema)` to create a new message.
  */
-export const DeleteParkRequestSchema: GenMessage<DeleteParkRequest> =
-  /*@__PURE__*/
-  messageDesc(file_backend_proto_service, 28);
+export const DeleteParkRequestSchema: GenMessage<DeleteParkRequest> = /*@__PURE__*/
+  messageDesc(file_backend_proto_service, 27);
 
 /**
  * @generated from message sparkly.backend.v1.DeleteParkResponse
  */
-export type DeleteParkResponse = Message<'sparkly.backend.v1.DeleteParkResponse'> & {
+export type DeleteParkResponse = Message<"sparkly.backend.v1.DeleteParkResponse"> & {
   /**
    * @generated from field: bool success = 1;
    */
@@ -850,16 +778,15 @@ export type DeleteParkResponse = Message<'sparkly.backend.v1.DeleteParkResponse'
  * Describes the message sparkly.backend.v1.DeleteParkResponse.
  * Use `create(DeleteParkResponseSchema)` to create a new message.
  */
-export const DeleteParkResponseSchema: GenMessage<DeleteParkResponse> =
-  /*@__PURE__*/
-  messageDesc(file_backend_proto_service, 29);
+export const DeleteParkResponseSchema: GenMessage<DeleteParkResponse> = /*@__PURE__*/
+  messageDesc(file_backend_proto_service, 28);
 
 /**
  * Device Groups Messages
  *
  * @generated from message sparkly.backend.v1.CreateGroupRequest
  */
-export type CreateGroupRequest = Message<'sparkly.backend.v1.CreateGroupRequest'> & {
+export type CreateGroupRequest = Message<"sparkly.backend.v1.CreateGroupRequest"> & {
   /**
    * @generated from field: string park_id = 1;
    */
@@ -880,14 +807,13 @@ export type CreateGroupRequest = Message<'sparkly.backend.v1.CreateGroupRequest'
  * Describes the message sparkly.backend.v1.CreateGroupRequest.
  * Use `create(CreateGroupRequestSchema)` to create a new message.
  */
-export const CreateGroupRequestSchema: GenMessage<CreateGroupRequest> =
-  /*@__PURE__*/
-  messageDesc(file_backend_proto_service, 30);
+export const CreateGroupRequestSchema: GenMessage<CreateGroupRequest> = /*@__PURE__*/
+  messageDesc(file_backend_proto_service, 29);
 
 /**
  * @generated from message sparkly.backend.v1.CreateGroupResponse
  */
-export type CreateGroupResponse = Message<'sparkly.backend.v1.CreateGroupResponse'> & {
+export type CreateGroupResponse = Message<"sparkly.backend.v1.CreateGroupResponse"> & {
   /**
    * @generated from field: sparkly.backend.v1.DeviceGroup group = 1;
    */
@@ -898,14 +824,13 @@ export type CreateGroupResponse = Message<'sparkly.backend.v1.CreateGroupRespons
  * Describes the message sparkly.backend.v1.CreateGroupResponse.
  * Use `create(CreateGroupResponseSchema)` to create a new message.
  */
-export const CreateGroupResponseSchema: GenMessage<CreateGroupResponse> =
-  /*@__PURE__*/
-  messageDesc(file_backend_proto_service, 31);
+export const CreateGroupResponseSchema: GenMessage<CreateGroupResponse> = /*@__PURE__*/
+  messageDesc(file_backend_proto_service, 30);
 
 /**
  * @generated from message sparkly.backend.v1.GetGroupRequest
  */
-export type GetGroupRequest = Message<'sparkly.backend.v1.GetGroupRequest'> & {
+export type GetGroupRequest = Message<"sparkly.backend.v1.GetGroupRequest"> & {
   /**
    * @generated from field: string id = 1;
    */
@@ -916,14 +841,13 @@ export type GetGroupRequest = Message<'sparkly.backend.v1.GetGroupRequest'> & {
  * Describes the message sparkly.backend.v1.GetGroupRequest.
  * Use `create(GetGroupRequestSchema)` to create a new message.
  */
-export const GetGroupRequestSchema: GenMessage<GetGroupRequest> =
-  /*@__PURE__*/
-  messageDesc(file_backend_proto_service, 32);
+export const GetGroupRequestSchema: GenMessage<GetGroupRequest> = /*@__PURE__*/
+  messageDesc(file_backend_proto_service, 31);
 
 /**
  * @generated from message sparkly.backend.v1.GetGroupResponse
  */
-export type GetGroupResponse = Message<'sparkly.backend.v1.GetGroupResponse'> & {
+export type GetGroupResponse = Message<"sparkly.backend.v1.GetGroupResponse"> & {
   /**
    * @generated from field: sparkly.backend.v1.DeviceGroup group = 1;
    */
@@ -934,60 +858,47 @@ export type GetGroupResponse = Message<'sparkly.backend.v1.GetGroupResponse'> & 
  * Describes the message sparkly.backend.v1.GetGroupResponse.
  * Use `create(GetGroupResponseSchema)` to create a new message.
  */
-export const GetGroupResponseSchema: GenMessage<GetGroupResponse> =
-  /*@__PURE__*/
-  messageDesc(file_backend_proto_service, 33);
+export const GetGroupResponseSchema: GenMessage<GetGroupResponse> = /*@__PURE__*/
+  messageDesc(file_backend_proto_service, 32);
 
 /**
  * @generated from message sparkly.backend.v1.GetGroupsRequest
  */
-export type GetGroupsRequest = Message<'sparkly.backend.v1.GetGroupsRequest'> & {
+export type GetGroupsRequest = Message<"sparkly.backend.v1.GetGroupsRequest"> & {
   /**
    * @generated from field: string park_id = 1;
    */
   parkId: string;
-
-  /**
-   * @generated from field: sparkly.backend.v1.PaginationRequest pagination = 2;
-   */
-  pagination?: PaginationRequest | undefined;
 };
 
 /**
  * Describes the message sparkly.backend.v1.GetGroupsRequest.
  * Use `create(GetGroupsRequestSchema)` to create a new message.
  */
-export const GetGroupsRequestSchema: GenMessage<GetGroupsRequest> =
-  /*@__PURE__*/
-  messageDesc(file_backend_proto_service, 34);
+export const GetGroupsRequestSchema: GenMessage<GetGroupsRequest> = /*@__PURE__*/
+  messageDesc(file_backend_proto_service, 33);
 
 /**
  * @generated from message sparkly.backend.v1.GetGroupsResponse
  */
-export type GetGroupsResponse = Message<'sparkly.backend.v1.GetGroupsResponse'> & {
+export type GetGroupsResponse = Message<"sparkly.backend.v1.GetGroupsResponse"> & {
   /**
    * @generated from field: repeated sparkly.backend.v1.DeviceGroup groups = 1;
    */
   groups: DeviceGroup[];
-
-  /**
-   * @generated from field: sparkly.backend.v1.PaginationResponse pagination = 2;
-   */
-  pagination?: PaginationResponse | undefined;
 };
 
 /**
  * Describes the message sparkly.backend.v1.GetGroupsResponse.
  * Use `create(GetGroupsResponseSchema)` to create a new message.
  */
-export const GetGroupsResponseSchema: GenMessage<GetGroupsResponse> =
-  /*@__PURE__*/
-  messageDesc(file_backend_proto_service, 35);
+export const GetGroupsResponseSchema: GenMessage<GetGroupsResponse> = /*@__PURE__*/
+  messageDesc(file_backend_proto_service, 34);
 
 /**
  * @generated from message sparkly.backend.v1.UpdateGroupRequest
  */
-export type UpdateGroupRequest = Message<'sparkly.backend.v1.UpdateGroupRequest'> & {
+export type UpdateGroupRequest = Message<"sparkly.backend.v1.UpdateGroupRequest"> & {
   /**
    * @generated from field: string id = 1;
    */
@@ -1008,14 +919,13 @@ export type UpdateGroupRequest = Message<'sparkly.backend.v1.UpdateGroupRequest'
  * Describes the message sparkly.backend.v1.UpdateGroupRequest.
  * Use `create(UpdateGroupRequestSchema)` to create a new message.
  */
-export const UpdateGroupRequestSchema: GenMessage<UpdateGroupRequest> =
-  /*@__PURE__*/
-  messageDesc(file_backend_proto_service, 36);
+export const UpdateGroupRequestSchema: GenMessage<UpdateGroupRequest> = /*@__PURE__*/
+  messageDesc(file_backend_proto_service, 35);
 
 /**
  * @generated from message sparkly.backend.v1.UpdateGroupResponse
  */
-export type UpdateGroupResponse = Message<'sparkly.backend.v1.UpdateGroupResponse'> & {
+export type UpdateGroupResponse = Message<"sparkly.backend.v1.UpdateGroupResponse"> & {
   /**
    * @generated from field: sparkly.backend.v1.DeviceGroup group = 1;
    */
@@ -1026,14 +936,13 @@ export type UpdateGroupResponse = Message<'sparkly.backend.v1.UpdateGroupRespons
  * Describes the message sparkly.backend.v1.UpdateGroupResponse.
  * Use `create(UpdateGroupResponseSchema)` to create a new message.
  */
-export const UpdateGroupResponseSchema: GenMessage<UpdateGroupResponse> =
-  /*@__PURE__*/
-  messageDesc(file_backend_proto_service, 37);
+export const UpdateGroupResponseSchema: GenMessage<UpdateGroupResponse> = /*@__PURE__*/
+  messageDesc(file_backend_proto_service, 36);
 
 /**
  * @generated from message sparkly.backend.v1.DeleteGroupRequest
  */
-export type DeleteGroupRequest = Message<'sparkly.backend.v1.DeleteGroupRequest'> & {
+export type DeleteGroupRequest = Message<"sparkly.backend.v1.DeleteGroupRequest"> & {
   /**
    * @generated from field: string id = 1;
    */
@@ -1044,14 +953,13 @@ export type DeleteGroupRequest = Message<'sparkly.backend.v1.DeleteGroupRequest'
  * Describes the message sparkly.backend.v1.DeleteGroupRequest.
  * Use `create(DeleteGroupRequestSchema)` to create a new message.
  */
-export const DeleteGroupRequestSchema: GenMessage<DeleteGroupRequest> =
-  /*@__PURE__*/
-  messageDesc(file_backend_proto_service, 38);
+export const DeleteGroupRequestSchema: GenMessage<DeleteGroupRequest> = /*@__PURE__*/
+  messageDesc(file_backend_proto_service, 37);
 
 /**
  * @generated from message sparkly.backend.v1.DeleteGroupResponse
  */
-export type DeleteGroupResponse = Message<'sparkly.backend.v1.DeleteGroupResponse'> & {
+export type DeleteGroupResponse = Message<"sparkly.backend.v1.DeleteGroupResponse"> & {
   /**
    * @generated from field: bool success = 1;
    */
@@ -1062,14 +970,13 @@ export type DeleteGroupResponse = Message<'sparkly.backend.v1.DeleteGroupRespons
  * Describes the message sparkly.backend.v1.DeleteGroupResponse.
  * Use `create(DeleteGroupResponseSchema)` to create a new message.
  */
-export const DeleteGroupResponseSchema: GenMessage<DeleteGroupResponse> =
-  /*@__PURE__*/
-  messageDesc(file_backend_proto_service, 39);
+export const DeleteGroupResponseSchema: GenMessage<DeleteGroupResponse> = /*@__PURE__*/
+  messageDesc(file_backend_proto_service, 38);
 
 /**
  * @generated from message sparkly.backend.v1.AddDeviceToGroupRequest
  */
-export type AddDeviceToGroupRequest = Message<'sparkly.backend.v1.AddDeviceToGroupRequest'> & {
+export type AddDeviceToGroupRequest = Message<"sparkly.backend.v1.AddDeviceToGroupRequest"> & {
   /**
    * @generated from field: string group_id = 1;
    */
@@ -1085,14 +992,13 @@ export type AddDeviceToGroupRequest = Message<'sparkly.backend.v1.AddDeviceToGro
  * Describes the message sparkly.backend.v1.AddDeviceToGroupRequest.
  * Use `create(AddDeviceToGroupRequestSchema)` to create a new message.
  */
-export const AddDeviceToGroupRequestSchema: GenMessage<AddDeviceToGroupRequest> =
-  /*@__PURE__*/
-  messageDesc(file_backend_proto_service, 40);
+export const AddDeviceToGroupRequestSchema: GenMessage<AddDeviceToGroupRequest> = /*@__PURE__*/
+  messageDesc(file_backend_proto_service, 39);
 
 /**
  * @generated from message sparkly.backend.v1.AddDeviceToGroupResponse
  */
-export type AddDeviceToGroupResponse = Message<'sparkly.backend.v1.AddDeviceToGroupResponse'> & {
+export type AddDeviceToGroupResponse = Message<"sparkly.backend.v1.AddDeviceToGroupResponse"> & {
   /**
    * @generated from field: bool success = 1;
    */
@@ -1103,57 +1009,52 @@ export type AddDeviceToGroupResponse = Message<'sparkly.backend.v1.AddDeviceToGr
  * Describes the message sparkly.backend.v1.AddDeviceToGroupResponse.
  * Use `create(AddDeviceToGroupResponseSchema)` to create a new message.
  */
-export const AddDeviceToGroupResponseSchema: GenMessage<AddDeviceToGroupResponse> =
-  /*@__PURE__*/
-  messageDesc(file_backend_proto_service, 41);
+export const AddDeviceToGroupResponseSchema: GenMessage<AddDeviceToGroupResponse> = /*@__PURE__*/
+  messageDesc(file_backend_proto_service, 40);
 
 /**
  * @generated from message sparkly.backend.v1.RemoveDeviceFromGroupRequest
  */
-export type RemoveDeviceFromGroupRequest =
-  Message<'sparkly.backend.v1.RemoveDeviceFromGroupRequest'> & {
-    /**
-     * @generated from field: string group_id = 1;
-     */
-    groupId: string;
+export type RemoveDeviceFromGroupRequest = Message<"sparkly.backend.v1.RemoveDeviceFromGroupRequest"> & {
+  /**
+   * @generated from field: string group_id = 1;
+   */
+  groupId: string;
 
-    /**
-     * @generated from field: string device_id = 2;
-     */
-    deviceId: string;
-  };
+  /**
+   * @generated from field: string device_id = 2;
+   */
+  deviceId: string;
+};
 
 /**
  * Describes the message sparkly.backend.v1.RemoveDeviceFromGroupRequest.
  * Use `create(RemoveDeviceFromGroupRequestSchema)` to create a new message.
  */
-export const RemoveDeviceFromGroupRequestSchema: GenMessage<RemoveDeviceFromGroupRequest> =
-  /*@__PURE__*/
-  messageDesc(file_backend_proto_service, 42);
+export const RemoveDeviceFromGroupRequestSchema: GenMessage<RemoveDeviceFromGroupRequest> = /*@__PURE__*/
+  messageDesc(file_backend_proto_service, 41);
 
 /**
  * @generated from message sparkly.backend.v1.RemoveDeviceFromGroupResponse
  */
-export type RemoveDeviceFromGroupResponse =
-  Message<'sparkly.backend.v1.RemoveDeviceFromGroupResponse'> & {
-    /**
-     * @generated from field: bool success = 1;
-     */
-    success: boolean;
-  };
+export type RemoveDeviceFromGroupResponse = Message<"sparkly.backend.v1.RemoveDeviceFromGroupResponse"> & {
+  /**
+   * @generated from field: bool success = 1;
+   */
+  success: boolean;
+};
 
 /**
  * Describes the message sparkly.backend.v1.RemoveDeviceFromGroupResponse.
  * Use `create(RemoveDeviceFromGroupResponseSchema)` to create a new message.
  */
-export const RemoveDeviceFromGroupResponseSchema: GenMessage<RemoveDeviceFromGroupResponse> =
-  /*@__PURE__*/
-  messageDesc(file_backend_proto_service, 43);
+export const RemoveDeviceFromGroupResponseSchema: GenMessage<RemoveDeviceFromGroupResponse> = /*@__PURE__*/
+  messageDesc(file_backend_proto_service, 42);
 
 /**
  * @generated from message sparkly.backend.v1.GetDeviceRequest
  */
-export type GetDeviceRequest = Message<'sparkly.backend.v1.GetDeviceRequest'> & {
+export type GetDeviceRequest = Message<"sparkly.backend.v1.GetDeviceRequest"> & {
   /**
    * @generated from field: string id = 1;
    */
@@ -1164,14 +1065,13 @@ export type GetDeviceRequest = Message<'sparkly.backend.v1.GetDeviceRequest'> & 
  * Describes the message sparkly.backend.v1.GetDeviceRequest.
  * Use `create(GetDeviceRequestSchema)` to create a new message.
  */
-export const GetDeviceRequestSchema: GenMessage<GetDeviceRequest> =
-  /*@__PURE__*/
-  messageDesc(file_backend_proto_service, 44);
+export const GetDeviceRequestSchema: GenMessage<GetDeviceRequest> = /*@__PURE__*/
+  messageDesc(file_backend_proto_service, 43);
 
 /**
  * @generated from message sparkly.backend.v1.GetDeviceResponse
  */
-export type GetDeviceResponse = Message<'sparkly.backend.v1.GetDeviceResponse'> & {
+export type GetDeviceResponse = Message<"sparkly.backend.v1.GetDeviceResponse"> & {
   /**
    * @generated from field: sparkly.backend.v1.Device device = 1;
    */
@@ -1182,14 +1082,13 @@ export type GetDeviceResponse = Message<'sparkly.backend.v1.GetDeviceResponse'> 
  * Describes the message sparkly.backend.v1.GetDeviceResponse.
  * Use `create(GetDeviceResponseSchema)` to create a new message.
  */
-export const GetDeviceResponseSchema: GenMessage<GetDeviceResponse> =
-  /*@__PURE__*/
-  messageDesc(file_backend_proto_service, 45);
+export const GetDeviceResponseSchema: GenMessage<GetDeviceResponse> = /*@__PURE__*/
+  messageDesc(file_backend_proto_service, 44);
 
 /**
  * @generated from message sparkly.backend.v1.GetDevicesRequest
  */
-export type GetDevicesRequest = Message<'sparkly.backend.v1.GetDevicesRequest'> & {
+export type GetDevicesRequest = Message<"sparkly.backend.v1.GetDevicesRequest"> & {
   /**
    * @generated from field: string park_id = 1;
    */
@@ -1214,48 +1113,36 @@ export type GetDevicesRequest = Message<'sparkly.backend.v1.GetDevicesRequest'> 
    * @generated from field: repeated string build_ids = 5;
    */
   buildIds: string[];
-
-  /**
-   * @generated from field: sparkly.backend.v1.PaginationRequest pagination = 6;
-   */
-  pagination?: PaginationRequest | undefined;
 };
 
 /**
  * Describes the message sparkly.backend.v1.GetDevicesRequest.
  * Use `create(GetDevicesRequestSchema)` to create a new message.
  */
-export const GetDevicesRequestSchema: GenMessage<GetDevicesRequest> =
-  /*@__PURE__*/
-  messageDesc(file_backend_proto_service, 46);
+export const GetDevicesRequestSchema: GenMessage<GetDevicesRequest> = /*@__PURE__*/
+  messageDesc(file_backend_proto_service, 45);
 
 /**
  * @generated from message sparkly.backend.v1.GetDevicesResponse
  */
-export type GetDevicesResponse = Message<'sparkly.backend.v1.GetDevicesResponse'> & {
+export type GetDevicesResponse = Message<"sparkly.backend.v1.GetDevicesResponse"> & {
   /**
    * @generated from field: repeated sparkly.backend.v1.Device devices = 1;
    */
   devices: Device[];
-
-  /**
-   * @generated from field: sparkly.backend.v1.PaginationResponse pagination = 2;
-   */
-  pagination?: PaginationResponse | undefined;
 };
 
 /**
  * Describes the message sparkly.backend.v1.GetDevicesResponse.
  * Use `create(GetDevicesResponseSchema)` to create a new message.
  */
-export const GetDevicesResponseSchema: GenMessage<GetDevicesResponse> =
-  /*@__PURE__*/
-  messageDesc(file_backend_proto_service, 47);
+export const GetDevicesResponseSchema: GenMessage<GetDevicesResponse> = /*@__PURE__*/
+  messageDesc(file_backend_proto_service, 46);
 
 /**
  * @generated from message sparkly.backend.v1.GetIssueRequest
  */
-export type GetIssueRequest = Message<'sparkly.backend.v1.GetIssueRequest'> & {
+export type GetIssueRequest = Message<"sparkly.backend.v1.GetIssueRequest"> & {
   /**
    * @generated from field: string id = 1;
    */
@@ -1266,14 +1153,13 @@ export type GetIssueRequest = Message<'sparkly.backend.v1.GetIssueRequest'> & {
  * Describes the message sparkly.backend.v1.GetIssueRequest.
  * Use `create(GetIssueRequestSchema)` to create a new message.
  */
-export const GetIssueRequestSchema: GenMessage<GetIssueRequest> =
-  /*@__PURE__*/
-  messageDesc(file_backend_proto_service, 48);
+export const GetIssueRequestSchema: GenMessage<GetIssueRequest> = /*@__PURE__*/
+  messageDesc(file_backend_proto_service, 47);
 
 /**
  * @generated from message sparkly.backend.v1.GetIssueResponse
  */
-export type GetIssueResponse = Message<'sparkly.backend.v1.GetIssueResponse'> & {
+export type GetIssueResponse = Message<"sparkly.backend.v1.GetIssueResponse"> & {
   /**
    * @generated from field: sparkly.backend.v1.Issue issue = 1;
    */
@@ -1284,14 +1170,13 @@ export type GetIssueResponse = Message<'sparkly.backend.v1.GetIssueResponse'> & 
  * Describes the message sparkly.backend.v1.GetIssueResponse.
  * Use `create(GetIssueResponseSchema)` to create a new message.
  */
-export const GetIssueResponseSchema: GenMessage<GetIssueResponse> =
-  /*@__PURE__*/
-  messageDesc(file_backend_proto_service, 49);
+export const GetIssueResponseSchema: GenMessage<GetIssueResponse> = /*@__PURE__*/
+  messageDesc(file_backend_proto_service, 48);
 
 /**
  * @generated from message sparkly.backend.v1.GetIssuesRequest
  */
-export type GetIssuesRequest = Message<'sparkly.backend.v1.GetIssuesRequest'> & {
+export type GetIssuesRequest = Message<"sparkly.backend.v1.GetIssuesRequest"> & {
   /**
    * @generated from field: string park_id = 1;
    */
@@ -1321,48 +1206,36 @@ export type GetIssuesRequest = Message<'sparkly.backend.v1.GetIssuesRequest'> & 
    * @generated from field: optional google.protobuf.Timestamp to_time = 6;
    */
   toTime?: Timestamp | undefined;
-
-  /**
-   * @generated from field: sparkly.backend.v1.PaginationRequest pagination = 7;
-   */
-  pagination?: PaginationRequest | undefined;
 };
 
 /**
  * Describes the message sparkly.backend.v1.GetIssuesRequest.
  * Use `create(GetIssuesRequestSchema)` to create a new message.
  */
-export const GetIssuesRequestSchema: GenMessage<GetIssuesRequest> =
-  /*@__PURE__*/
-  messageDesc(file_backend_proto_service, 50);
+export const GetIssuesRequestSchema: GenMessage<GetIssuesRequest> = /*@__PURE__*/
+  messageDesc(file_backend_proto_service, 49);
 
 /**
  * @generated from message sparkly.backend.v1.GetIssuesResponse
  */
-export type GetIssuesResponse = Message<'sparkly.backend.v1.GetIssuesResponse'> & {
+export type GetIssuesResponse = Message<"sparkly.backend.v1.GetIssuesResponse"> & {
   /**
    * @generated from field: repeated sparkly.backend.v1.Issue issues = 1;
    */
   issues: Issue[];
-
-  /**
-   * @generated from field: sparkly.backend.v1.PaginationResponse pagination = 2;
-   */
-  pagination?: PaginationResponse | undefined;
 };
 
 /**
  * Describes the message sparkly.backend.v1.GetIssuesResponse.
  * Use `create(GetIssuesResponseSchema)` to create a new message.
  */
-export const GetIssuesResponseSchema: GenMessage<GetIssuesResponse> =
-  /*@__PURE__*/
-  messageDesc(file_backend_proto_service, 51);
+export const GetIssuesResponseSchema: GenMessage<GetIssuesResponse> = /*@__PURE__*/
+  messageDesc(file_backend_proto_service, 50);
 
 /**
  * @generated from message sparkly.backend.v1.ResolveIssueRequest
  */
-export type ResolveIssueRequest = Message<'sparkly.backend.v1.ResolveIssueRequest'> & {
+export type ResolveIssueRequest = Message<"sparkly.backend.v1.ResolveIssueRequest"> & {
   /**
    * @generated from field: string id = 1;
    */
@@ -1373,14 +1246,13 @@ export type ResolveIssueRequest = Message<'sparkly.backend.v1.ResolveIssueReques
  * Describes the message sparkly.backend.v1.ResolveIssueRequest.
  * Use `create(ResolveIssueRequestSchema)` to create a new message.
  */
-export const ResolveIssueRequestSchema: GenMessage<ResolveIssueRequest> =
-  /*@__PURE__*/
-  messageDesc(file_backend_proto_service, 52);
+export const ResolveIssueRequestSchema: GenMessage<ResolveIssueRequest> = /*@__PURE__*/
+  messageDesc(file_backend_proto_service, 51);
 
 /**
  * @generated from message sparkly.backend.v1.ResolveIssueResponse
  */
-export type ResolveIssueResponse = Message<'sparkly.backend.v1.ResolveIssueResponse'> & {
+export type ResolveIssueResponse = Message<"sparkly.backend.v1.ResolveIssueResponse"> & {
   /**
    * @generated from field: sparkly.backend.v1.Issue issue = 1;
    */
@@ -1391,14 +1263,13 @@ export type ResolveIssueResponse = Message<'sparkly.backend.v1.ResolveIssueRespo
  * Describes the message sparkly.backend.v1.ResolveIssueResponse.
  * Use `create(ResolveIssueResponseSchema)` to create a new message.
  */
-export const ResolveIssueResponseSchema: GenMessage<ResolveIssueResponse> =
-  /*@__PURE__*/
-  messageDesc(file_backend_proto_service, 53);
+export const ResolveIssueResponseSchema: GenMessage<ResolveIssueResponse> = /*@__PURE__*/
+  messageDesc(file_backend_proto_service, 52);
 
 /**
  * @generated from message sparkly.backend.v1.UpdateIssueRequest
  */
-export type UpdateIssueRequest = Message<'sparkly.backend.v1.UpdateIssueRequest'> & {
+export type UpdateIssueRequest = Message<"sparkly.backend.v1.UpdateIssueRequest"> & {
   /**
    * @generated from field: string id = 1;
    */
@@ -1424,14 +1295,13 @@ export type UpdateIssueRequest = Message<'sparkly.backend.v1.UpdateIssueRequest'
  * Describes the message sparkly.backend.v1.UpdateIssueRequest.
  * Use `create(UpdateIssueRequestSchema)` to create a new message.
  */
-export const UpdateIssueRequestSchema: GenMessage<UpdateIssueRequest> =
-  /*@__PURE__*/
-  messageDesc(file_backend_proto_service, 54);
+export const UpdateIssueRequestSchema: GenMessage<UpdateIssueRequest> = /*@__PURE__*/
+  messageDesc(file_backend_proto_service, 53);
 
 /**
  * @generated from message sparkly.backend.v1.UpdateIssueResponse
  */
-export type UpdateIssueResponse = Message<'sparkly.backend.v1.UpdateIssueResponse'> & {
+export type UpdateIssueResponse = Message<"sparkly.backend.v1.UpdateIssueResponse"> & {
   /**
    * @generated from field: sparkly.backend.v1.Issue issue = 1;
    */
@@ -1442,14 +1312,13 @@ export type UpdateIssueResponse = Message<'sparkly.backend.v1.UpdateIssueRespons
  * Describes the message sparkly.backend.v1.UpdateIssueResponse.
  * Use `create(UpdateIssueResponseSchema)` to create a new message.
  */
-export const UpdateIssueResponseSchema: GenMessage<UpdateIssueResponse> =
-  /*@__PURE__*/
-  messageDesc(file_backend_proto_service, 55);
+export const UpdateIssueResponseSchema: GenMessage<UpdateIssueResponse> = /*@__PURE__*/
+  messageDesc(file_backend_proto_service, 54);
 
 /**
  * @generated from message sparkly.backend.v1.DeleteIssueRequest
  */
-export type DeleteIssueRequest = Message<'sparkly.backend.v1.DeleteIssueRequest'> & {
+export type DeleteIssueRequest = Message<"sparkly.backend.v1.DeleteIssueRequest"> & {
   /**
    * @generated from field: string id = 1;
    */
@@ -1460,14 +1329,13 @@ export type DeleteIssueRequest = Message<'sparkly.backend.v1.DeleteIssueRequest'
  * Describes the message sparkly.backend.v1.DeleteIssueRequest.
  * Use `create(DeleteIssueRequestSchema)` to create a new message.
  */
-export const DeleteIssueRequestSchema: GenMessage<DeleteIssueRequest> =
-  /*@__PURE__*/
-  messageDesc(file_backend_proto_service, 56);
+export const DeleteIssueRequestSchema: GenMessage<DeleteIssueRequest> = /*@__PURE__*/
+  messageDesc(file_backend_proto_service, 55);
 
 /**
  * @generated from message sparkly.backend.v1.DeleteIssueResponse
  */
-export type DeleteIssueResponse = Message<'sparkly.backend.v1.DeleteIssueResponse'> & {
+export type DeleteIssueResponse = Message<"sparkly.backend.v1.DeleteIssueResponse"> & {
   /**
    * @generated from field: bool success = 1;
    */
@@ -1478,9 +1346,448 @@ export type DeleteIssueResponse = Message<'sparkly.backend.v1.DeleteIssueRespons
  * Describes the message sparkly.backend.v1.DeleteIssueResponse.
  * Use `create(DeleteIssueResponseSchema)` to create a new message.
  */
-export const DeleteIssueResponseSchema: GenMessage<DeleteIssueResponse> =
-  /*@__PURE__*/
+export const DeleteIssueResponseSchema: GenMessage<DeleteIssueResponse> = /*@__PURE__*/
+  messageDesc(file_backend_proto_service, 56);
+
+/**
+ * @generated from message sparkly.backend.v1.CreateBuildRequest
+ */
+export type CreateBuildRequest = Message<"sparkly.backend.v1.CreateBuildRequest"> & {
+  /**
+   * @generated from field: string park_id = 1;
+   */
+  parkId: string;
+
+  /**
+   * @generated from field: string version = 2;
+   */
+  version: string;
+
+  /**
+   * @generated from field: string commit = 3;
+   */
+  commit: string;
+
+  /**
+   * @generated from field: string elf_object_key = 4;
+   */
+  elfObjectKey: string;
+
+  /**
+   * @generated from field: string dwarf_object_key = 5;
+   */
+  dwarfObjectKey: string;
+};
+
+/**
+ * Describes the message sparkly.backend.v1.CreateBuildRequest.
+ * Use `create(CreateBuildRequestSchema)` to create a new message.
+ */
+export const CreateBuildRequestSchema: GenMessage<CreateBuildRequest> = /*@__PURE__*/
   messageDesc(file_backend_proto_service, 57);
+
+/**
+ * @generated from message sparkly.backend.v1.CreateBuildResponse
+ */
+export type CreateBuildResponse = Message<"sparkly.backend.v1.CreateBuildResponse"> & {
+  /**
+   * @generated from field: sparkly.backend.v1.Build build = 1;
+   */
+  build?: Build | undefined;
+};
+
+/**
+ * Describes the message sparkly.backend.v1.CreateBuildResponse.
+ * Use `create(CreateBuildResponseSchema)` to create a new message.
+ */
+export const CreateBuildResponseSchema: GenMessage<CreateBuildResponse> = /*@__PURE__*/
+  messageDesc(file_backend_proto_service, 58);
+
+/**
+ * @generated from message sparkly.backend.v1.GetBuildRequest
+ */
+export type GetBuildRequest = Message<"sparkly.backend.v1.GetBuildRequest"> & {
+  /**
+   * @generated from field: string id = 1;
+   */
+  id: string;
+};
+
+/**
+ * Describes the message sparkly.backend.v1.GetBuildRequest.
+ * Use `create(GetBuildRequestSchema)` to create a new message.
+ */
+export const GetBuildRequestSchema: GenMessage<GetBuildRequest> = /*@__PURE__*/
+  messageDesc(file_backend_proto_service, 59);
+
+/**
+ * @generated from message sparkly.backend.v1.GetBuildResponse
+ */
+export type GetBuildResponse = Message<"sparkly.backend.v1.GetBuildResponse"> & {
+  /**
+   * @generated from field: sparkly.backend.v1.Build build = 1;
+   */
+  build?: Build | undefined;
+};
+
+/**
+ * Describes the message sparkly.backend.v1.GetBuildResponse.
+ * Use `create(GetBuildResponseSchema)` to create a new message.
+ */
+export const GetBuildResponseSchema: GenMessage<GetBuildResponse> = /*@__PURE__*/
+  messageDesc(file_backend_proto_service, 60);
+
+/**
+ * @generated from message sparkly.backend.v1.GetBuildsRequest
+ */
+export type GetBuildsRequest = Message<"sparkly.backend.v1.GetBuildsRequest"> & {
+  /**
+   * @generated from field: string park_id = 1;
+   */
+  parkId: string;
+
+  /**
+   * @generated from field: optional string version = 2;
+   */
+  version?: string | undefined;
+
+  /**
+   * @generated from field: optional string commit = 3;
+   */
+  commit?: string | undefined;
+
+  /**
+   * @generated from field: optional google.protobuf.Timestamp from_time = 4;
+   */
+  fromTime?: Timestamp | undefined;
+
+  /**
+   * @generated from field: optional google.protobuf.Timestamp to_time = 5;
+   */
+  toTime?: Timestamp | undefined;
+};
+
+/**
+ * Describes the message sparkly.backend.v1.GetBuildsRequest.
+ * Use `create(GetBuildsRequestSchema)` to create a new message.
+ */
+export const GetBuildsRequestSchema: GenMessage<GetBuildsRequest> = /*@__PURE__*/
+  messageDesc(file_backend_proto_service, 61);
+
+/**
+ * @generated from message sparkly.backend.v1.GetBuildsResponse
+ */
+export type GetBuildsResponse = Message<"sparkly.backend.v1.GetBuildsResponse"> & {
+  /**
+   * @generated from field: repeated sparkly.backend.v1.Build builds = 1;
+   */
+  builds: Build[];
+};
+
+/**
+ * Describes the message sparkly.backend.v1.GetBuildsResponse.
+ * Use `create(GetBuildsResponseSchema)` to create a new message.
+ */
+export const GetBuildsResponseSchema: GenMessage<GetBuildsResponse> = /*@__PURE__*/
+  messageDesc(file_backend_proto_service, 62);
+
+/**
+ * @generated from message sparkly.backend.v1.UpdateBuildRequest
+ */
+export type UpdateBuildRequest = Message<"sparkly.backend.v1.UpdateBuildRequest"> & {
+  /**
+   * @generated from field: string id = 1;
+   */
+  id: string;
+
+  /**
+   * @generated from field: optional string version = 2;
+   */
+  version?: string | undefined;
+
+  /**
+   * @generated from field: optional string commit = 3;
+   */
+  commit?: string | undefined;
+
+  /**
+   * @generated from field: optional string elf_object_key = 5;
+   */
+  elfObjectKey?: string | undefined;
+
+  /**
+   * @generated from field: optional string dwarf_object_key = 6;
+   */
+  dwarfObjectKey?: string | undefined;
+};
+
+/**
+ * Describes the message sparkly.backend.v1.UpdateBuildRequest.
+ * Use `create(UpdateBuildRequestSchema)` to create a new message.
+ */
+export const UpdateBuildRequestSchema: GenMessage<UpdateBuildRequest> = /*@__PURE__*/
+  messageDesc(file_backend_proto_service, 63);
+
+/**
+ * @generated from message sparkly.backend.v1.UpdateBuildResponse
+ */
+export type UpdateBuildResponse = Message<"sparkly.backend.v1.UpdateBuildResponse"> & {
+  /**
+   * @generated from field: repeated sparkly.backend.v1.Build builds = 1;
+   */
+  builds: Build[];
+};
+
+/**
+ * Describes the message sparkly.backend.v1.UpdateBuildResponse.
+ * Use `create(UpdateBuildResponseSchema)` to create a new message.
+ */
+export const UpdateBuildResponseSchema: GenMessage<UpdateBuildResponse> = /*@__PURE__*/
+  messageDesc(file_backend_proto_service, 64);
+
+/**
+ * @generated from message sparkly.backend.v1.DeleteBuildRequest
+ */
+export type DeleteBuildRequest = Message<"sparkly.backend.v1.DeleteBuildRequest"> & {
+  /**
+   * @generated from field: string id = 1;
+   */
+  id: string;
+};
+
+/**
+ * Describes the message sparkly.backend.v1.DeleteBuildRequest.
+ * Use `create(DeleteBuildRequestSchema)` to create a new message.
+ */
+export const DeleteBuildRequestSchema: GenMessage<DeleteBuildRequest> = /*@__PURE__*/
+  messageDesc(file_backend_proto_service, 65);
+
+/**
+ * @generated from message sparkly.backend.v1.DeleteBuildResponse
+ */
+export type DeleteBuildResponse = Message<"sparkly.backend.v1.DeleteBuildResponse"> & {
+  /**
+   * @generated from field: bool success = 1;
+   */
+  success: boolean;
+};
+
+/**
+ * Describes the message sparkly.backend.v1.DeleteBuildResponse.
+ * Use `create(DeleteBuildResponseSchema)` to create a new message.
+ */
+export const DeleteBuildResponseSchema: GenMessage<DeleteBuildResponse> = /*@__PURE__*/
+  messageDesc(file_backend_proto_service, 66);
+
+/**
+ * @generated from message sparkly.backend.v1.CreateReleaseRequest
+ */
+export type CreateReleaseRequest = Message<"sparkly.backend.v1.CreateReleaseRequest"> & {
+  /**
+   * @generated from field: string park_id = 1;
+   */
+  parkId: string;
+
+  /**
+   * @generated from field: string name = 2;
+   */
+  name: string;
+
+  /**
+   * @generated from field: string version = 3;
+   */
+  version: string;
+};
+
+/**
+ * Describes the message sparkly.backend.v1.CreateReleaseRequest.
+ * Use `create(CreateReleaseRequestSchema)` to create a new message.
+ */
+export const CreateReleaseRequestSchema: GenMessage<CreateReleaseRequest> = /*@__PURE__*/
+  messageDesc(file_backend_proto_service, 67);
+
+/**
+ * @generated from message sparkly.backend.v1.CreateReleaseResponse
+ */
+export type CreateReleaseResponse = Message<"sparkly.backend.v1.CreateReleaseResponse"> & {
+  /**
+   * @generated from field: sparkly.backend.v1.Release release = 1;
+   */
+  release?: Release | undefined;
+};
+
+/**
+ * Describes the message sparkly.backend.v1.CreateReleaseResponse.
+ * Use `create(CreateReleaseResponseSchema)` to create a new message.
+ */
+export const CreateReleaseResponseSchema: GenMessage<CreateReleaseResponse> = /*@__PURE__*/
+  messageDesc(file_backend_proto_service, 68);
+
+/**
+ * @generated from message sparkly.backend.v1.GetReleaseRequest
+ */
+export type GetReleaseRequest = Message<"sparkly.backend.v1.GetReleaseRequest"> & {
+  /**
+   * @generated from field: string id = 1;
+   */
+  id: string;
+};
+
+/**
+ * Describes the message sparkly.backend.v1.GetReleaseRequest.
+ * Use `create(GetReleaseRequestSchema)` to create a new message.
+ */
+export const GetReleaseRequestSchema: GenMessage<GetReleaseRequest> = /*@__PURE__*/
+  messageDesc(file_backend_proto_service, 69);
+
+/**
+ * @generated from message sparkly.backend.v1.GetReleaseResponse
+ */
+export type GetReleaseResponse = Message<"sparkly.backend.v1.GetReleaseResponse"> & {
+  /**
+   * @generated from field: sparkly.backend.v1.Release release = 1;
+   */
+  release?: Release | undefined;
+};
+
+/**
+ * Describes the message sparkly.backend.v1.GetReleaseResponse.
+ * Use `create(GetReleaseResponseSchema)` to create a new message.
+ */
+export const GetReleaseResponseSchema: GenMessage<GetReleaseResponse> = /*@__PURE__*/
+  messageDesc(file_backend_proto_service, 70);
+
+/**
+ * @generated from message sparkly.backend.v1.GetReleasesRequest
+ */
+export type GetReleasesRequest = Message<"sparkly.backend.v1.GetReleasesRequest"> & {
+  /**
+   * @generated from field: string park_id = 1;
+   */
+  parkId: string;
+
+  /**
+   * @generated from field: optional string name = 2;
+   */
+  name?: string | undefined;
+
+  /**
+   * @generated from field: optional string version = 3;
+   */
+  version?: string | undefined;
+
+  /**
+   * @generated from field: optional google.protobuf.Timestamp from_time = 4;
+   */
+  fromTime?: Timestamp | undefined;
+
+  /**
+   * @generated from field: optional google.protobuf.Timestamp to_time = 5;
+   */
+  toTime?: Timestamp | undefined;
+};
+
+/**
+ * Describes the message sparkly.backend.v1.GetReleasesRequest.
+ * Use `create(GetReleasesRequestSchema)` to create a new message.
+ */
+export const GetReleasesRequestSchema: GenMessage<GetReleasesRequest> = /*@__PURE__*/
+  messageDesc(file_backend_proto_service, 71);
+
+/**
+ * @generated from message sparkly.backend.v1.GetReleasesResponse
+ */
+export type GetReleasesResponse = Message<"sparkly.backend.v1.GetReleasesResponse"> & {
+  /**
+   * @generated from field: repeated sparkly.backend.v1.Release releases = 1;
+   */
+  releases: Release[];
+};
+
+/**
+ * Describes the message sparkly.backend.v1.GetReleasesResponse.
+ * Use `create(GetReleasesResponseSchema)` to create a new message.
+ */
+export const GetReleasesResponseSchema: GenMessage<GetReleasesResponse> = /*@__PURE__*/
+  messageDesc(file_backend_proto_service, 72);
+
+/**
+ * @generated from message sparkly.backend.v1.UpdateReleaseRequest
+ */
+export type UpdateReleaseRequest = Message<"sparkly.backend.v1.UpdateReleaseRequest"> & {
+  /**
+   * @generated from field: string id = 1;
+   */
+  id: string;
+
+  /**
+   * @generated from field: optional string name = 2;
+   */
+  name?: string | undefined;
+
+  /**
+   * @generated from field: optional string version = 3;
+   */
+  version?: string | undefined;
+};
+
+/**
+ * Describes the message sparkly.backend.v1.UpdateReleaseRequest.
+ * Use `create(UpdateReleaseRequestSchema)` to create a new message.
+ */
+export const UpdateReleaseRequestSchema: GenMessage<UpdateReleaseRequest> = /*@__PURE__*/
+  messageDesc(file_backend_proto_service, 73);
+
+/**
+ * @generated from message sparkly.backend.v1.UpdateReleaseResponse
+ */
+export type UpdateReleaseResponse = Message<"sparkly.backend.v1.UpdateReleaseResponse"> & {
+  /**
+   * @generated from field: sparkly.backend.v1.Release release = 1;
+   */
+  release?: Release | undefined;
+};
+
+/**
+ * Describes the message sparkly.backend.v1.UpdateReleaseResponse.
+ * Use `create(UpdateReleaseResponseSchema)` to create a new message.
+ */
+export const UpdateReleaseResponseSchema: GenMessage<UpdateReleaseResponse> = /*@__PURE__*/
+  messageDesc(file_backend_proto_service, 74);
+
+/**
+ * @generated from message sparkly.backend.v1.DeleteReleaseRequest
+ */
+export type DeleteReleaseRequest = Message<"sparkly.backend.v1.DeleteReleaseRequest"> & {
+  /**
+   * @generated from field: string id = 1;
+   */
+  id: string;
+};
+
+/**
+ * Describes the message sparkly.backend.v1.DeleteReleaseRequest.
+ * Use `create(DeleteReleaseRequestSchema)` to create a new message.
+ */
+export const DeleteReleaseRequestSchema: GenMessage<DeleteReleaseRequest> = /*@__PURE__*/
+  messageDesc(file_backend_proto_service, 75);
+
+/**
+ * @generated from message sparkly.backend.v1.DeleteReleaseResponse
+ */
+export type DeleteReleaseResponse = Message<"sparkly.backend.v1.DeleteReleaseResponse"> & {
+  /**
+   * @generated from field: bool success = 1;
+   */
+  success: boolean;
+};
+
+/**
+ * Describes the message sparkly.backend.v1.DeleteReleaseResponse.
+ * Use `create(DeleteReleaseResponseSchema)` to create a new message.
+ */
+export const DeleteReleaseResponseSchema: GenMessage<DeleteReleaseResponse> = /*@__PURE__*/
+  messageDesc(file_backend_proto_service, 76);
 
 /**
  * @generated from enum sparkly.backend.v1.IssueSeverity
@@ -1520,8 +1827,7 @@ export enum IssueSeverity {
 /**
  * Describes the enum sparkly.backend.v1.IssueSeverity.
  */
-export const IssueSeveritySchema: GenEnum<IssueSeverity> =
-  /*@__PURE__*/
+export const IssueSeveritySchema: GenEnum<IssueSeverity> = /*@__PURE__*/
   enumDesc(file_backend_proto_service, 0);
 
 /**
@@ -1532,51 +1838,52 @@ export const UserService: GenService<{
    * @generated from rpc sparkly.backend.v1.UserService.Reg
    */
   reg: {
-    methodKind: 'unary';
+    methodKind: "unary";
     input: typeof RegRequestSchema;
     output: typeof RegResponseSchema;
-  };
+  },
   /**
    * @generated from rpc sparkly.backend.v1.UserService.GetToken
    */
   getToken: {
-    methodKind: 'unary';
+    methodKind: "unary";
     input: typeof GetTokenRequestSchema;
     output: typeof GetTokenResponseSchema;
-  };
+  },
   /**
    * @generated from rpc sparkly.backend.v1.UserService.CheckAuth
    */
   checkAuth: {
-    methodKind: 'unary';
+    methodKind: "unary";
     input: typeof CheckAuthRequestSchema;
     output: typeof CheckAuthResponseSchema;
-  };
+  },
   /**
    * @generated from rpc sparkly.backend.v1.UserService.RevokeToken
    */
   revokeToken: {
-    methodKind: 'unary';
+    methodKind: "unary";
     input: typeof RevokeTokenRequestSchema;
     output: typeof RevokeTokenResponseSchema;
-  };
+  },
   /**
    * @generated from rpc sparkly.backend.v1.UserService.UpdateUser
    */
   updateUser: {
-    methodKind: 'unary';
+    methodKind: "unary";
     input: typeof UpdateUserRequestSchema;
     output: typeof UpdateUserResponseSchema;
-  };
+  },
   /**
    * @generated from rpc sparkly.backend.v1.UserService.DeleteUser
    */
   deleteUser: {
-    methodKind: 'unary';
+    methodKind: "unary";
     input: typeof DeleteUserRequestSchema;
     output: typeof DeleteUserResponseSchema;
-  };
-}> = /*@__PURE__*/ serviceDesc(file_backend_proto_service, 0);
+  },
+}> = /*@__PURE__*/
+  serviceDesc(file_backend_proto_service, 0);
 
 /**
  * @generated from service sparkly.backend.v1.ParkService
@@ -1586,99 +1893,100 @@ export const ParkService: GenService<{
    * @generated from rpc sparkly.backend.v1.ParkService.CreatePark
    */
   createPark: {
-    methodKind: 'unary';
+    methodKind: "unary";
     input: typeof CreateParkRequestSchema;
     output: typeof CreateParkResponseSchema;
-  };
+  },
   /**
    * @generated from rpc sparkly.backend.v1.ParkService.GetPark
    */
   getPark: {
-    methodKind: 'unary';
+    methodKind: "unary";
     input: typeof GetParkRequestSchema;
     output: typeof GetParkResponseSchema;
-  };
+  },
   /**
    * @generated from rpc sparkly.backend.v1.ParkService.GetAllParks
    */
   getAllParks: {
-    methodKind: 'unary';
+    methodKind: "unary";
     input: typeof GetAllParksRequestSchema;
     output: typeof GetAllParksResponseSchema;
-  };
+  },
   /**
    * @generated from rpc sparkly.backend.v1.ParkService.UpdatePark
    */
   updatePark: {
-    methodKind: 'unary';
+    methodKind: "unary";
     input: typeof UpdateParkRequestSchema;
     output: typeof UpdateParkResponseSchema;
-  };
+  },
   /**
    * @generated from rpc sparkly.backend.v1.ParkService.DeletePark
    */
   deletePark: {
-    methodKind: 'unary';
+    methodKind: "unary";
     input: typeof DeleteParkRequestSchema;
     output: typeof DeleteParkResponseSchema;
-  };
+  },
   /**
    * @generated from rpc sparkly.backend.v1.ParkService.CreateGroup
    */
   createGroup: {
-    methodKind: 'unary';
+    methodKind: "unary";
     input: typeof CreateGroupRequestSchema;
     output: typeof CreateGroupResponseSchema;
-  };
+  },
   /**
    * @generated from rpc sparkly.backend.v1.ParkService.GetGroup
    */
   getGroup: {
-    methodKind: 'unary';
+    methodKind: "unary";
     input: typeof GetGroupRequestSchema;
     output: typeof GetGroupResponseSchema;
-  };
+  },
   /**
    * @generated from rpc sparkly.backend.v1.ParkService.GetGroups
    */
   getGroups: {
-    methodKind: 'unary';
+    methodKind: "unary";
     input: typeof GetGroupsRequestSchema;
     output: typeof GetGroupsResponseSchema;
-  };
+  },
   /**
    * @generated from rpc sparkly.backend.v1.ParkService.UpdateGroup
    */
   updateGroup: {
-    methodKind: 'unary';
+    methodKind: "unary";
     input: typeof UpdateGroupRequestSchema;
     output: typeof UpdateGroupResponseSchema;
-  };
+  },
   /**
    * @generated from rpc sparkly.backend.v1.ParkService.DeleteGroup
    */
   deleteGroup: {
-    methodKind: 'unary';
+    methodKind: "unary";
     input: typeof DeleteGroupRequestSchema;
     output: typeof DeleteGroupResponseSchema;
-  };
+  },
   /**
    * @generated from rpc sparkly.backend.v1.ParkService.AddDeviceToGroup
    */
   addDeviceToGroup: {
-    methodKind: 'unary';
+    methodKind: "unary";
     input: typeof AddDeviceToGroupRequestSchema;
     output: typeof AddDeviceToGroupResponseSchema;
-  };
+  },
   /**
    * @generated from rpc sparkly.backend.v1.ParkService.RemoveDeviceFromGroup
    */
   removeDeviceFromGroup: {
-    methodKind: 'unary';
+    methodKind: "unary";
     input: typeof RemoveDeviceFromGroupRequestSchema;
     output: typeof RemoveDeviceFromGroupResponseSchema;
-  };
-}> = /*@__PURE__*/ serviceDesc(file_backend_proto_service, 1);
+  },
+}> = /*@__PURE__*/
+  serviceDesc(file_backend_proto_service, 1);
 
 /**
  * @generated from service sparkly.backend.v1.DeviceService
@@ -1688,19 +1996,20 @@ export const DeviceService: GenService<{
    * @generated from rpc sparkly.backend.v1.DeviceService.GetDevice
    */
   getDevice: {
-    methodKind: 'unary';
+    methodKind: "unary";
     input: typeof GetDeviceRequestSchema;
     output: typeof GetDeviceResponseSchema;
-  };
+  },
   /**
    * @generated from rpc sparkly.backend.v1.DeviceService.GetDevices
    */
   getDevices: {
-    methodKind: 'unary';
+    methodKind: "unary";
     input: typeof GetDevicesRequestSchema;
     output: typeof GetDevicesResponseSchema;
-  };
-}> = /*@__PURE__*/ serviceDesc(file_backend_proto_service, 2);
+  },
+}> = /*@__PURE__*/
+  serviceDesc(file_backend_proto_service, 2);
 
 /**
  * @generated from service sparkly.backend.v1.IssueService
@@ -1710,40 +2019,136 @@ export const IssueService: GenService<{
    * @generated from rpc sparkly.backend.v1.IssueService.GetIssue
    */
   getIssue: {
-    methodKind: 'unary';
+    methodKind: "unary";
     input: typeof GetIssueRequestSchema;
     output: typeof GetIssueResponseSchema;
-  };
+  },
   /**
    * @generated from rpc sparkly.backend.v1.IssueService.GetIssues
    */
   getIssues: {
-    methodKind: 'unary';
+    methodKind: "unary";
     input: typeof GetIssuesRequestSchema;
     output: typeof GetIssuesResponseSchema;
-  };
+  },
   /**
    * @generated from rpc sparkly.backend.v1.IssueService.ResolveIssue
    */
   resolveIssue: {
-    methodKind: 'unary';
+    methodKind: "unary";
     input: typeof ResolveIssueRequestSchema;
     output: typeof ResolveIssueResponseSchema;
-  };
+  },
   /**
    * @generated from rpc sparkly.backend.v1.IssueService.UpdateIssue
    */
   updateIssue: {
-    methodKind: 'unary';
+    methodKind: "unary";
     input: typeof UpdateIssueRequestSchema;
     output: typeof UpdateIssueResponseSchema;
-  };
+  },
   /**
    * @generated from rpc sparkly.backend.v1.IssueService.DeleteIssue
    */
   deleteIssue: {
-    methodKind: 'unary';
+    methodKind: "unary";
     input: typeof DeleteIssueRequestSchema;
     output: typeof DeleteIssueResponseSchema;
-  };
-}> = /*@__PURE__*/ serviceDesc(file_backend_proto_service, 3);
+  },
+}> = /*@__PURE__*/
+  serviceDesc(file_backend_proto_service, 3);
+
+/**
+ * @generated from service sparkly.backend.v1.BuildService
+ */
+export const BuildService: GenService<{
+  /**
+   * @generated from rpc sparkly.backend.v1.BuildService.CreateBuild
+   */
+  createBuild: {
+    methodKind: "unary";
+    input: typeof CreateBuildRequestSchema;
+    output: typeof CreateBuildResponseSchema;
+  },
+  /**
+   * @generated from rpc sparkly.backend.v1.BuildService.GetBuild
+   */
+  getBuild: {
+    methodKind: "unary";
+    input: typeof GetBuildRequestSchema;
+    output: typeof GetBuildResponseSchema;
+  },
+  /**
+   * @generated from rpc sparkly.backend.v1.BuildService.GetBuilds
+   */
+  getBuilds: {
+    methodKind: "unary";
+    input: typeof GetBuildsRequestSchema;
+    output: typeof GetBuildsResponseSchema;
+  },
+  /**
+   * @generated from rpc sparkly.backend.v1.BuildService.UpdateBuild
+   */
+  updateBuild: {
+    methodKind: "unary";
+    input: typeof UpdateBuildRequestSchema;
+    output: typeof UpdateBuildResponseSchema;
+  },
+  /**
+   * @generated from rpc sparkly.backend.v1.BuildService.DeleteBuild
+   */
+  deleteBuild: {
+    methodKind: "unary";
+    input: typeof DeleteBuildRequestSchema;
+    output: typeof DeleteBuildResponseSchema;
+  },
+}> = /*@__PURE__*/
+  serviceDesc(file_backend_proto_service, 4);
+
+/**
+ * @generated from service sparkly.backend.v1.ReleaseService
+ */
+export const ReleaseService: GenService<{
+  /**
+   * @generated from rpc sparkly.backend.v1.ReleaseService.CreateRelease
+   */
+  createRelease: {
+    methodKind: "unary";
+    input: typeof CreateReleaseRequestSchema;
+    output: typeof CreateReleaseResponseSchema;
+  },
+  /**
+   * @generated from rpc sparkly.backend.v1.ReleaseService.GetRelease
+   */
+  getRelease: {
+    methodKind: "unary";
+    input: typeof GetReleaseRequestSchema;
+    output: typeof GetReleaseResponseSchema;
+  },
+  /**
+   * @generated from rpc sparkly.backend.v1.ReleaseService.GetReleases
+   */
+  getReleases: {
+    methodKind: "unary";
+    input: typeof GetReleasesRequestSchema;
+    output: typeof GetReleasesResponseSchema;
+  },
+  /**
+   * @generated from rpc sparkly.backend.v1.ReleaseService.UpdateRelease
+   */
+  updateRelease: {
+    methodKind: "unary";
+    input: typeof UpdateReleaseRequestSchema;
+    output: typeof UpdateReleaseResponseSchema;
+  },
+  /**
+   * @generated from rpc sparkly.backend.v1.ReleaseService.DeleteRelease
+   */
+  deleteRelease: {
+    methodKind: "unary";
+    input: typeof DeleteReleaseRequestSchema;
+    output: typeof DeleteReleaseResponseSchema;
+  },
+}> = /*@__PURE__*/
+  serviceDesc(file_backend_proto_service, 5);
+

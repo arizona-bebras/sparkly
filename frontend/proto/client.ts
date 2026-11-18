@@ -1,13 +1,17 @@
 import { createClient } from '@connectrpc/connect';
 import { createConnectTransport } from '@connectrpc/connect-web';
 import {
+  BuildSchema,
+  BuildService,
   DeviceSchema,
   DeviceService,
   IssueSchema,
   IssueService,
   ParkService,
   ReleaseSchema,
+  ReleaseService,
   UserService,
+  type Build,
   type Device,
   type Issue,
   type Release,
@@ -23,7 +27,17 @@ export const client = {
   park: createClient(ParkService, transport),
   device: createClient(DeviceService, transport),
   issue: createClient(IssueService, transport),
+  build: createClient(BuildService, transport),
+  release: createClient(ReleaseService, transport),
 };
 
-export type { Device, Issue, Release };
-export { IssueSeverity, DeviceSchema, IssueSchema, ReleaseSchema };
+export type { Build, Device, Issue, Release };
+export {
+  IssueSeverity,
+  BuildSchema,
+  BuildService,
+  DeviceSchema,
+  IssueSchema,
+  ReleaseSchema,
+  ReleaseService,
+};
