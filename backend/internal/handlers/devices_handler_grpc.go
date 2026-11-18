@@ -3,6 +3,7 @@ package handlers
 import (
 	"context"
 	"errors"
+	"log"
 
 	"sparkly/backend/internal/domain"
 	"sparkly/backend/internal/services"
@@ -26,15 +27,15 @@ func NewDevicesHandler(s *services.DeviceService) *DevicesHandler {
 
 func deviceDomainToResp(device domain.Device) *pb.Device {
 	pbGroupIDs := make([]string, 0, len(device.GroupIDs))
-	for _, g := range device.GroupIDs {
-		pbGroupIDs = append(pbGroupIDs, g.ID.String())
+	for _, id := range device.GroupIDs {
+		pbGroupIDs = append(pbGroupIDs, id.String())
 	}
 
 	return &pb.Device{
-		Id:     device.ID.String(),
-		Name:   device.Name,
-		ParkId: device.ParkID.String(),
-		Groups: pbGroupIDs,
+		Id:       device.ID.String(),
+		Name:     device.Name,
+		ParkId:   device.ParkID.String(),
+		GroupIds: pbGroupIDs,
 	}
 }
 
@@ -46,6 +47,7 @@ func (h *DevicesHandler) GetDevice(ctx context.Context, req *pb.GetDeviceRequest
 		if errors.Is(err, domain.ErrDeviceNotFound) {
 			return nil, connect.NewError(connect.CodeNotFound, "device not found")
 		}
+		log.Printf("DeviceService/GetDevice error: %v", err)
 		return nil, connect.NewError(connect.CodeInternal, "internal error")
 	}
 

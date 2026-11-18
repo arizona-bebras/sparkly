@@ -70,54 +70,40 @@ func (r *DevicesRepo) GetDevice(ctx context.Context, deviceID, userID uuid.UUID)
 	device := models.Device{
 		ID: deviceID,
 	}
-
-	var groupIDs []uuid.UUID
-
-	err := r.db.Transaction(func(tx *gorm.DB) error {
-		if err := r.db.WithContext(ctx).Scopes(scope.UserDeviceScope(userID)).First(&device).Error; err != nil {
-			if errors.Is(err, gorm.ErrRecordNotFound) {
-				return domain.ErrDeviceNotFound
-			}
-			return fmt.Errorf("failed to get device from db: %w", err)
+	if err := r.db.WithContext(ctx).
+		Scopes(scope.UserDeviceScope(userID)).
+		Preload("Groups").
+		First(&device).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return domain.Device{}, domain.ErrDeviceNotFound
 		}
-
-		if err := r.db.WithContext(ctx).Select("group_devices").Find(&groupIDs).Where("device_id = ?", device.ID).Error; err != nil {
-			return fmt.Errorf("failed to get device from db: %w", err)
-		}
-
-		return nil
-	})
-
-	if err != nil {
-		return domain.Device{}, err
+		return domain.Device{}, fmt.Errorf("failed to get device from db: %w", err)
 	}
-
 	return device.ToDomain(), nil
 }
 
 func (r *DevicesRepo) mapMultipleDeviceGroupsRelations(tx *gorm.DB, devices []models.Device) (map[uuid.UUID][]uuid.UUID, error) {
+	if len(devices) == 0 {
+		return map[uuid.UUID][]uuid.UUID{}, nil
+	}
 	deviceIDs := make([]uuid.UUID, 0, len(devices))
 	for _, device := range devices {
 		deviceIDs = append(deviceIDs, device.ID)
 	}
-	
-	var relations []struct{
-		deviceID uuid.UUID
-		groupID uuid.UUID
+	var relations []struct {
+		DeviceID uuid.UUID `gorm:"column:device_id"`
+		GroupID  uuid.UUID `gorm:"column:group_id"`
 	}
-
 	if err := tx.Table("group_devices").
 		Select("device_id", "group_id").
-		Where("device_id IN (?)", deviceIDs).
+		Where("device_id IN ?", deviceIDs).
 		Find(&relations).Error; err != nil {
-			return map[uuid.UUID][]uuid.UUID{}, fmt.Errorf("failed to get devices relations from db: %w", err)
-		}
-
+		return map[uuid.UUID][]uuid.UUID{}, fmt.Errorf("failed to get devices relations from db: %w", err)
+	}
 	res := make(map[uuid.UUID][]uuid.UUID)
 	for _, r := range relations {
-		res[r.deviceID] = append(res[r.deviceID], r.groupID)
+		res[r.DeviceID] = append(res[r.DeviceID], r.GroupID)
 	}
-
 	return res, nil
 }
 
@@ -160,7 +146,7 @@ func (r *DevicesRepo) GetDevices(ctx context.Context, filters domain.GetDevicesF
 
 		return nil
 	})
-	
+
 	if err != nil {
 		return []domain.Device{}, err
 	}

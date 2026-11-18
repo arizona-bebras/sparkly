@@ -43,7 +43,7 @@ message Device {
   string id = 1;
   string name = 2;
   string park_id = 3;
-  repeated string groups_ids = 4;
+  repeated string group_ids = 4;
   google.protobuf.Timestamp created_at = 5;
   google.protobuf.Timestamp updated_at = 6;
 }

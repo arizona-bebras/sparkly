@@ -13,7 +13,7 @@ type MessageBroker struct {
 
 func NewMessageBroker(url string) (*MessageBroker, error) {
 	if url == "" {
-		url = "amqp://localhost:5672/"
+		url = "amqp://sparkly:sparkly@127.0.0.1:5672/"
 	}
 
 	conn, err := amqp.Dial(url)
