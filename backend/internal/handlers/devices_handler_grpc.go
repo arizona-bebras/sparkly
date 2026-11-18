@@ -25,21 +25,16 @@ func NewDevicesHandler(s *services.DeviceService) *DevicesHandler {
 }
 
 func deviceDomainToResp(device domain.Device) *pb.Device {
-	pbGroups := make([]*pb.DeviceGroup, 0, len(device.Groups))
-	for _, g := range device.Groups {
-		pbGroups = append(pbGroups, &pb.DeviceGroup{
-			Id:          g.ID.String(),
-			ParkId:      g.ParkID.String(),
-			Name:        g.Name,
-			Description: g.Description,
-		})
+	pbGroupIDs := make([]string, 0, len(device.GroupIDs))
+	for _, g := range device.GroupIDs {
+		pbGroupIDs = append(pbGroupIDs, g.ID.String())
 	}
 
 	return &pb.Device{
 		Id:     device.ID.String(),
 		Name:   device.Name,
 		ParkId: device.ParkID.String(),
-		Groups: pbGroups,
+		Groups: pbGroupIDs,
 	}
 }
 

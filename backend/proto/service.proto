@@ -43,12 +43,9 @@ message Device {
   string id = 1;
   string name = 2;
   string park_id = 3;
-  repeated DeviceGroup groups = 4;
-  string ip_address = 5;
-  google.protobuf.Timestamp joined_at = 6;
-  google.protobuf.Timestamp last_seen_at = 7;
-  google.protobuf.Timestamp created_at = 8;
-  google.protobuf.Timestamp updated_at = 9;
+  repeated string groups_ids = 4;
+  google.protobuf.Timestamp created_at = 5;
+  google.protobuf.Timestamp updated_at = 6;
 }
 
 enum IssueSeverity {

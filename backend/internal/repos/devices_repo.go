@@ -71,14 +71,54 @@ func (r *DevicesRepo) GetDevice(ctx context.Context, deviceID, userID uuid.UUID)
 		ID: deviceID,
 	}
 
-	if err := r.db.WithContext(ctx).Scopes(scope.UserDeviceScope(userID)).Preload("Groups").First(&device).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return domain.Device{}, domain.ErrDeviceNotFound
+	var groupIDs []uuid.UUID
+
+	err := r.db.Transaction(func(tx *gorm.DB) error {
+		if err := r.db.WithContext(ctx).Scopes(scope.UserDeviceScope(userID)).First(&device).Error; err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				return domain.ErrDeviceNotFound
+			}
+			return fmt.Errorf("failed to get device from db: %w", err)
 		}
-		return domain.Device{}, fmt.Errorf("failed to get device from db: %w", err)
+
+		if err := r.db.WithContext(ctx).Select("group_devices").Find(&groupIDs).Where("device_id = ?", device.ID).Error; err != nil {
+			return fmt.Errorf("failed to get device from db: %w", err)
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return domain.Device{}, err
 	}
 
 	return device.ToDomain(), nil
+}
+
+func (r *DevicesRepo) mapMultipleDeviceGroupsRelations(tx *gorm.DB, devices []models.Device) (map[uuid.UUID][]uuid.UUID, error) {
+	deviceIDs := make([]uuid.UUID, 0, len(devices))
+	for _, device := range devices {
+		deviceIDs = append(deviceIDs, device.ID)
+	}
+	
+	var relations []struct{
+		deviceID uuid.UUID
+		groupID uuid.UUID
+	}
+
+	if err := tx.Table("group_devices").
+		Select("device_id", "group_id").
+		Where("device_id IN (?)", deviceIDs).
+		Find(&relations).Error; err != nil {
+			return map[uuid.UUID][]uuid.UUID{}, fmt.Errorf("failed to get devices relations from db: %w", err)
+		}
+
+	res := make(map[uuid.UUID][]uuid.UUID)
+	for _, r := range relations {
+		res[r.deviceID] = append(res[r.deviceID], r.groupID)
+	}
+
+	return res, nil
 }
 
 func (r *DevicesRepo) GetDevices(ctx context.Context, filters domain.GetDevicesFilters, userID uuid.UUID) ([]domain.Device, error) {
@@ -104,8 +144,25 @@ func (r *DevicesRepo) GetDevices(ctx context.Context, filters domain.GetDevicesF
 	}
 
 	var devices []models.Device
-	if err := query.Find(&devices).Error; err != nil {
-		return []domain.Device{}, fmt.Errorf("failed to get devices from db by filters: %w", err)
+	err := r.db.Transaction(func(tx *gorm.DB) error {
+		if err := query.Find(&devices).Error; err != nil {
+			return fmt.Errorf("failed to get devices from db by filters: %w", err)
+		}
+
+		groupRelations, err := r.mapMultipleDeviceGroupsRelations(tx, devices)
+		if err != nil {
+			return fmt.Errorf("failed to get device groups: %w", err)
+		}
+
+		for i := range len(devices) {
+			devices[i].GroupIDs = groupRelations[devices[i].ID]
+		}
+
+		return nil
+	})
+	
+	if err != nil {
+		return []domain.Device{}, err
 	}
 
 	domainDevices := make([]domain.Device, 0, len(devices))
