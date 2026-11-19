@@ -1,0 +1,22 @@
+{{- $ports := dict "envoy" 10000 "frontend" 3000 "backend" 8080 "analytics" 8081 "ml" 8082 }}
+{{- range $name, $component := .Values.components }}
+{{- if and $component.enabled (ne $name "symbolicator") }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $name }}
+  labels:
+    {{- include "sparkly.labels" $ | nindent 4 }}
+spec:
+  type: ClusterIP
+  selector:
+    {{- include "sparkly.selector" (dict "root" $ "component" $name) | nindent 4 }}
+  ports:
+    - {name: http, port: {{ index $ports $name }}, targetPort: http}
+    {{- if eq $name "envoy" }}
+    - {name: ingest-tls, port: 10001, targetPort: ingest-tls}
+    - {name: enroll-tls, port: 10002, targetPort: enroll-tls}
+    {{- end }}
+{{- end }}
+{{- end }}

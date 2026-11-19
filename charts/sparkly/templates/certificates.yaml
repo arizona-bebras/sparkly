@@ -1,0 +1,29 @@
+{{- if .Values.certificates.enabled }}
+{{- range $name := list "app" "devices" }}
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: {{ include "sparkly.fullname" $ }}-{{ $name }}
+  labels:
+    {{- include "sparkly.labels" $ | nindent 4 }}
+spec:
+  secretName: {{ ternary $.Values.certificates.appSecretName $.Values.certificates.deviceSecretName (eq $name "app") }}
+  duration: {{ $.Values.certificates.duration }}
+  renewBefore: {{ $.Values.certificates.renewBefore }}
+  privateKey:
+    algorithm: ECDSA
+    size: 256
+    rotationPolicy: Always
+  usages: [digital signature, server auth]
+  issuerRef:
+    {{- toYaml $.Values.certificates.issuerRef | nindent 4 }}
+  dnsNames:
+    {{- if eq $name "app" }}
+    - {{ $.Values.routing.appHost | quote }}
+    {{- else }}
+    - {{ $.Values.routing.ingestHost | quote }}
+    - {{ $.Values.routing.enrollHost | quote }}
+    {{- end }}
+{{- end }}
+{{- end }}

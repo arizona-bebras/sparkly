@@ -1,0 +1,7 @@
+apiVersion: v2
+name: sparkly
+description: Sparkly gateway and application services with operator-provided data services
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
+kubeVersion: ">=1.26.0-0"

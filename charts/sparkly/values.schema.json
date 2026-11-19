@@ -1,0 +1,329 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "components": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "envoy": {
+          "type": "object",
+          "required": [
+            "enabled",
+            "replicas",
+            "image"
+          ],
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            },
+            "replicas": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "image": {
+              "type": "object",
+              "required": [
+                "repository",
+                "tag",
+                "pullPolicy"
+              ],
+              "properties": {
+                "repository": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "tag": {
+                  "type": "string"
+                },
+                "pullPolicy": {
+                  "enum": [
+                    "Always",
+                    "IfNotPresent",
+                    "Never"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "frontend": {
+          "type": "object",
+          "required": [
+            "enabled",
+            "replicas",
+            "image"
+          ],
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            },
+            "replicas": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "image": {
+              "type": "object",
+              "required": [
+                "repository",
+                "tag",
+                "pullPolicy"
+              ],
+              "properties": {
+                "repository": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "tag": {
+                  "type": "string"
+                },
+                "pullPolicy": {
+                  "enum": [
+                    "Always",
+                    "IfNotPresent",
+                    "Never"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "backend": {
+          "type": "object",
+          "required": [
+            "enabled",
+            "replicas",
+            "image"
+          ],
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            },
+            "replicas": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "image": {
+              "type": "object",
+              "required": [
+                "repository",
+                "tag",
+                "pullPolicy"
+              ],
+              "properties": {
+                "repository": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "tag": {
+                  "type": "string"
+                },
+                "pullPolicy": {
+                  "enum": [
+                    "Always",
+                    "IfNotPresent",
+                    "Never"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "analytics": {
+          "type": "object",
+          "required": [
+            "enabled",
+            "replicas",
+            "image"
+          ],
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            },
+            "replicas": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "image": {
+              "type": "object",
+              "required": [
+                "repository",
+                "tag",
+                "pullPolicy"
+              ],
+              "properties": {
+                "repository": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "tag": {
+                  "type": "string"
+                },
+                "pullPolicy": {
+                  "enum": [
+                    "Always",
+                    "IfNotPresent",
+                    "Never"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "ml": {
+          "type": "object",
+          "required": [
+            "enabled",
+            "replicas",
+            "image"
+          ],
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            },
+            "replicas": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "image": {
+              "type": "object",
+              "required": [
+                "repository",
+                "tag",
+                "pullPolicy"
+              ],
+              "properties": {
+                "repository": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "tag": {
+                  "type": "string"
+                },
+                "pullPolicy": {
+                  "enum": [
+                    "Always",
+                    "IfNotPresent",
+                    "Never"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "symbolicator": {
+          "type": "object",
+          "required": [
+            "enabled",
+            "replicas",
+            "image"
+          ],
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            },
+            "replicas": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "image": {
+              "type": "object",
+              "required": [
+                "repository",
+                "tag",
+                "pullPolicy"
+              ],
+              "properties": {
+                "repository": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "tag": {
+                  "type": "string"
+                },
+                "pullPolicy": {
+                  "enum": [
+                    "Always",
+                    "IfNotPresent",
+                    "Never"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "routing": {
+      "type": "object",
+      "properties": {
+        "appHost": {
+          "type": "string",
+          "pattern": "^[a-z0-9]([a-z0-9.-]*[a-z0-9])?$",
+          "maxLength": 253
+        },
+        "ingestHost": {
+          "type": "string",
+          "pattern": "^[a-z0-9]([a-z0-9.-]*[a-z0-9])?$",
+          "maxLength": 253
+        },
+        "enrollHost": {
+          "type": "string",
+          "pattern": "^[a-z0-9]([a-z0-9.-]*[a-z0-9])?$",
+          "maxLength": 253
+        }
+      }
+    },
+    "analytics": {
+      "type": "object",
+      "properties": {
+        "rawPersistenceWorkers": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    },
+    "postgres": {
+      "type": "object",
+      "properties": {
+        "port": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 65535
+        }
+      }
+    },
+    "clickhouse": {
+      "type": "object",
+      "properties": {
+        "port": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 65535
+        }
+      }
+    },
+    "stepCA": {
+      "type": "object",
+      "properties": {
+        "url": {
+          "type": "string",
+          "pattern": "^https://[^/]+/?$"
+        }
+      }
+    },
+    "global": {
+      "type": "object",
+      "required": [
+        "imageRegistry"
+      ],
+      "properties": {
+        "imageRegistry": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^[a-z0-9][a-z0-9.:/-]*[a-z0-9]$"
+        }
+      }
+    }
+  }
+}
