@@ -1,4 +1,7 @@
 <script lang="ts">
+  import type { DateRange } from 'bits-ui';
+  import { getLocalTimeZone } from '@internationalized/date';
+  import { timestampFromDate } from '@bufbuild/protobuf/wkt';
   import {
     Calendar,
     Check,
@@ -12,7 +15,12 @@
     Tag,
     Trash2,
   } from '@lucide/svelte';
-  import { createMutation, createQuery, useQueryClient } from '@tanstack/svelte-query';
+  import {
+    createMutation,
+    createQuery,
+    keepPreviousData,
+    useQueryClient,
+  } from '@tanstack/svelte-query';
   import { Badge } from '$lib/components/ui/badge/index.js';
   import { Button } from '$lib/components/ui/button/index.js';
   import * as Card from '$lib/components/ui/card/index.js';
@@ -22,24 +30,78 @@
   import ReleaseForm from '$lib/components/forms/release/Release.svelte';
   import { cn } from '$lib/utils.js';
   import { client, type Release } from '$proto';
+  import ReleaseFilters from './ReleaseFilters.svelte';
 
   let { parkId }: { parkId: string } = $props();
 
   const queryClient = useQueryClient();
 
   let searchQuery = $state('');
+  let versionQuery = $state('');
+  let dateRange = $state<DateRange | undefined>(undefined);
   let copiedId = $state<string | null>(null);
   let isCreateOpen = $state(false);
   let isEditOpen = $state(false);
   let selectedRelease = $state<Release | undefined>(undefined);
   let deletingReleaseId = $state<string | null>(null);
 
+  const nameParam = $derived.by(() => {
+    const trimmed = searchQuery.trim();
+    return trimmed.length > 0 ? trimmed : undefined;
+  });
+
+  const versionParam = $derived.by(() => {
+    const trimmed = versionQuery.trim();
+    return trimmed.length > 0 ? trimmed : undefined;
+  });
+
   const releasesQuery = createQuery(() => ({
-    queryKey: ['releases', parkId],
+    queryKey: [
+      'releases',
+      parkId,
+      nameParam,
+      versionParam,
+      dateRange?.start?.toString(),
+      dateRange?.end?.toString(),
+    ],
     queryFn: async () => {
-      const response = await client.release.getReleases({ parkId });
+      const currentKey = [
+        'releases',
+        parkId,
+        nameParam,
+        versionParam,
+        dateRange?.start?.toString(),
+        dateRange?.end?.toString(),
+      ];
+      const hasCached = !!queryClient.getQueryData(currentKey);
+
+      let fromTime = undefined;
+      let toTime = undefined;
+      if (dateRange?.start) {
+        const startDate = dateRange.start.toDate(getLocalTimeZone());
+        startDate.setHours(0, 0, 0, 0);
+        fromTime = timestampFromDate(startDate);
+
+        const endDate = dateRange.end
+          ? dateRange.end.toDate(getLocalTimeZone())
+          : dateRange.start.toDate(getLocalTimeZone());
+        endDate.setHours(23, 59, 59, 999);
+        toTime = timestampFromDate(endDate);
+      }
+
+      const [response] = await Promise.all([
+        client.release.getReleases({
+          parkId,
+          name: nameParam,
+          version: versionParam,
+          fromTime,
+          toTime,
+        }),
+        !hasCached ? new Promise((resolve) => setTimeout(resolve, 350)) : Promise.resolve(),
+      ]);
       return response.releases ?? [];
     },
+    placeholderData: keepPreviousData,
     enabled: !!parkId,
     staleTime: 1000 * 60,
   }));
@@ -63,14 +125,6 @@
       return (b.createdAt?.nanos ?? 0) - (a.createdAt?.nanos ?? 0);
     });
     return list;
-  });
-
-  const filteredReleases = $derived.by(() => {
-    const q = searchQuery.trim().toLowerCase();
-    if (!q) return sortedReleases;
-    return sortedReleases.filter(
-      (r) => r.version.toLowerCase().includes(q) || r.name.toLowerCase().includes(q),
-    );
   });
 
   function formatDate(ts?: { seconds: bigint; nanos: number }): string {
@@ -98,21 +152,25 @@
 </script>
 
 <div class="flex flex-col gap-6">
-  <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-    <div class="relative w-full sm:w-72">
-      <Search
-        class="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground pointer-events-none"
-      />
-      <DebouncedInput
-        placeholder="Поиск по версии или названию..."
-        bind:value={searchQuery}
-        class="pl-9 h-9"
-      />
+  <div class="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+    <div class="flex flex-1 flex-wrap items-center gap-2">
+      <div class="relative w-full sm:w-64">
+        <Search
+          class="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground pointer-events-none"
+        />
+        <DebouncedInput
+          placeholder="Поиск по названию..."
+          bind:value={searchQuery}
+          class="pl-9 h-9"
+        />
+      </div>
+
+      <ReleaseFilters bind:dateRange bind:versionQuery bind:searchQuery />
     </div>
 
-    <div class="flex items-center gap-2">
+    <div class="flex items-center gap-2 self-end lg:self-auto">
       <Badge variant="secondary" class="font-normal text-xs px-2.5 py-1">
-        Всего релизов: {sortedReleases.length}
+        Всего: {sortedReleases.length}
       </Badge>
       <Button
         variant="outline"
@@ -131,7 +189,7 @@
     </div>
   </div>
 
-  {#if releasesQuery.isPending}
+  {#if releasesQuery.isPending && !releasesQuery.data}
     <div
       class="relative pl-12 before:absolute before:left-6 before:-translate-x-1/2 before:top-6 before:bottom-4 before:w-0.5 before:bg-border/60 flex flex-col gap-6"
     >
@@ -151,7 +209,7 @@
         </div>
       {/each}
     </div>
-  {:else if releasesQuery.isError}
+  {:else if releasesQuery.isError && !releasesQuery.data}
     <div
       class="rounded-xl border p-8 flex flex-col items-center justify-center gap-3 text-destructive"
     >
@@ -163,135 +221,159 @@
   {:else if sortedReleases.length === 0}
     <div class="rounded-xl border p-12 flex flex-col items-center justify-center gap-2 text-center">
       <Tag class="size-8 text-muted-foreground" />
-      <p class="font-medium text-foreground">Релизов пока нет</p>
-      <p class="text-xs text-muted-foreground">Создайте первый релиз для этого парка</p>
-      <Button size="sm" class="mt-2 gap-1.5" onclick={() => (isCreateOpen = true)}>
-        <Plus class="size-4" />
-        <span>Создать релиз</span>
-      </Button>
-    </div>
-  {:else if filteredReleases.length === 0}
-    <div class="rounded-xl border p-12 flex flex-col items-center justify-center gap-2 text-center">
-      <Tag class="size-8 text-muted-foreground" />
-      <p class="font-medium text-foreground">Релизы не найдены</p>
-      <p class="text-xs text-muted-foreground">Попробуйте изменить параметры поиска</p>
-      {#if searchQuery}
-        <Button variant="outline" size="sm" class="mt-2" onclick={() => (searchQuery = '')}>
-          Сбросить поиск
+      {#if searchQuery || versionQuery || dateRange?.start}
+        <p class="font-medium text-foreground">Релизы не найдены</p>
+        <p class="text-xs text-muted-foreground">
+          Попробуйте изменить параметры поиска или фильтров
+        </p>
+        <Button
+          variant="outline"
+          size="sm"
+          class="mt-2"
+          onclick={() => {
+            searchQuery = '';
+            versionQuery = '';
+            dateRange = undefined;
+          }}
+        >
+          Сбросить фильтры
+        </Button>
+      {:else}
+        <p class="font-medium text-foreground">Релизов пока нет</p>
+        <p class="text-xs text-muted-foreground">Создайте первый релиз для этого парка</p>
+        <Button size="sm" class="mt-2 gap-1.5" onclick={() => (isCreateOpen = true)}>
+          <Plus class="size-4" />
+          <span>Создать релиз</span>
         </Button>
       {/if}
     </div>
   {:else}
-    <div
-      class="relative pl-12 before:absolute before:left-6 before:-translate-x-1/2 before:top-6 before:bottom-4 before:w-0.5 before:bg-border/80 flex flex-col gap-6"
-    >
-      {#each filteredReleases as release, index (release.id)}
-        {@const isLatest = index === 0 && !searchQuery}
-        <div class="relative flex items-start">
-          <div class="absolute -left-12 top-6 z-10 flex w-12 items-center justify-center">
-            {#if isLatest}
-              <div
-                class="size-7 rounded-full bg-primary text-primary-foreground flex items-center justify-center ring-4 ring-background shadow-xs"
-              >
-                <Sparkles class="size-3.5" />
-              </div>
-            {:else}
-              <div
-                class="size-7 rounded-full bg-muted border border-border text-muted-foreground flex items-center justify-center ring-4 ring-background"
-              >
-                <Tag class="size-3.5" />
-              </div>
-            {/if}
-          </div>
-
-          <Card.Root
-            class={cn(
-              'w-full transition-all hover:border-foreground/30',
-              isLatest && 'border-primary/40 shadow-xs',
-            )}
+    <div class="relative">
+      {#if releasesQuery.isPlaceholderData}
+        <div
+          class="absolute inset-0 z-10 flex items-center justify-center rounded-lg bg-background/40 backdrop-blur-[1px] transition-all duration-200"
+        >
+          <div
+            class="flex items-center gap-2 rounded-full border bg-background/95 px-3 py-1.5 text-xs font-medium text-foreground shadow-sm"
           >
-            <Card.Header class="pb-3">
-              <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                <div class="flex items-center gap-2.5">
-                  <span class="font-mono text-lg font-bold tracking-tight text-foreground">
-                    {release.version}
-                  </span>
-                  {#if isLatest}
-                    <Badge
-                      variant="secondary"
-                      class="gap-1.5 px-2 py-0.5 text-[11px] font-medium bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20"
-                    >
-                      <span class="size-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                      <span>Последний релиз</span>
-                    </Badge>
-                  {/if}
-                </div>
-
-                <div class="flex items-center gap-3">
-                  <div class="flex items-center gap-1.5 text-xs text-muted-foreground">
-                    <Calendar class="size-3.5 shrink-0" />
-                    <span>{formatDate(release.createdAt)}</span>
-                  </div>
-                  <div class="flex items-center gap-1">
-                    <Button
-                      variant="ghost"
-                      size="icon-sm"
-                      class="size-7 text-muted-foreground hover:text-foreground"
-                      title="Редактировать"
-                      onclick={() => {
-                        selectedRelease = release;
-                        isEditOpen = true;
-                      }}
-                    >
-                      <Pencil class="size-3.5" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon-sm"
-                      class="size-7 text-muted-foreground hover:text-destructive"
-                      title="Удалить"
-                      onclick={() => (deletingReleaseId = release.id)}
-                    >
-                      <Trash2 class="size-3.5" />
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            </Card.Header>
-
-            <Card.Content class="pt-0 flex flex-col gap-3">
-              {#if release.name}
-                <p class="text-sm text-muted-foreground">
-                  {release.name}
-                </p>
-              {/if}
-
-              <div class="flex items-center gap-2">
-                <div
-                  class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-muted/70 font-mono text-xs text-foreground border border-border/60"
-                  title="ID релиза: {release.id}"
-                >
-                  <Tag class="size-3.5 text-muted-foreground" />
-                  <span>{release.id.slice(0, 8)}</span>
-                  <button
-                    type="button"
-                    class="ml-1 text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
-                    onclick={() => copyId(release.id)}
-                    title="Скопировать ID релиза"
-                    aria-label="Скопировать ID релиза"
-                  >
-                    {#if copiedId === release.id}
-                      <Check class="size-3.5 text-emerald-500" />
-                    {:else}
-                      <Copy class="size-3.5" />
-                    {/if}
-                  </button>
-                </div>
-              </div>
-            </Card.Content>
-          </Card.Root>
+            <RefreshCw class="size-3.5 animate-spin text-primary" />
+            <span>Загрузка релизов...</span>
+          </div>
         </div>
-      {/each}
+      {/if}
+      <div
+        class="relative pl-12 before:absolute before:left-6 before:-translate-x-1/2 before:top-6 before:bottom-4 before:w-0.5 before:bg-border/80 flex flex-col gap-6 transition-opacity duration-200 {releasesQuery.isPlaceholderData
+          ? 'opacity-60 pointer-events-none'
+          : 'opacity-100'}"
+      >
+        {#each sortedReleases as release, index (release.id)}
+          {@const isLatest = index === 0 && !searchQuery && !versionQuery && !dateRange?.start}
+          <div class="relative flex items-start">
+            <div class="absolute -left-12 top-6 z-10 flex w-12 items-center justify-center">
+              {#if isLatest}
+                <div
+                  class="size-7 rounded-full bg-primary text-primary-foreground flex items-center justify-center ring-4 ring-background shadow-xs"
+                >
+                  <Sparkles class="size-3.5" />
+                </div>
+              {:else}
+                <div
+                  class="size-7 rounded-full bg-muted border border-border text-muted-foreground flex items-center justify-center ring-4 ring-background"
+                >
+                  <Tag class="size-3.5" />
+                </div>
+              {/if}
+            </div>
+
+            <Card.Root
+              class={cn(
+                'w-full transition-all hover:border-foreground/30',
+                isLatest && 'border-primary/40 shadow-xs',
+              )}
+            >
+              <Card.Header class="pb-3">
+                <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                  <div class="flex items-center gap-2.5">
+                    <span class="font-mono text-lg font-bold tracking-tight text-foreground">
+                      {release.version}
+                    </span>
+                    {#if isLatest}
+                      <Badge
+                        variant="secondary"
+                        class="gap-1.5 px-2 py-0.5 text-[11px] font-medium bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20"
+                      >
+                        <span class="size-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                        <span>Последний релиз</span>
+                      </Badge>
+                    {/if}
+                  </div>
+
+                  <div class="flex items-center gap-3">
+                    <div class="flex items-center gap-1.5 text-xs text-muted-foreground">
+                      <Calendar class="size-3.5 shrink-0" />
+                      <span>{formatDate(release.createdAt)}</span>
+                    </div>
+                    <div class="flex items-center gap-1">
+                      <Button
+                        variant="ghost"
+                        size="icon-sm"
+                        class="size-7 text-muted-foreground hover:text-foreground"
+                        title="Редактировать"
+                        onclick={() => {
+                          selectedRelease = release;
+                          isEditOpen = true;
+                        }}
+                      >
+                        <Pencil class="size-3.5" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon-sm"
+                        class="size-7 text-muted-foreground hover:text-destructive"
+                        title="Удалить"
+                        onclick={() => (deletingReleaseId = release.id)}
+                      >
+                        <Trash2 class="size-3.5" />
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </Card.Header>
+
+              <Card.Content class="pt-0 flex flex-col gap-3">
+                {#if release.name}
+                  <p class="text-sm text-muted-foreground">
+                    {release.name}
+                  </p>
+                {/if}
+
+                <div class="flex items-center gap-2">
+                  <div
+                    class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-muted/70 font-mono text-xs text-foreground border border-border/60"
+                    title="ID релиза: {release.id}"
+                  >
+                    <Tag class="size-3.5 text-muted-foreground" />
+                    <span>{release.id.slice(0, 8)}</span>
+                    <button
+                      type="button"
+                      class="ml-1 text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+                      onclick={() => copyId(release.id)}
+                      title="Скопировать ID релиза"
+                      aria-label="Скопировать ID релиза"
+                    >
+                      {#if copiedId === release.id}
+                        <Check class="size-3.5 text-emerald-500" />
+                      {:else}
+                        <Copy class="size-3.5" />
+                      {/if}
+                    </button>
+                  </div>
+                </div>
+              </Card.Content>
+            </Card.Root>
+          </div>
+        {/each}
+      </div>
     </div>
   {/if}
 </div>
