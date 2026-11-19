@@ -1,0 +1,45 @@
+{{- if .Values.networkPolicy.enabled }}
+{{- $ports := dict "frontend" 3000 "backend" 8080 "analytics" 8081 "ml" 8082 }}
+{{- range $name, $component := .Values.components }}
+{{- if $component.enabled }}
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "sparkly.fullname" $ }}-{{ $name }}
+  labels:
+    {{- include "sparkly.labels" $ | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels:
+      {{- include "sparkly.selector" (dict "root" $ "component" $name) | nindent 6 }}
+  policyTypes: [Ingress]
+  {{- if eq $name "symbolicator" }}
+  ingress: []
+  {{- else }}
+  ingress:
+    - from:
+        {{- if eq $name "envoy" }}
+        - namespaceSelector:
+            matchLabels:
+              {{- toYaml $.Values.networkPolicy.ingressNamespaceSelector | nindent 14 }}
+          podSelector:
+            matchLabels:
+              {{- toYaml $.Values.networkPolicy.ingressPodSelector | nindent 14 }}
+        {{- else }}
+        - podSelector:
+            matchLabels:
+              {{- include "sparkly.selector" (dict "root" $ "component" "envoy") | nindent 14 }}
+        {{- end }}
+      ports:
+        {{- if eq $name "envoy" }}
+        - {protocol: TCP, port: 10000}
+        - {protocol: TCP, port: 10001}
+        - {protocol: TCP, port: 10002}
+        {{- else }}
+        - {protocol: TCP, port: {{ index $ports $name }}}
+        {{- end }}
+  {{- end }}
+{{- end }}
+{{- end }}
+{{- end }}

@@ -1,0 +1,6 @@
+{{- if and .Values.routing.enabled (not .Values.components.envoy.enabled) -}}
+{{- fail "routing.enabled requires components.envoy.enabled" -}}
+{{- end -}}
+{{- if or (eq .Values.routing.appHost .Values.routing.ingestHost) (eq .Values.routing.appHost .Values.routing.enrollHost) (eq .Values.routing.ingestHost .Values.routing.enrollHost) -}}
+{{- fail "application, ingest and enrollment hosts must be distinct" -}}
+{{- end -}}
