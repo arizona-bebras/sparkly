@@ -10,6 +10,7 @@
   import { SvelteQueryDevtools } from '@tanstack/svelte-query-devtools';
   import { goto } from '$app/navigation';
   import { page } from '$app/state';
+    import { entities } from '@/stores/entities.svelte';
 
   let { children } = $props();
 
@@ -22,10 +23,19 @@
   }
 
   const queryClient = new QueryClient({
-    queryCache: new QueryCache({ onError: handleAuthError }),
-    mutationCache: new MutationCache({ onError: handleAuthError }),
+    queryCache: new QueryCache({
+      onError: handleAuthError,
+      onSuccess: () => {
+        console.log('Query succeeded');
+        console.log('Devices:', entities.devices);
+      },
+    }),
+    mutationCache: new MutationCache({
+      onError: handleAuthError,
+    }),
     defaultOptions: {
       queries: {
+        staleTime: 1000 * 60 * 5,
         retry: (failureCount, error) => {
           if (error.message.includes('401') || error.message.includes('unauthenticated')) {
             return false;
