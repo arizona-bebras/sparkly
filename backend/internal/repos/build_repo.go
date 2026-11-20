@@ -162,8 +162,17 @@ func (r *BuildsRepo) UpdateBuild(ctx context.Context, newData domain.UpdateBuild
 		return r.GetBuild(ctx, buildID, userID)
 	}
 
-	err := r.db.Transaction(func(tx *gorm.DB) error {
-		if updates["release_id"] != "" {
+	txErr := r.db.Transaction(func(tx *gorm.DB) error {
+		if err := tx.WithContext(ctx).
+			Scopes(scope.UserBuildScope(userID)).
+			Find(&newBuild).Error; err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				return domain.ErrBuildNotFound
+			}
+			return fmt.Errorf("failed to find build in db: %w", err)
+		}
+
+		if _, ok := updates["release_id"]; ok {
 			var userRelease models.Release
 			if err := tx.WithContext(ctx).
 				Scopes(scope.UserReleaseScope(userID)).
@@ -173,6 +182,10 @@ func (r *BuildsRepo) UpdateBuild(ctx context.Context, newData domain.UpdateBuild
 					return domain.ErrReleaseNotFound
 				}
 				return fmt.Errorf("failed to get associated releases from db: %w", err)
+			}
+
+			if userRelease.ParkID != newBuild.ParkID {
+				return domain.ErrReleaseBelongsToAnotherPark
 			}
 		}
 
@@ -189,20 +202,37 @@ func (r *BuildsRepo) UpdateBuild(ctx context.Context, newData domain.UpdateBuild
 		return nil
 	})
 
-	if err != nil {
-		return domain.Build{}, err
+	if txErr != nil {
+		return domain.Build{}, txErr
 	}
 
 	return newBuild.ToDomain(), nil
 }
 
 func (r *BuildsRepo) DeleteBuild(ctx context.Context, buildID, userID uuid.UUID) error {
-	del := r.db.WithContext(ctx).Scopes(scope.UserBuildScope(userID)).Delete(&models.Build{ID: buildID})
-	if del.Error != nil {
-		return fmt.Errorf("delete build db error: %w", del.Error)
-	} else if del.RowsAffected == 0 {
-		return domain.ErrBuildNotFound
-	}
+	return r.db.Transaction(func(tx *gorm.DB) error {
+		deletedBuild := models.Build{
+			ID: buildID,
+		}
+		del := tx.WithContext(ctx).
+			Scopes(scope.UserBuildScope(userID)).
+			Clauses(clause.Returning{}).
+			Delete(&deletedBuild)
 
-	return nil
+		if del.Error != nil {
+			return fmt.Errorf("delete build db error: %w", del.Error)
+		} else if del.RowsAffected == 0 {
+			return domain.ErrBuildNotFound
+		}
+
+		_, err := r.fs.DeleteObject(ctx, &s3.DeleteObjectInput{
+			Bucket: aws.String(domain.ELF_OBJECTS_BUCKET_NAME),
+			Key:    aws.String(deletedBuild.ElfObjectKey),
+		})
+
+		if err != nil {
+			return fmt.Errorf("failed to delete elf object from storage: %w", err)
+		}
+		return nil
+	})
 }

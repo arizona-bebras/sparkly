@@ -3,6 +3,7 @@ package handlers
 import (
 	"context"
 	"errors"
+	"log"
 	"time"
 
 	"sparkly/backend/internal/domain"
@@ -165,6 +166,9 @@ func (h *BuildsHandler) UpdateBuild(ctx context.Context, req *pb.UpdateBuildRequ
 		if errors.Is(err, domain.ErrReleaseNotFound) {
 			return nil, connect.NewError(connect.CodeNotFound, "release with this id doesnt exists")
 		}
+		if errors.Is(err, domain.ErrReleaseBelongsToAnotherPark) {
+			return nil, connect.NewError(connect.CodeInvalidArgument, "this release belongs to another park")
+		}
 		return nil, connect.NewError(connect.CodeInternal, "internal error")
 	}
 
@@ -185,6 +189,7 @@ func (h *BuildsHandler) DeleteBuild(ctx context.Context, req *pb.DeleteBuildRequ
 		if errors.Is(err, domain.ErrBuildNotFound) {
 			return nil, connect.NewError(connect.CodeNotFound, "build with this id doesnt exists")
 		}
+		log.Printf("BuildService/DeleteBuild error: %v", err)
 		return nil, connect.NewError(connect.CodeInternal, "internal error")
 	}
 
