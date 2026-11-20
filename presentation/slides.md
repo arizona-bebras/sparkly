@@ -48,7 +48,6 @@ class: sp-cover
 <DeckFooter note="Платформа наблюдаемости для IoT" />
 
 ---
-
 title: Причины сбоев не видны
 ---
 
@@ -84,6 +83,20 @@ title: Причины сбоев не видны
 </ol>
 
 <DeckFooter note="Единый маршрут диагностики" />
+
+---
+class: sp-device-slide
+---
+
+<DeckHeader section="Решение / Примеры устройств" />
+
+# Что можно наблюдать в парке
+
+<p class="sp-intro">Пять примеров устройств и сигналов, полезных при диагностике.</p>
+
+<DeviceGallery />
+
+<DeckFooter note="Примеры применения · не список готовых интеграций" />
 
 ---
 
@@ -165,24 +178,18 @@ title: Причины сбоев не видны
 
 ---
 
-<DeckHeader section="Телеметрия" />
+<DeckHeader section="Аналитика / Телеметрия" />
 
-# Что видит оператор
-
-<p class="sp-intro">График и журнал событий помогают восстановить ход сбоя.</p>
-
-<div class="sp-console">
-  <div class="sp-console-bar">
-    <span class="sp-mono">ПАРК <span class="sp-console-sep">/</span> ГРУППА A <span class="sp-console-sep">/</span> <strong>ESP32-017</strong></span>
-    <StatusBadge label="ONLINE" tone="success" />
-  </div>
-  <div class="sp-console-body">
-    <TelemetryChart />
+<div class="sp-telemetry-layout">
+  <div>
+    <h1 class="sp-statement">Что было<br><span class="sp-accent">перед сбоем?</span></h1>
+    <p class="sp-intro">График и журнал показывают, что происходило с контроллером до перезагрузки.</p>
     <LogPanel />
   </div>
+  <TelemetryChart />
 </div>
 
-<DeckFooter note="Макет интерфейса · демонстрационные данные" />
+<DeckFooter note="Демонстрационные данные · ESP32-017 и ESP32-024" />
 
 ---
 
@@ -204,22 +211,13 @@ title: Причины сбоев не видны
 
 ---
 
-<DeckHeader section="Экономический эффект" />
+<DeckHeader section="Аналитика / Экономический эффект" />
 
-# Меньше времени на сбой, меньше выездов
+<PilotImpact />
 
-<p class="sp-intro">Целевые диапазоны для проверки на пилоте.</p>
-
-<div class="sp-metrics">
-  <MetricBlock value="30–60%" label="Сокращение MTTR" detail="Среднее время восстановления: от фиксации сбоя до возобновления работы." />
-  <MetricBlock value="50–70%" label="Снижение затрат на выездную диагностику" detail="Часть неисправностей можно диагностировать удалённо." />
-</div>
-<p class="sp-metric-note"><StatusBadge label="ГИПОТЕЗА" tone="accent" /> Подтверждённых результатов пилота пока нет.</p>
-
-<DeckFooter note="Ожидаемые показатели, не результаты измерений" />
+<DeckFooter note="Гипотезы для пилота · подтверждённых результатов пока нет" />
 
 ---
-
 title: Контроль над парком начинается с видимости сбоев
 ---
 
