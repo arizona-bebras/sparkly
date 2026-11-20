@@ -26,8 +26,8 @@ type CreateBuildParams struct {
 }
 
 type UpdateBuildParams struct {
-	ReleaseID    *uuid.UUID
-	Commit       *string
+	ReleaseID *uuid.UUID
+	Commit    *string
 }
 
 type GetBuildsFilters struct {

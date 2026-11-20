@@ -79,11 +79,11 @@ func (r *BuildsRepo) CreateBuild(ctx context.Context, userID uuid.UUID, data dom
 		if err := tx.Create(&newBuild).Error; err != nil {
 			return fmt.Errorf("failed to write new build to db: %w", err)
 		}
-		
+
 		_, err = r.fs.PutObject(ctx, &s3.PutObjectInput{
 			Bucket: aws.String(domain.ELF_OBJECTS_BUCKET_NAME),
-			Key: aws.String(newBuild.ElfObjectKey),
-			Body: bytes.NewReader(data.ElfObject),
+			Key:    aws.String(newBuild.ElfObjectKey),
+			Body:   bytes.NewReader(data.ElfObject),
 		})
 
 		if err != nil {

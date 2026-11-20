@@ -65,7 +65,8 @@ func main() {
 	})
 
 	ctx := context.Background()
-	ctx, _ = context.WithTimeout(ctx, 5*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
 	_, err = rustfsClient.CreateBucket(ctx, &s3.CreateBucketInput{
 		Bucket: aws.String(domain.ELF_OBJECTS_BUCKET_NAME),
 	})
