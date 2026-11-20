@@ -1,6 +1,7 @@
 package repos
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
@@ -10,18 +11,21 @@ import (
 	"sparkly/backend/internal/db/scope"
 	"sparkly/backend/internal/domain"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5/pgconn"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
 
 type BuildsRepo struct {
+	fs *s3.Client
 	db *gorm.DB
 }
 
-func NewBuildsRepo(db *gorm.DB) *BuildsRepo {
+func NewBuildsRepo(db *gorm.DB, fs *s3.Client) *BuildsRepo {
 	return &BuildsRepo{
+		fs: fs,
 		db: db,
 	}
 }
@@ -35,17 +39,12 @@ func (r *BuildsRepo) CreateBuild(ctx context.Context, userID uuid.UUID, data dom
 	newBuild := models.Build{
 		ID:        id,
 		ParkID:    data.ParkID,
-		Version:   data.Version,
+		ReleaseID: data.ReleaseID,
 		CreatedAt: time.Now(),
 	}
+	newBuild.ElfObjectKey = "elf-" + id.String()
 	if data.Commit != nil {
 		newBuild.Commit = *data.Commit
-	}
-	if data.ElfObjectKey != nil {
-		newBuild.ElfObjectKey = *data.ElfObjectKey
-	}
-	if data.DwarfObjectKey != nil {
-		newBuild.DwarfObjectKey = *data.DwarfObjectKey
 	}
 
 	err = r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
@@ -62,16 +61,33 @@ func (r *BuildsRepo) CreateBuild(ctx context.Context, userID uuid.UUID, data dom
 			return fmt.Errorf("failed to verify user access: %w", err)
 		}
 
+		if data.ReleaseID != nil {
+			var releases []models.Release
+			if err := tx.Model(&park).Association("Releases").Find(&releases, "id = ?", *data.ReleaseID); err != nil {
+				return fmt.Errorf("failed to get associated releases from db: %w", err)
+			}
+
+			if len(releases) == 0 {
+				return domain.ErrReleaseNotFound
+			}
+		}
+
 		if len(users) == 0 {
 			return domain.ErrParkAccessDenied
 		}
 
 		if err := tx.Create(&newBuild).Error; err != nil {
-			var pgErr *pgconn.PgError
-			if errors.Is(err, gorm.ErrForeignKeyViolated) || (errors.As(err, &pgErr) && pgErr.Code == "23503") {
-				return domain.ErrParkNotFound
-			}
 			return fmt.Errorf("failed to write new build to db: %w", err)
+		}
+
+		_, err = r.fs.PutObject(ctx, &s3.PutObjectInput{
+			Bucket: aws.String(domain.ELF_OBJECTS_BUCKET_NAME),
+			Key:    aws.String(newBuild.ElfObjectKey),
+			Body:   bytes.NewReader(data.ElfObject),
+		})
+
+		if err != nil {
+			return fmt.Errorf("failed to write build elf-object to rustfs storage: %w", err)
 		}
 
 		return nil
@@ -99,8 +115,9 @@ func (r *BuildsRepo) GetBuild(ctx context.Context, buildID, userID uuid.UUID) (d
 func (r *BuildsRepo) GetBuilds(ctx context.Context, filters domain.GetBuildsFilters, userID uuid.UUID) ([]domain.Build, error) {
 	query := r.db.WithContext(ctx).Scopes(scope.UserBuildScope(userID)).Where("builds.park_id = ?", filters.ParkID)
 
-	if filters.Version != nil {
-		query = query.Where("builds.version LIKE ?", "%"+*filters.Version+"%")
+	if filters.ReleaseID != nil {
+		id := *filters.ReleaseID
+		query = query.Where("builds.release_id = ?", id.String())
 	}
 
 	if filters.Commit != nil {
@@ -133,43 +150,89 @@ func (r *BuildsRepo) UpdateBuild(ctx context.Context, newData domain.UpdateBuild
 	}
 
 	updates := make(map[string]any)
-	if newData.Version != nil {
-		updates["version"] = *newData.Version
+	if newData.ReleaseID != nil {
+		id := *newData.ReleaseID
+		updates["release_id"] = id.String()
 	}
 	if newData.Commit != nil {
 		updates["commit"] = *newData.Commit
-	}
-	if newData.ElfObjectKey != nil {
-		updates["elf_object_key"] = *newData.ElfObjectKey
-	}
-	if newData.DwarfObjectKey != nil {
-		updates["dwarf_object_key"] = *newData.DwarfObjectKey
 	}
 
 	if len(updates) == 0 {
 		return r.GetBuild(ctx, buildID, userID)
 	}
 
-	upd := r.db.WithContext(ctx).Scopes(scope.UserBuildScope(userID)).Model(&newBuild).
-		Clauses(clause.Returning{}).
-		Updates(updates)
+	txErr := r.db.Transaction(func(tx *gorm.DB) error {
+		if err := tx.WithContext(ctx).
+			Scopes(scope.UserBuildScope(userID)).
+			Find(&newBuild).Error; err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				return domain.ErrBuildNotFound
+			}
+			return fmt.Errorf("failed to find build in db: %w", err)
+		}
 
-	if upd.Error != nil {
-		return domain.Build{}, fmt.Errorf("update build db error: %w", upd.Error)
-	} else if upd.RowsAffected == 0 {
-		return domain.Build{}, domain.ErrBuildNotFound
+		if _, ok := updates["release_id"]; ok {
+			var userRelease models.Release
+			if err := tx.WithContext(ctx).
+				Scopes(scope.UserReleaseScope(userID)).
+				Where("id = ?", updates["release_id"]).
+				First(&userRelease).Error; err != nil {
+				if errors.Is(err, gorm.ErrRecordNotFound) {
+					return domain.ErrReleaseNotFound
+				}
+				return fmt.Errorf("failed to get associated releases from db: %w", err)
+			}
+
+			if userRelease.ParkID != newBuild.ParkID {
+				return domain.ErrReleaseBelongsToAnotherPark
+			}
+		}
+
+		upd := tx.WithContext(ctx).Scopes(scope.UserBuildScope(userID)).Model(&newBuild).
+			Clauses(clause.Returning{}).
+			Updates(updates)
+
+		if upd.Error != nil {
+			return fmt.Errorf("update build db error: %w", upd.Error)
+		} else if upd.RowsAffected == 0 {
+			return domain.ErrBuildNotFound
+		}
+
+		return nil
+	})
+
+	if txErr != nil {
+		return domain.Build{}, txErr
 	}
 
 	return newBuild.ToDomain(), nil
 }
 
 func (r *BuildsRepo) DeleteBuild(ctx context.Context, buildID, userID uuid.UUID) error {
-	del := r.db.WithContext(ctx).Scopes(scope.UserBuildScope(userID)).Delete(&models.Build{ID: buildID})
-	if del.Error != nil {
-		return fmt.Errorf("delete build db error: %w", del.Error)
-	} else if del.RowsAffected == 0 {
-		return domain.ErrBuildNotFound
-	}
+	return r.db.Transaction(func(tx *gorm.DB) error {
+		deletedBuild := models.Build{
+			ID: buildID,
+		}
+		del := tx.WithContext(ctx).
+			Scopes(scope.UserBuildScope(userID)).
+			Clauses(clause.Returning{}).
+			Delete(&deletedBuild)
 
-	return nil
+		if del.Error != nil {
+			return fmt.Errorf("delete build db error: %w", del.Error)
+		} else if del.RowsAffected == 0 {
+			return domain.ErrBuildNotFound
+		}
+
+		_, err := r.fs.DeleteObject(ctx, &s3.DeleteObjectInput{
+			Bucket: aws.String(domain.ELF_OBJECTS_BUCKET_NAME),
+			Key:    aws.String(deletedBuild.ElfObjectKey),
+		})
+
+		if err != nil {
+			return fmt.Errorf("failed to delete elf object from storage: %w", err)
+		}
+		return nil
+	})
 }
