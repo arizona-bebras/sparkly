@@ -57,7 +57,7 @@ func (m *mockBuildsRepo) CreateBuild(ctx context.Context, userID uuid.UUID, data
 	b := domain.Build{
 		ID:        id,
 		ParkID:    data.ParkID,
-		Version:   data.Version,
+		ReleaseID: data.ReleaseID,
 		CreatedAt: time.Now(),
 	}
 	if data.Commit != nil {
@@ -90,7 +90,7 @@ func (m *mockBuildsRepo) GetBuilds(ctx context.Context, filters domain.GetBuilds
 		if b.ParkID != filters.ParkID {
 			continue
 		}
-		if filters.Version != nil && b.Version != *filters.Version {
+		if filters.ReleaseID != nil && b.ReleaseID != *filters.ReleaseID {
 			continue
 		}
 		if filters.Commit != nil && b.Commit != *filters.Commit {
@@ -106,8 +106,8 @@ func (m *mockBuildsRepo) UpdateBuild(ctx context.Context, newData domain.UpdateB
 	if !ok || !m.hasAccess(userID, b.ParkID) {
 		return domain.Build{}, domain.ErrBuildNotFound
 	}
-	if newData.Version != nil {
-		b.Version = *newData.Version
+	if newData.ReleaseID != nil {
+		b.ReleaseID = *newData.ReleaseID
 	}
 	if newData.Commit != nil {
 		b.Commit = *newData.Commit

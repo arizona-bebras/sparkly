@@ -30,7 +30,7 @@ func buildDomainToResp(b domain.Build) *pb.Build {
 	return &pb.Build{
 		Id:             b.ID.String(),
 		ParkId:         b.ParkID.String(),
-		Version:        b.Version,
+		ReleaseId:      b.ReleaseID.String(),
 		Commit:         b.Commit,
 		ElfObjectKey:   b.ElfObjectKey,
 		DwarfObjectKey: b.DwarfObjectKey,
@@ -40,23 +40,21 @@ func buildDomainToResp(b domain.Build) *pb.Build {
 
 func (h *BuildsHandler) CreateBuild(ctx context.Context, req *pb.CreateBuildRequest) (*pb.CreateBuildResponse, error) {
 	var commitP *string
-	if req.Commit != "" {
-		commitP = &req.Commit
-	}
-	var elfP *string
-	if req.ElfObjectKey != "" {
-		elfP = &req.ElfObjectKey
-	}
-	var dwarfP *string
-	if req.DwarfObjectKey != "" {
-		dwarfP = &req.DwarfObjectKey
+	if req.Commit != nil {
+		commitP = req.Commit
 	}
 
-	build, err := h.service.CreateBuild(ctx, req.GetParkId(), domain.CreateBuildParams{
-		Version:        req.GetVersion(),
-		Commit:         commitP,
-		ElfObjectKey:   elfP,
-		DwarfObjectKey: dwarfP,
+	var releaseIDP *string
+	if req.ReleaseId != nil {
+		releaseIDP = req.ReleaseId
+	}
+	elfP := req.GetElfObject()
+
+	build, err := h.service.CreateBuild(ctx, services.CreateBuildDTO{
+		ParkID:    req.GetParkId(),
+		ReleaseID: releaseIDP,
+		Commit:    commitP,
+		ElfObject: elfP,
 	})
 	if err != nil {
 		if errors.Is(err, domain.ErrUnknownUser) {
@@ -112,11 +110,11 @@ func (h *BuildsHandler) GetBuilds(ctx context.Context, req *pb.GetBuildsRequest)
 	}
 
 	builds, err := h.service.GetBuilds(ctx, services.BuildFiltersDTO{
-		ParkID:   req.GetParkId(),
-		Version:  req.Version,
-		Commit:   req.Commit,
-		FromTime: fromTime,
-		ToTime:   toTime,
+		ParkID:    req.GetParkId(),
+		ReleaseID: req.ReleaseId,
+		Commit:    req.Commit,
+		FromTime:  fromTime,
+		ToTime:    toTime,
 	})
 	if err != nil {
 		if errors.Is(err, domain.ErrUnknownUser) {
@@ -139,11 +137,10 @@ func (h *BuildsHandler) GetBuilds(ctx context.Context, req *pb.GetBuildsRequest)
 }
 
 func (h *BuildsHandler) UpdateBuild(ctx context.Context, req *pb.UpdateBuildRequest) (*pb.UpdateBuildResponse, error) {
-	build, err := h.service.UpdateBuild(ctx, req.GetId(), domain.UpdateBuildParams{
-		Version:        req.Version,
-		Commit:         req.Commit,
-		ElfObjectKey:   req.ElfObjectKey,
-		DwarfObjectKey: req.DwarfObjectKey,
+	build, err := h.service.UpdateBuild(ctx, services.UpdateBuildDTO{
+		BuildID:   req.GetId(),
+		ReleaseID: req.ReleaseId,
+		Commit:    req.Commit,
 	})
 	if err != nil {
 		if errors.Is(err, domain.ErrUnknownUser) {

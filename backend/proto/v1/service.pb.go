@@ -537,7 +537,7 @@ type Build struct {
 	state          protoimpl.MessageState `protogen:"open.v1"`
 	Id             string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	ParkId         string                 `protobuf:"bytes,2,opt,name=park_id,json=parkId,proto3" json:"park_id,omitempty"`
-	Version        string                 `protobuf:"bytes,3,opt,name=version,proto3" json:"version,omitempty"`
+	ReleaseId      string                 `protobuf:"bytes,3,opt,name=release_id,json=releaseId,proto3" json:"release_id,omitempty"`
 	Commit         string                 `protobuf:"bytes,4,opt,name=commit,proto3" json:"commit,omitempty"`
 	ElfObjectKey   string                 `protobuf:"bytes,5,opt,name=elf_object_key,json=elfObjectKey,proto3" json:"elf_object_key,omitempty"`
 	DwarfObjectKey string                 `protobuf:"bytes,6,opt,name=dwarf_object_key,json=dwarfObjectKey,proto3" json:"dwarf_object_key,omitempty"`
@@ -590,9 +590,9 @@ func (x *Build) GetParkId() string {
 	return ""
 }
 
-func (x *Build) GetVersion() string {
+func (x *Build) GetReleaseId() string {
 	if x != nil {
-		return x.Version
+		return x.ReleaseId
 	}
 	return ""
 }
@@ -3143,14 +3143,13 @@ func (x *DeleteIssueResponse) GetSuccess() bool {
 }
 
 type CreateBuildRequest struct {
-	state          protoimpl.MessageState `protogen:"open.v1"`
-	ParkId         string                 `protobuf:"bytes,1,opt,name=park_id,json=parkId,proto3" json:"park_id,omitempty"`
-	Version        string                 `protobuf:"bytes,2,opt,name=version,proto3" json:"version,omitempty"`
-	Commit         string                 `protobuf:"bytes,3,opt,name=commit,proto3" json:"commit,omitempty"`
-	ElfObjectKey   string                 `protobuf:"bytes,4,opt,name=elf_object_key,json=elfObjectKey,proto3" json:"elf_object_key,omitempty"`
-	DwarfObjectKey string                 `protobuf:"bytes,5,opt,name=dwarf_object_key,json=dwarfObjectKey,proto3" json:"dwarf_object_key,omitempty"`
-	unknownFields  protoimpl.UnknownFields
-	sizeCache      protoimpl.SizeCache
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	ParkId        string                 `protobuf:"bytes,1,opt,name=park_id,json=parkId,proto3" json:"park_id,omitempty"`
+	ReleaseId     *string                `protobuf:"bytes,2,opt,name=release_id,json=releaseId,proto3,oneof" json:"release_id,omitempty"`
+	Commit        *string                `protobuf:"bytes,3,opt,name=commit,proto3,oneof" json:"commit,omitempty"`
+	ElfObject     []byte                 `protobuf:"bytes,4,opt,name=elf_object,json=elfObject,proto3" json:"elf_object,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *CreateBuildRequest) Reset() {
@@ -3190,32 +3189,25 @@ func (x *CreateBuildRequest) GetParkId() string {
 	return ""
 }
 
-func (x *CreateBuildRequest) GetVersion() string {
-	if x != nil {
-		return x.Version
+func (x *CreateBuildRequest) GetReleaseId() string {
+	if x != nil && x.ReleaseId != nil {
+		return *x.ReleaseId
 	}
 	return ""
 }
 
 func (x *CreateBuildRequest) GetCommit() string {
-	if x != nil {
-		return x.Commit
+	if x != nil && x.Commit != nil {
+		return *x.Commit
 	}
 	return ""
 }
 
-func (x *CreateBuildRequest) GetElfObjectKey() string {
+func (x *CreateBuildRequest) GetElfObject() []byte {
 	if x != nil {
-		return x.ElfObjectKey
+		return x.ElfObject
 	}
-	return ""
-}
-
-func (x *CreateBuildRequest) GetDwarfObjectKey() string {
-	if x != nil {
-		return x.DwarfObjectKey
-	}
-	return ""
+	return nil
 }
 
 type CreateBuildResponse struct {
@@ -3353,7 +3345,7 @@ func (x *GetBuildResponse) GetBuild() *Build {
 type GetBuildsRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	ParkId        string                 `protobuf:"bytes,1,opt,name=park_id,json=parkId,proto3" json:"park_id,omitempty"`
-	Version       *string                `protobuf:"bytes,2,opt,name=version,proto3,oneof" json:"version,omitempty"`
+	ReleaseId     *string                `protobuf:"bytes,2,opt,name=release_id,json=releaseId,proto3,oneof" json:"release_id,omitempty"`
 	Commit        *string                `protobuf:"bytes,3,opt,name=commit,proto3,oneof" json:"commit,omitempty"`
 	FromTime      *timestamppb.Timestamp `protobuf:"bytes,4,opt,name=from_time,json=fromTime,proto3,oneof" json:"from_time,omitempty"`
 	ToTime        *timestamppb.Timestamp `protobuf:"bytes,5,opt,name=to_time,json=toTime,proto3,oneof" json:"to_time,omitempty"`
@@ -3398,9 +3390,9 @@ func (x *GetBuildsRequest) GetParkId() string {
 	return ""
 }
 
-func (x *GetBuildsRequest) GetVersion() string {
-	if x != nil && x.Version != nil {
-		return *x.Version
+func (x *GetBuildsRequest) GetReleaseId() string {
+	if x != nil && x.ReleaseId != nil {
+		return *x.ReleaseId
 	}
 	return ""
 }
@@ -3471,14 +3463,12 @@ func (x *GetBuildsResponse) GetBuilds() []*Build {
 }
 
 type UpdateBuildRequest struct {
-	state          protoimpl.MessageState `protogen:"open.v1"`
-	Id             string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	Version        *string                `protobuf:"bytes,2,opt,name=version,proto3,oneof" json:"version,omitempty"`
-	Commit         *string                `protobuf:"bytes,3,opt,name=commit,proto3,oneof" json:"commit,omitempty"`
-	ElfObjectKey   *string                `protobuf:"bytes,5,opt,name=elf_object_key,json=elfObjectKey,proto3,oneof" json:"elf_object_key,omitempty"`
-	DwarfObjectKey *string                `protobuf:"bytes,6,opt,name=dwarf_object_key,json=dwarfObjectKey,proto3,oneof" json:"dwarf_object_key,omitempty"`
-	unknownFields  protoimpl.UnknownFields
-	sizeCache      protoimpl.SizeCache
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	ReleaseId     *string                `protobuf:"bytes,2,opt,name=release_id,json=releaseId,proto3,oneof" json:"release_id,omitempty"`
+	Commit        *string                `protobuf:"bytes,3,opt,name=commit,proto3,oneof" json:"commit,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *UpdateBuildRequest) Reset() {
@@ -3518,9 +3508,9 @@ func (x *UpdateBuildRequest) GetId() string {
 	return ""
 }
 
-func (x *UpdateBuildRequest) GetVersion() string {
-	if x != nil && x.Version != nil {
-		return *x.Version
+func (x *UpdateBuildRequest) GetReleaseId() string {
+	if x != nil && x.ReleaseId != nil {
+		return *x.ReleaseId
 	}
 	return ""
 }
@@ -3528,20 +3518,6 @@ func (x *UpdateBuildRequest) GetVersion() string {
 func (x *UpdateBuildRequest) GetCommit() string {
 	if x != nil && x.Commit != nil {
 		return *x.Commit
-	}
-	return ""
-}
-
-func (x *UpdateBuildRequest) GetElfObjectKey() string {
-	if x != nil && x.ElfObjectKey != nil {
-		return *x.ElfObjectKey
-	}
-	return ""
-}
-
-func (x *UpdateBuildRequest) GetDwarfObjectKey() string {
-	if x != nil && x.DwarfObjectKey != nil {
-		return *x.DwarfObjectKey
 	}
 	return ""
 }
@@ -4238,11 +4214,12 @@ const file_backend_proto_service_proto_rawDesc = "" +
 	"\bseverity\x18\a \x01(\x0e2!.sparkly.backend.v1.IssueSeverityR\bseverity\x125\n" +
 	"\bfirst_at\x18\b \x01(\v2\x1a.google.protobuf.TimestampR\afirstAt\x123\n" +
 	"\alast_at\x18\t \x01(\v2\x1a.google.protobuf.TimestampR\x06lastAtB\x0e\n" +
-	"\f_resolved_at\"\xed\x01\n" +
+	"\f_resolved_at\"\xf2\x01\n" +
 	"\x05Build\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x17\n" +
-	"\apark_id\x18\x02 \x01(\tR\x06parkId\x12\x18\n" +
-	"\aversion\x18\x03 \x01(\tR\aversion\x12\x16\n" +
+	"\apark_id\x18\x02 \x01(\tR\x06parkId\x12\x1d\n" +
+	"\n" +
+	"release_id\x18\x03 \x01(\tR\treleaseId\x12\x16\n" +
 	"\x06commit\x18\x04 \x01(\tR\x06commit\x12$\n" +
 	"\x0eelf_object_key\x18\x05 \x01(\tR\felfObjectKey\x12(\n" +
 	"\x10dwarf_object_key\x18\x06 \x01(\tR\x0edwarfObjectKey\x129\n" +
@@ -4410,45 +4387,44 @@ const file_backend_proto_service_proto_rawDesc = "" +
 	"\x12DeleteIssueRequest\x12\x18\n" +
 	"\x02id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x02id\"/\n" +
 	"\x13DeleteIssueResponse\x12\x18\n" +
-	"\asuccess\x18\x01 \x01(\bR\asuccess\"\xb9\x01\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\"\xbb\x01\n" +
 	"\x12CreateBuildRequest\x12!\n" +
-	"\apark_id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x06parkId\x12\x18\n" +
-	"\aversion\x18\x02 \x01(\tR\aversion\x12\x16\n" +
-	"\x06commit\x18\x03 \x01(\tR\x06commit\x12$\n" +
-	"\x0eelf_object_key\x18\x04 \x01(\tR\felfObjectKey\x12(\n" +
-	"\x10dwarf_object_key\x18\x05 \x01(\tR\x0edwarfObjectKey\"F\n" +
+	"\apark_id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x06parkId\x12,\n" +
+	"\n" +
+	"release_id\x18\x02 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01H\x00R\treleaseId\x88\x01\x01\x12\x1b\n" +
+	"\x06commit\x18\x03 \x01(\tH\x01R\x06commit\x88\x01\x01\x12\x1d\n" +
+	"\n" +
+	"elf_object\x18\x04 \x01(\fR\telfObjectB\r\n" +
+	"\v_release_idB\t\n" +
+	"\a_commit\"F\n" +
 	"\x13CreateBuildResponse\x12/\n" +
 	"\x05build\x18\x01 \x01(\v2\x19.sparkly.backend.v1.BuildR\x05build\"+\n" +
 	"\x0fGetBuildRequest\x12\x18\n" +
 	"\x02id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x02id\"C\n" +
 	"\x10GetBuildResponse\x12/\n" +
-	"\x05build\x18\x01 \x01(\v2\x19.sparkly.backend.v1.BuildR\x05build\"\x9a\x02\n" +
+	"\x05build\x18\x01 \x01(\v2\x19.sparkly.backend.v1.BuildR\x05build\"\xac\x02\n" +
 	"\x10GetBuildsRequest\x12!\n" +
-	"\apark_id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x06parkId\x12\x1d\n" +
-	"\aversion\x18\x02 \x01(\tH\x00R\aversion\x88\x01\x01\x12\x1b\n" +
+	"\apark_id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x06parkId\x12,\n" +
+	"\n" +
+	"release_id\x18\x02 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01H\x00R\treleaseId\x88\x01\x01\x12\x1b\n" +
 	"\x06commit\x18\x03 \x01(\tH\x01R\x06commit\x88\x01\x01\x12<\n" +
 	"\tfrom_time\x18\x04 \x01(\v2\x1a.google.protobuf.TimestampH\x02R\bfromTime\x88\x01\x01\x128\n" +
-	"\ato_time\x18\x05 \x01(\v2\x1a.google.protobuf.TimestampH\x03R\x06toTime\x88\x01\x01B\n" +
-	"\n" +
-	"\b_versionB\t\n" +
+	"\ato_time\x18\x05 \x01(\v2\x1a.google.protobuf.TimestampH\x03R\x06toTime\x88\x01\x01B\r\n" +
+	"\v_release_idB\t\n" +
 	"\a_commitB\f\n" +
 	"\n" +
 	"_from_timeB\n" +
 	"\n" +
 	"\b_to_time\"F\n" +
 	"\x11GetBuildsResponse\x121\n" +
-	"\x06builds\x18\x01 \x03(\v2\x19.sparkly.backend.v1.BuildR\x06builds\"\x83\x02\n" +
+	"\x06builds\x18\x01 \x03(\v2\x19.sparkly.backend.v1.BuildR\x06builds\"\x93\x01\n" +
 	"\x12UpdateBuildRequest\x12\x18\n" +
-	"\x02id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x02id\x12\x1d\n" +
-	"\aversion\x18\x02 \x01(\tH\x00R\aversion\x88\x01\x01\x12\x1b\n" +
-	"\x06commit\x18\x03 \x01(\tH\x01R\x06commit\x88\x01\x01\x12)\n" +
-	"\x0eelf_object_key\x18\x05 \x01(\tH\x02R\felfObjectKey\x88\x01\x01\x12-\n" +
-	"\x10dwarf_object_key\x18\x06 \x01(\tH\x03R\x0edwarfObjectKey\x88\x01\x01B\n" +
+	"\x02id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x02id\x12,\n" +
 	"\n" +
-	"\b_versionB\t\n" +
-	"\a_commitB\x11\n" +
-	"\x0f_elf_object_keyB\x13\n" +
-	"\x11_dwarf_object_key\"H\n" +
+	"release_id\x18\x02 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01H\x00R\treleaseId\x88\x01\x01\x12\x1b\n" +
+	"\x06commit\x18\x03 \x01(\tH\x01R\x06commit\x88\x01\x01B\r\n" +
+	"\v_release_idB\t\n" +
+	"\a_commit\"H\n" +
 	"\x13UpdateBuildResponse\x121\n" +
 	"\x06builds\x18\x01 \x03(\v2\x19.sparkly.backend.v1.BuildR\x06builds\".\n" +
 	"\x12DeleteBuildRequest\x12\x18\n" +
@@ -4781,6 +4757,7 @@ func file_backend_proto_service_proto_init() {
 	file_backend_proto_service_proto_msgTypes[45].OneofWrappers = []any{}
 	file_backend_proto_service_proto_msgTypes[49].OneofWrappers = []any{}
 	file_backend_proto_service_proto_msgTypes[53].OneofWrappers = []any{}
+	file_backend_proto_service_proto_msgTypes[57].OneofWrappers = []any{}
 	file_backend_proto_service_proto_msgTypes[61].OneofWrappers = []any{}
 	file_backend_proto_service_proto_msgTypes[63].OneofWrappers = []any{}
 	file_backend_proto_service_proto_msgTypes[71].OneofWrappers = []any{}

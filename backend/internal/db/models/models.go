@@ -182,10 +182,9 @@ func (i *Issue) ToDomain() domain.Issue {
 type Build struct {
 	ID             uuid.UUID `gorm:"type:uuid;primaryKey"`
 	ParkID         uuid.UUID `gorm:"type:uuid;not null;index"`
-	Version        string    `gorm:"not null;"`
+	ReleaseID      uuid.UUID `gorm:"type:uuid;not null;index"`
 	Commit         string
 	ElfObjectKey   string
-	DwarfObjectKey string
 	CreatedAt      time.Time
 }
 
@@ -197,10 +196,9 @@ func (b *Build) ToDomain() domain.Build {
 	return domain.Build{
 		ID:             b.ID,
 		ParkID:         b.ParkID,
-		Version:        b.Version,
+		ReleaseID:      b.ReleaseID,
 		Commit:         b.Commit,
 		ElfObjectKey:   b.ElfObjectKey,
-		DwarfObjectKey: b.DwarfObjectKey,
 		CreatedAt:      b.CreatedAt,
 	}
 }
@@ -208,6 +206,7 @@ func (b *Build) ToDomain() domain.Build {
 type Release struct {
 	ID        uuid.UUID `gorm:"type:uuid;primaryKey"`
 	ParkID    uuid.UUID `gorm:"type:uuid;not null;index"`
+	Builds    []Build   `gorm:"foreignKey:ParkID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 	Name      string    `gorm:"not null;"`
 	Version   string    `gorm:"not null;default:'0.1'"`
 	CreatedAt time.Time

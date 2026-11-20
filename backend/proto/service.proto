@@ -72,7 +72,7 @@ message Issue {
 message Build {
   string id = 1;
   string park_id = 2;
-  string version = 3;
+  string release_id = 3;
   string commit = 4;
   string elf_object_key = 5;
   string dwarf_object_key = 6;
@@ -352,10 +352,9 @@ message DeleteIssueResponse {
 
 message CreateBuildRequest {
   string park_id = 1 [(buf.validate.field).string.uuid = true];
-  string version = 2;
-  string commit = 3;
-  string elf_object_key = 4;
-  string dwarf_object_key = 5;
+  optional string release_id = 2 [(buf.validate.field).string.uuid = true];
+  optional string commit = 3;
+  bytes elf_object = 4;
 }
 
 message CreateBuildResponse {
@@ -372,7 +371,7 @@ message GetBuildResponse {
 
 message GetBuildsRequest {
   string park_id = 1 [(buf.validate.field).string.uuid = true];
-  optional string version = 2;
+  optional string release_id = 2 [(buf.validate.field).string.uuid = true];
   optional string commit = 3;
   optional google.protobuf.Timestamp from_time = 4;
   optional google.protobuf.Timestamp to_time = 5;
@@ -384,10 +383,8 @@ message GetBuildsResponse {
 
 message UpdateBuildRequest {
   string id = 1 [(buf.validate.field).string.uuid = true];
-  optional string version = 2;
+  optional string release_id = 2 [(buf.validate.field).string.uuid = true];
   optional string commit = 3;
-  optional string elf_object_key = 5;
-  optional string dwarf_object_key = 6;
 }
 
 message UpdateBuildResponse {

@@ -35,17 +35,13 @@ func (r *BuildsRepo) CreateBuild(ctx context.Context, userID uuid.UUID, data dom
 	newBuild := models.Build{
 		ID:        id,
 		ParkID:    data.ParkID,
-		Version:   data.Version,
 		CreatedAt: time.Now(),
+	}
+	if data.ReleaseID != nil {
+		newBuild.ReleaseID = *data.ReleaseID
 	}
 	if data.Commit != nil {
 		newBuild.Commit = *data.Commit
-	}
-	if data.ElfObjectKey != nil {
-		newBuild.ElfObjectKey = *data.ElfObjectKey
-	}
-	if data.DwarfObjectKey != nil {
-		newBuild.DwarfObjectKey = *data.DwarfObjectKey
 	}
 
 	err = r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
@@ -99,8 +95,9 @@ func (r *BuildsRepo) GetBuild(ctx context.Context, buildID, userID uuid.UUID) (d
 func (r *BuildsRepo) GetBuilds(ctx context.Context, filters domain.GetBuildsFilters, userID uuid.UUID) ([]domain.Build, error) {
 	query := r.db.WithContext(ctx).Scopes(scope.UserBuildScope(userID)).Where("builds.park_id = ?", filters.ParkID)
 
-	if filters.Version != nil {
-		query = query.Where("builds.version LIKE ?", "%"+*filters.Version+"%")
+	if filters.ReleaseID != nil {
+		id := *filters.ReleaseID
+		query = query.Where("builds.version LIKE ?", "%"+id.String()+"%")
 	}
 
 	if filters.Commit != nil {
@@ -133,17 +130,12 @@ func (r *BuildsRepo) UpdateBuild(ctx context.Context, newData domain.UpdateBuild
 	}
 
 	updates := make(map[string]any)
-	if newData.Version != nil {
-		updates["version"] = *newData.Version
+	if newData.ReleaseID != nil {
+		id := *newData.ReleaseID
+		updates["release_id"] = id.String()
 	}
 	if newData.Commit != nil {
 		updates["commit"] = *newData.Commit
-	}
-	if newData.ElfObjectKey != nil {
-		updates["elf_object_key"] = *newData.ElfObjectKey
-	}
-	if newData.DwarfObjectKey != nil {
-		updates["dwarf_object_key"] = *newData.DwarfObjectKey
 	}
 
 	if len(updates) == 0 {

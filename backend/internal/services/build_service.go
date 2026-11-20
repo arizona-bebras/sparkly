@@ -28,20 +28,40 @@ func NewBuildService(repo BuildsRepo) *BuildService {
 	}
 }
 
-func (s *BuildService) CreateBuild(ctx context.Context, parkIDStr string, data domain.CreateBuildParams) (domain.Build, error) {
+type CreateBuildDTO struct {
+	ParkID    string
+	ReleaseID *string
+	Commit    *string
+	ElfObject []byte
+}
+
+func (s *BuildService) CreateBuild(ctx context.Context, params CreateBuildDTO) (domain.Build, error) {
 	userID, err := parseCtxUserIDValue(ctx)
 	if err != nil {
 		return domain.Build{}, fmt.Errorf("failed to define user: %w", err)
 	}
 
-	parkID, err := uuid.Parse(parkIDStr)
+	parkID, err := uuid.Parse(params.ParkID)
 	if err != nil {
 		return domain.Build{}, fmt.Errorf("failed to identify park id: %w", domain.ErrInvalidID)
 	}
 
-	data.ParkID = parkID
+	var releaseID *uuid.UUID
+	if params.ReleaseID != nil {
+		inMemReleaseID, err := uuid.Parse(*params.ReleaseID)
+		if err != nil {
+			return domain.Build{}, fmt.Errorf("failed to identify release id: %w", domain.ErrInvalidID)
+		}
 
-	build, err := s.repo.CreateBuild(ctx, userID, data)
+		releaseID = &inMemReleaseID
+	}
+
+	build, err := s.repo.CreateBuild(ctx, userID, domain.CreateBuildParams{
+		ParkID:    parkID,
+		ReleaseID: releaseID,
+		Commit:    params.Commit,
+		ElfObject: params.ElfObject,
+	})
 	if err != nil {
 		return domain.Build{}, fmt.Errorf("failed to create build: %w", err)
 	}
@@ -69,11 +89,11 @@ func (s *BuildService) GetBuild(ctx context.Context, buildIDStr string) (domain.
 }
 
 type BuildFiltersDTO struct {
-	ParkID   string
-	Version  *string
-	Commit   *string
-	FromTime *time.Time
-	ToTime   *time.Time
+	ParkID    string
+	ReleaseID *string
+	Commit    *string
+	FromTime  *time.Time
+	ToTime    *time.Time
 }
 
 func (s *BuildService) GetBuilds(ctx context.Context, filters BuildFiltersDTO) ([]domain.Build, error) {
@@ -87,12 +107,22 @@ func (s *BuildService) GetBuilds(ctx context.Context, filters BuildFiltersDTO) (
 		return []domain.Build{}, fmt.Errorf("failed to identify park id: %w", domain.ErrInvalidID)
 	}
 
+	var releaseID *uuid.UUID
+	if filters.ReleaseID != nil {
+		inMemReleaseID, err := uuid.Parse(filters.ParkID)
+		if err != nil {
+			return []domain.Build{}, fmt.Errorf("failed to identify release id: %w", domain.ErrInvalidID)
+		}
+
+		releaseID = &inMemReleaseID
+	}
+
 	domainFilters := domain.GetBuildsFilters{
-		ParkID:   parkID,
-		Version:  filters.Version,
-		Commit:   filters.Commit,
-		FromTime: filters.FromTime,
-		ToTime:   filters.ToTime,
+		ParkID:    parkID,
+		ReleaseID: releaseID,
+		Commit:    filters.Commit,
+		FromTime:  filters.FromTime,
+		ToTime:    filters.ToTime,
 	}
 
 	builds, err := s.repo.GetBuilds(ctx, domainFilters, userID)
@@ -103,18 +133,37 @@ func (s *BuildService) GetBuilds(ctx context.Context, filters BuildFiltersDTO) (
 	return builds, nil
 }
 
-func (s *BuildService) UpdateBuild(ctx context.Context, buildIDStr string, newData domain.UpdateBuildParams) (domain.Build, error) {
+type UpdateBuildDTO struct {
+	BuildID   string
+	ReleaseID *string
+	Commit    *string
+}
+
+func (s *BuildService) UpdateBuild(ctx context.Context, params UpdateBuildDTO) (domain.Build, error) {
 	userID, err := parseCtxUserIDValue(ctx)
 	if err != nil {
 		return domain.Build{}, fmt.Errorf("failed to define user: %w", err)
 	}
 
-	buildID, err := uuid.Parse(buildIDStr)
+	buildID, err := uuid.Parse(params.BuildID)
 	if err != nil {
 		return domain.Build{}, fmt.Errorf("failed to identify build id: %w", domain.ErrInvalidID)
 	}
 
-	build, err := s.repo.UpdateBuild(ctx, newData, buildID, userID)
+	var releaseID *uuid.UUID
+	if params.ReleaseID != nil {
+		inMemReleaseID, err := uuid.Parse(*params.ReleaseID)
+		if err != nil {
+			return domain.Build{}, fmt.Errorf("failed to identify release id: %w", domain.ErrInvalidID)
+		}
+
+		releaseID = &inMemReleaseID
+	}
+
+	build, err := s.repo.UpdateBuild(ctx, domain.UpdateBuildParams{
+		ReleaseID: releaseID,
+		Commit:    params.Commit,
+	}, buildID, userID)
 	if err != nil {
 		return domain.Build{}, fmt.Errorf("failed to update build: %w", err)
 	}
