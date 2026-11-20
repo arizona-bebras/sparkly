@@ -1,0 +1,4 @@
+allowBuilds:
+  # set to true if need pdf render, it will install chromium
+  # false by default
+  playwright-chromium: false
