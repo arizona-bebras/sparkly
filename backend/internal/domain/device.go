@@ -8,10 +8,10 @@ import (
 )
 
 type Device struct {
-	ID     uuid.UUID
-	Name   string
-	ParkID uuid.UUID
-	Groups []Group
+	ID       uuid.UUID
+	Name     string
+	ParkID   uuid.UUID
+	GroupIDs []uuid.UUID
 }
 
 type GetDevicesFilters struct {
