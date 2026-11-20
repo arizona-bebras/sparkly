@@ -3524,7 +3524,7 @@ func (x *UpdateBuildRequest) GetCommit() string {
 
 type UpdateBuildResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Builds        []*Build               `protobuf:"bytes,1,rep,name=builds,proto3" json:"builds,omitempty"`
+	Build         *Build                 `protobuf:"bytes,1,opt,name=build,proto3" json:"build,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -3559,9 +3559,9 @@ func (*UpdateBuildResponse) Descriptor() ([]byte, []int) {
 	return file_backend_proto_service_proto_rawDescGZIP(), []int{64}
 }
 
-func (x *UpdateBuildResponse) GetBuilds() []*Build {
+func (x *UpdateBuildResponse) GetBuild() *Build {
 	if x != nil {
-		return x.Builds
+		return x.Build
 	}
 	return nil
 }
@@ -4424,9 +4424,9 @@ const file_backend_proto_service_proto_rawDesc = "" +
 	"release_id\x18\x02 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01H\x00R\treleaseId\x88\x01\x01\x12\x1b\n" +
 	"\x06commit\x18\x03 \x01(\tH\x01R\x06commit\x88\x01\x01B\r\n" +
 	"\v_release_idB\t\n" +
-	"\a_commit\"H\n" +
-	"\x13UpdateBuildResponse\x121\n" +
-	"\x06builds\x18\x01 \x03(\v2\x19.sparkly.backend.v1.BuildR\x06builds\".\n" +
+	"\a_commit\"F\n" +
+	"\x13UpdateBuildResponse\x12/\n" +
+	"\x05build\x18\x01 \x01(\v2\x19.sparkly.backend.v1.BuildR\x05build\".\n" +
 	"\x12DeleteBuildRequest\x12\x18\n" +
 	"\x02id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x02id\"/\n" +
 	"\x13DeleteBuildResponse\x12\x18\n" +
@@ -4659,7 +4659,7 @@ var file_backend_proto_service_proto_depIdxs = []int32{
 	78, // 35: sparkly.backend.v1.GetBuildsRequest.from_time:type_name -> google.protobuf.Timestamp
 	78, // 36: sparkly.backend.v1.GetBuildsRequest.to_time:type_name -> google.protobuf.Timestamp
 	6,  // 37: sparkly.backend.v1.GetBuildsResponse.builds:type_name -> sparkly.backend.v1.Build
-	6,  // 38: sparkly.backend.v1.UpdateBuildResponse.builds:type_name -> sparkly.backend.v1.Build
+	6,  // 38: sparkly.backend.v1.UpdateBuildResponse.build:type_name -> sparkly.backend.v1.Build
 	7,  // 39: sparkly.backend.v1.CreateReleaseResponse.release:type_name -> sparkly.backend.v1.Release
 	7,  // 40: sparkly.backend.v1.GetReleaseResponse.release:type_name -> sparkly.backend.v1.Release
 	78, // 41: sparkly.backend.v1.GetReleasesRequest.from_time:type_name -> google.protobuf.Timestamp

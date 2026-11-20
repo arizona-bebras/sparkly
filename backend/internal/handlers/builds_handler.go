@@ -162,11 +162,14 @@ func (h *BuildsHandler) UpdateBuild(ctx context.Context, req *pb.UpdateBuildRequ
 		if errors.Is(err, domain.ErrBuildNotFound) {
 			return nil, connect.NewError(connect.CodeNotFound, "build with this id doesnt exists")
 		}
+		if errors.Is(err, domain.ErrReleaseNotFound) {
+			return nil, connect.NewError(connect.CodeNotFound, "release with this id doesnt exists")
+		}
 		return nil, connect.NewError(connect.CodeInternal, "internal error")
 	}
 
 	return &pb.UpdateBuildResponse{
-		Builds: []*pb.Build{buildDomainToResp(build)},
+		Build: buildDomainToResp(build),
 	}, nil
 }
 

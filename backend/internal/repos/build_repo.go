@@ -117,7 +117,7 @@ func (r *BuildsRepo) GetBuilds(ctx context.Context, filters domain.GetBuildsFilt
 
 	if filters.ReleaseID != nil {
 		id := *filters.ReleaseID
-		query = query.Where("builds.version LIKE ?", "%"+id.String()+"%")
+		query = query.Where("builds.release_id = ?", id.String())
 	}
 
 	if filters.Commit != nil {
@@ -162,14 +162,35 @@ func (r *BuildsRepo) UpdateBuild(ctx context.Context, newData domain.UpdateBuild
 		return r.GetBuild(ctx, buildID, userID)
 	}
 
-	upd := r.db.WithContext(ctx).Scopes(scope.UserBuildScope(userID)).Model(&newBuild).
-		Clauses(clause.Returning{}).
-		Updates(updates)
+	err := r.db.Transaction(func(tx *gorm.DB) error {
+		if updates["release_id"] != "" {
+			var userRelease models.Release
+			if err := tx.WithContext(ctx).
+				Scopes(scope.UserReleaseScope(userID)).
+				Where("id = ?", updates["release_id"]).
+				First(&userRelease).Error; err != nil {
+				if errors.Is(err, gorm.ErrRecordNotFound) {
+					return domain.ErrReleaseNotFound
+				}
+				return fmt.Errorf("failed to get associated releases from db: %w", err)
+			}
+		}
 
-	if upd.Error != nil {
-		return domain.Build{}, fmt.Errorf("update build db error: %w", upd.Error)
-	} else if upd.RowsAffected == 0 {
-		return domain.Build{}, domain.ErrBuildNotFound
+		upd := tx.WithContext(ctx).Scopes(scope.UserBuildScope(userID)).Model(&newBuild).
+			Clauses(clause.Returning{}).
+			Updates(updates)
+
+		if upd.Error != nil {
+			return fmt.Errorf("update build db error: %w", upd.Error)
+		} else if upd.RowsAffected == 0 {
+			return domain.ErrBuildNotFound
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return domain.Build{}, err
 	}
 
 	return newBuild.ToDomain(), nil

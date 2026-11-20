@@ -36,7 +36,7 @@ func main() {
 		User:     os.Getenv("POSTGRES_USER"),
 		Password: os.Getenv("POSTGRES_PASSWORD"),
 		DBName:   os.Getenv("POSTGRES_DB"),
-		Port:     os.Getenv("POSTGRES_PORST"),
+		Port:     os.Getenv("POSTGRES_PORT"),
 		SSLMode:  "disable",
 		TimeZone: "Asia/Yekaterinburg",
 	})
@@ -72,8 +72,12 @@ func main() {
 	})
 
 	if err != nil {
+		var owned *s3types.BucketAlreadyOwnedByYou
 		var exists *s3types.BucketAlreadyExists
-		if errors.As(err, &exists) {
+		if errors.As(err, &owned) {
+			log.Printf("you already own bucket %s.\n", domain.ELF_OBJECTS_BUCKET_NAME)
+			err = owned
+		} else if errors.As(err, &exists) {
 			log.Printf("bucket %s already exists.\n", domain.ELF_OBJECTS_BUCKET_NAME)
 		} else {
 			log.Fatalf("failed to create %s rustfs bucket: %v", domain.ELF_OBJECTS_BUCKET_NAME, err)
@@ -157,6 +161,9 @@ func main() {
 	mux.HandleFunc("POST /devices/reg", devicesRegHandler.RegDevice)
 
 	mainPort := os.Getenv("MAIN_PORT")
+	if mainPort == "" {
+		mainPort = "8080"
+	}
 	log.Printf("Connect server listening on :%s", mainPort)
 	log.Fatalf("server failed: %v", http.ListenAndServe(":"+mainPort, mux))
 }
