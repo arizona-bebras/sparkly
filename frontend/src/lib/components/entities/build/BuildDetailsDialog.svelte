@@ -2,7 +2,7 @@
   import * as Dialog from '$lib/components/ui/dialog/index.js';
   import { Button } from '$lib/components/ui/button/index.js';
   import { Badge } from '$lib/components/ui/badge/index.js';
-  import { Package, GitCommit, FileCode, Layers, Calendar, Copy, Check } from '@lucide/svelte';
+  import { Package, GitCommit, Calendar, Copy, Check } from '@lucide/svelte';
   import type { Build } from '$proto';
 
   let {
@@ -50,9 +50,7 @@
         <Package class="size-5 text-primary" />
         <Dialog.Title>Сборка {build?.version ?? ''}</Dialog.Title>
       </div>
-      <Dialog.Description>
-        Сведения о бинарных артефактах и метаданных сборки прошивки.
-      </Dialog.Description>
+      <Dialog.Description>Сведения и метаданные сборки прошивки.</Dialog.Description>
     </Dialog.Header>
 
     {#if build}
@@ -118,96 +116,6 @@
               <span class="text-xs text-muted-foreground">—</span>
             {/if}
           </div>
-        </div>
-
-        <div class="flex flex-col gap-1.5 rounded-lg border bg-muted/20 p-3">
-          <div class="flex items-center justify-between">
-            <span
-              class="inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground"
-            >
-              <FileCode class="size-3.5 text-emerald-600 dark:text-emerald-400" />
-              ELF артефакт (Образ прошивки)
-            </span>
-            {#if build.elfObjectKey}
-              <span
-                class="rounded bg-emerald-500/10 px-1.5 py-0.5 text-[10px] font-medium text-emerald-700 dark:text-emerald-300"
-              >
-                Загружен
-              </span>
-            {:else}
-              <span class="rounded bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground">
-                Отсутствует
-              </span>
-            {/if}
-          </div>
-          {#if build.elfObjectKey}
-            <div class="flex items-center justify-between gap-2 mt-1">
-              <code class="font-mono text-xs break-all text-foreground select-all">
-                {build.elfObjectKey}
-              </code>
-              <Button
-                variant="ghost"
-                size="icon"
-                class="size-7 shrink-0"
-                onclick={() => copyValue('elf', build?.elfObjectKey ?? '')}
-                title="Скопировать S3 ключ"
-              >
-                {#if copiedField === 'elf'}
-                  <Check class="size-3.5 text-emerald-500" />
-                {:else}
-                  <Copy class="size-3.5" />
-                {/if}
-              </Button>
-            </div>
-          {:else}
-            <span class="text-xs text-muted-foreground">Файл прошивки не был прикреплен</span>
-          {/if}
-        </div>
-
-        <div class="flex flex-col gap-1.5 rounded-lg border bg-muted/20 p-3">
-          <div class="flex items-center justify-between">
-            <span
-              class="inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground"
-            >
-              <Layers class="size-3.5 text-indigo-600 dark:text-indigo-400" />
-              DWARF артефакт (Таблица отладочных символов)
-            </span>
-            {#if build.dwarfObjectKey}
-              <span
-                class="rounded bg-indigo-500/10 px-1.5 py-0.5 text-[10px] font-medium text-indigo-700 dark:text-indigo-300"
-              >
-                Загружен
-              </span>
-            {:else}
-              <span class="rounded bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground">
-                Отсутствует
-              </span>
-            {/if}
-          </div>
-          {#if build.dwarfObjectKey}
-            <div class="flex items-center justify-between gap-2 mt-1">
-              <code class="font-mono text-xs break-all text-foreground select-all">
-                {build.dwarfObjectKey}
-              </code>
-              <Button
-                variant="ghost"
-                size="icon"
-                class="size-7 shrink-0"
-                onclick={() => copyValue('dwarf', build?.dwarfObjectKey ?? '')}
-                title="Скопировать S3 ключ"
-              >
-                {#if copiedField === 'dwarf'}
-                  <Check class="size-3.5 text-emerald-500" />
-                {:else}
-                  <Copy class="size-3.5" />
-                {/if}
-              </Button>
-            </div>
-          {:else}
-            <span class="text-xs text-muted-foreground"
-              >Таблица символов DWARF не была прикреплена</span
-            >
-          {/if}
         </div>
 
         <div class="flex items-center gap-2 text-xs text-muted-foreground px-1">

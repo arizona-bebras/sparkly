@@ -2,7 +2,6 @@ import { createColumnHelper, renderComponent } from '@tanstack/svelte-table';
 import type { Build } from '$proto';
 import type { DataTableFeatures } from '$lib/components/ui/data-table/data-table-features.js';
 import BuildActionsCell from './cells/BuildActionsCell.svelte';
-import BuildArtifactsCell from './cells/BuildArtifactsCell.svelte';
 import BuildCommitCell from './cells/BuildCommitCell.svelte';
 import BuildDateCell from './cells/BuildDateCell.svelte';
 import BuildVersionCell from './cells/BuildVersionCell.svelte';
@@ -19,6 +18,7 @@ function formatTimestamp(ts?: { seconds: bigint; nanos: number }): string {
     year: 'numeric',
     hour: '2-digit',
     minute: '2-digit',
+    second: '2-digit',
   }).format(date);
 }
 
@@ -39,9 +39,7 @@ export function createColumns(callbacks: BuildColumnCallbacks = {}) {
         return (
           row.original.version.toLowerCase().includes(q) ||
           row.original.commit.toLowerCase().includes(q) ||
-          row.original.id.toLowerCase().includes(q) ||
-          row.original.elfObjectKey.toLowerCase().includes(q) ||
-          row.original.dwarfObjectKey.toLowerCase().includes(q)
+          row.original.id.toLowerCase().includes(q)
         );
       },
       cell: ({ row }) =>
@@ -55,15 +53,6 @@ export function createColumns(callbacks: BuildColumnCallbacks = {}) {
       cell: ({ row }) =>
         renderComponent(BuildCommitCell, {
           commit: row.original.commit,
-        }),
-    }),
-    columnHelper.display({
-      id: 'artifacts',
-      header: 'Артефакты',
-      cell: ({ row }) =>
-        renderComponent(BuildArtifactsCell, {
-          elfObjectKey: row.original.elfObjectKey,
-          dwarfObjectKey: row.original.dwarfObjectKey,
         }),
     }),
     columnHelper.accessor('createdAt', {

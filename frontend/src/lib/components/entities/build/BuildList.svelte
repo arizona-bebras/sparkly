@@ -9,7 +9,7 @@
     keepPreviousData,
     useQueryClient,
   } from '@tanstack/svelte-query';
-  import { CircleAlert, FileCode, Layers, LoaderCircle, Package, RefreshCw } from '@lucide/svelte';
+  import { CircleAlert, LoaderCircle, Package, RefreshCw } from '@lucide/svelte';
   import { Button } from '$lib/components/ui/button/index.js';
   import { Skeleton } from '$lib/components/ui/skeleton/index.js';
   import * as Dialog from '$lib/components/ui/dialog/index.js';
@@ -98,12 +98,6 @@
 
   const builds = $derived(buildsQuery.data?.builds ?? []);
   const totalCount = $derived(builds.length);
-  const elfCount = $derived(
-    builds.filter((b) => !!b.elfObjectKey && b.elfObjectKey.trim().length > 0).length,
-  );
-  const dwarfCount = $derived(
-    builds.filter((b) => !!b.dwarfObjectKey && b.dwarfObjectKey.trim().length > 0).length,
-  );
 
   const deleteMutation = createMutation(() => ({
     mutationKey: ['deleteBuild', parkId],
@@ -140,24 +134,6 @@
 
 {#snippet filterToolbar()}
   <BuildFilters bind:dateRange bind:commitQuery bind:searchQuery />
-  <div class="hidden lg:flex items-center gap-2 ml-auto">
-    <div
-      class="inline-flex items-center gap-1.5 rounded-lg border bg-muted/40 px-2.5 py-1 text-xs text-muted-foreground"
-      title="Сборок с бинарным образом прошивки ELF"
-    >
-      <FileCode class="size-3.5 text-emerald-600 dark:text-emerald-400" />
-      <span>С ELF:</span>
-      <span class="font-semibold text-foreground">{elfCount}</span>
-    </div>
-    <div
-      class="inline-flex items-center gap-1.5 rounded-lg border bg-muted/40 px-2.5 py-1 text-xs text-muted-foreground"
-      title="Сборок с отладочной таблицей DWARF"
-    >
-      <Layers class="size-3.5 text-indigo-600 dark:text-indigo-400" />
-      <span>С DWARF:</span>
-      <span class="font-semibold text-foreground">{dwarfCount}</span>
-    </div>
-  </div>
 {/snippet}
 
 <div class="flex flex-col gap-4 {className}">
