@@ -109,7 +109,7 @@ func (s *BuildService) GetBuilds(ctx context.Context, filters BuildFiltersDTO) (
 
 	var releaseID *uuid.UUID
 	if filters.ReleaseID != nil {
-		inMemReleaseID, err := uuid.Parse(filters.ParkID)
+		inMemReleaseID, err := uuid.Parse(*filters.ReleaseID)
 		if err != nil {
 			return []domain.Build{}, fmt.Errorf("failed to identify release id: %w", domain.ErrInvalidID)
 		}

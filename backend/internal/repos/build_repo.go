@@ -1,6 +1,7 @@
 package repos
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
@@ -10,18 +11,21 @@ import (
 	"sparkly/backend/internal/db/scope"
 	"sparkly/backend/internal/domain"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5/pgconn"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
 
 type BuildsRepo struct {
+	fs *s3.Client
 	db *gorm.DB
 }
 
-func NewBuildsRepo(db *gorm.DB) *BuildsRepo {
+func NewBuildsRepo(db *gorm.DB, fs *s3.Client) *BuildsRepo {
 	return &BuildsRepo{
+		fs: fs,
 		db: db,
 	}
 }
@@ -35,11 +39,10 @@ func (r *BuildsRepo) CreateBuild(ctx context.Context, userID uuid.UUID, data dom
 	newBuild := models.Build{
 		ID:        id,
 		ParkID:    data.ParkID,
+		ReleaseID: data.ReleaseID,
 		CreatedAt: time.Now(),
 	}
-	if data.ReleaseID != nil {
-		newBuild.ReleaseID = *data.ReleaseID
-	}
+	newBuild.ElfObjectKey = "elf-" + id.String()
 	if data.Commit != nil {
 		newBuild.Commit = *data.Commit
 	}
@@ -58,16 +61,33 @@ func (r *BuildsRepo) CreateBuild(ctx context.Context, userID uuid.UUID, data dom
 			return fmt.Errorf("failed to verify user access: %w", err)
 		}
 
+		if data.ReleaseID != nil {
+			var releases []models.Release
+			if err := tx.Model(&park).Association("Releases").Find(&releases, "id = ?", *data.ReleaseID); err != nil {
+				return fmt.Errorf("failed to get associated releases from db: %w", err)
+			}
+
+			if len(releases) == 0 {
+				return domain.ErrReleaseNotFound
+			}
+		}
+
 		if len(users) == 0 {
 			return domain.ErrParkAccessDenied
 		}
 
 		if err := tx.Create(&newBuild).Error; err != nil {
-			var pgErr *pgconn.PgError
-			if errors.Is(err, gorm.ErrForeignKeyViolated) || (errors.As(err, &pgErr) && pgErr.Code == "23503") {
-				return domain.ErrParkNotFound
-			}
 			return fmt.Errorf("failed to write new build to db: %w", err)
+		}
+		
+		_, err = r.fs.PutObject(ctx, &s3.PutObjectInput{
+			Bucket: aws.String(domain.ELF_OBJECTS_BUCKET_NAME),
+			Key: aws.String(newBuild.ElfObjectKey),
+			Body: bytes.NewReader(data.ElfObject),
+		})
+
+		if err != nil {
+			return fmt.Errorf("failed to write build elf-object to rustfs storage: %w", err)
 		}
 
 		return nil

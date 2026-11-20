@@ -47,6 +47,8 @@ services:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
+      rustfs:
+        condition: service_started
     ports:
       - "${BACKEND_PORT:-8080}:8080"
     environment:
@@ -63,6 +65,10 @@ services:
       STEP_CA_KEY_ID_FILE: /run/step-ca/provisioner.kid
       STEP_CA_ROOT_FILE: /run/step-ca/root_ca.crt
       STEP_CA_KEY_FILE: /run/step-ca/provisioner.key
+      RUSTFS_ACCESS_KEY: ${RUSTFS_ACCESS_KEY:-rustfs-access-key-unsafe}
+      RUSTFS_SECRET_KEY: ${RUSTFS_SECRET_KEY:-rustfs-secret-key-unsafe}
+      RUSTFS_REGION: ${RUSTFS_REGION:-us-east-1}
+      RUSTFS_ENDPOINT_URL: http://rustfs:9100
     volumes:
       - device-pki:/run/step-ca:ro
     # PostgreSQL may still be starting, or supplied by a local dev server.
@@ -177,10 +183,41 @@ services:
       retries: 10
       start_period: 20s
 
+  rustfs_perms:
+    image: alpine
+    user: root
+    volumes:
+      - rustfs-data:/data
+      - rustfs-logs:/logs
+    command: chown -R 10001:10001 /data /logs
+
+  rustfs:
+    image: rustfs/rustfs:latest
+    depends_on:
+      rustfs_perms:
+        condition: service_completed_successfully
+    volumes:
+      - rustfs-data:/data
+      - rustfs-logs:/logs
+    ports:
+      - "${RUSTFS_API_PORT:-9200}:9100"
+      - "${RUSTFS_CONSOLE_PORT:-9201}:9101"
+    environment:
+      RUSTFS_ACCESS_KEY: ${RUSTFS_ACCESS_KEY:-rustfs-access-key-unsafe}
+      RUSTFS_SECRET_KEY: ${RUSTFS_SECRET_KEY:-rustfs-secret-key-unsafe}
+      RUSTFS_ADDRESS: ":9100"
+      RUSTFS_CONSOLE_ADDRESS: ":9101"
+      RUSTFS_CONSOLE_ENABLE: ${RUSTFS_CONSOLE_ENABLE:-true}
+      RUSTFS_OBS_LOGGER_LEVEL: ${RUSTFS_OBS_LOGGER_LEVEL:-debug}
+      RUSTFS_OBS_LOG_DIRECTORY: /logs
+      RUSTFS_VOLUMES: /data
+
 volumes:
   postgres-data: {}
   rabbitmq-data: {}
   clickhouse-data: {}
+  rustfs-data: {}
+  rustfs-logs: {}
   step-ca-data: {}
   device-pki: {}
   envoy-pki: {}

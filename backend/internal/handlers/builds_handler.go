@@ -12,6 +12,7 @@ import (
 	"sparkly/backend/proto/v1/backendv1connect"
 
 	"connectrpc.com/connect/v2"
+	"github.com/google/uuid"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -27,10 +28,16 @@ func NewBuildsHandler(s *services.BuildService) *BuildsHandler {
 }
 
 func buildDomainToResp(b domain.Build) *pb.Build {
+	var releaseID string
+	if b.ReleaseID == uuid.Nil {
+		releaseID = ""
+	} else {
+		releaseID = b.ReleaseID.String()
+	}
 	return &pb.Build{
 		Id:             b.ID.String(),
 		ParkId:         b.ParkID.String(),
-		ReleaseId:      b.ReleaseID.String(),
+		ReleaseId:      releaseID,
 		Commit:         b.Commit,
 		ElfObjectKey:   b.ElfObjectKey,
 		DwarfObjectKey: b.DwarfObjectKey,
@@ -65,6 +72,9 @@ func (h *BuildsHandler) CreateBuild(ctx context.Context, req *pb.CreateBuildRequ
 		}
 		if errors.Is(err, domain.ErrParkNotFound) {
 			return nil, connect.NewError(connect.CodeNotFound, "park with this id doesnt exists")
+		}
+		if errors.Is(err, domain.ErrReleaseNotFound) {
+			return nil, connect.NewError(connect.CodeNotFound, "release with this id doesnt exists")
 		}
 		if errors.Is(err, domain.ErrParkAccessDenied) {
 			return nil, connect.NewError(connect.CodePermissionDenied, "access denied")

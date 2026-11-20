@@ -1,16 +1,24 @@
 package main
 
 import (
+	"context"
+	"errors"
 	"log"
 	"net/http"
 	"os"
+	"time"
 
 	"connectrpc.com/connect/v2"
 	"connectrpc.com/connect/v2/connecthttp"
 	"connectrpc.com/validate"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/credentials"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
+	s3types "github.com/aws/aws-sdk-go-v2/service/s3/types"
 	"github.com/joho/godotenv"
 
 	"sparkly/backend/internal/db"
+	"sparkly/backend/internal/domain"
 	"sparkly/backend/internal/handlers"
 	"sparkly/backend/internal/infrastructure/stepca"
 	"sparkly/backend/internal/interceptors"
@@ -21,40 +29,14 @@ import (
 )
 
 func main() {
-	env := struct {
-		POSTGRES_HOST     string
-		POSTGRES_DB       string
-		POSTGRES_USER     string
-		POSTGRES_PASSWORD string
-		POSTGRES_PORT     string
-		MAIN_PORT         string
-		RABBITMQ_URL      string
-	}{}
-
-	readEnv := func() {
-		err := godotenv.Load()
-		if err != nil {
-			log.Printf("failed to load .env file: %v", err)
-		}
-		env.POSTGRES_HOST, _ = os.LookupEnv("POSTGRES_HOST")
-		env.POSTGRES_DB, _ = os.LookupEnv("POSTGRES_DB")
-		env.POSTGRES_USER, _ = os.LookupEnv("POSTGRES_USER")
-		env.POSTGRES_PASSWORD, _ = os.LookupEnv("POSTGRES_PASSWORD")
-		env.POSTGRES_PORT, _ = os.LookupEnv("POSTGRES_PORT")
-		env.MAIN_PORT, _ = os.LookupEnv("MAIN_PORT")
-		if env.MAIN_PORT == "" {
-			env.MAIN_PORT = "8080"
-		}
-		env.RABBITMQ_URL = os.Getenv("RABBITMQ_URL")
-	}
-	readEnv()
+	godotenv.Load()
 
 	db, err := db.NewPostgresConn(db.DSN{
-		Host:     env.POSTGRES_HOST,
-		User:     env.POSTGRES_USER,
-		Password: env.POSTGRES_PASSWORD,
-		DBName:   env.POSTGRES_DB,
-		Port:     env.POSTGRES_PORT,
+		Host:     os.Getenv("POSTGRES_HOST"),
+		User:     os.Getenv("POSTGRES_USER"),
+		Password: os.Getenv("POSTGRES_PASSWORD"),
+		DBName:   os.Getenv("POSTGRES_DB"),
+		Port:     os.Getenv("POSTGRES_PORST"),
 		SSLMode:  "disable",
 		TimeZone: "Asia/Yekaterinburg",
 	})
@@ -62,11 +44,40 @@ func main() {
 		log.Fatalf("db init failed: %v", err)
 	}
 
-	broker, err := msgq.NewMessageBroker(env.RABBITMQ_URL)
+	broker, err := msgq.NewMessageBroker(os.Getenv("RABBITMQ_URL"))
 	if err != nil {
 		log.Fatalf("failed to init rabbitmq broker: %v", err)
 	}
 	defer broker.Close()
+
+	rustfsCfg := aws.Config{
+		Region: os.Getenv("RUSTFS_REGION"),
+		Credentials: aws.NewCredentialsCache(credentials.NewStaticCredentialsProvider(
+			os.Getenv("RUSTFS_ACCESS_KEY"),
+			os.Getenv("RUSTFS_SECRET_KEY"),
+			"",
+		)),
+	}
+
+	rustfsClient := s3.NewFromConfig(rustfsCfg, func(o *s3.Options) {
+		o.BaseEndpoint = aws.String(os.Getenv("RUSTFS_ENDPOINT_URL"))
+		o.UsePathStyle = true
+	})
+
+	ctx := context.Background()
+	ctx, _ = context.WithTimeout(ctx, 5*time.Second)
+	_, err = rustfsClient.CreateBucket(ctx, &s3.CreateBucketInput{
+		Bucket: aws.String(domain.ELF_OBJECTS_BUCKET_NAME),
+	})
+
+	if err != nil {
+		var exists *s3types.BucketAlreadyExists
+		if errors.As(err, &exists) {
+			log.Printf("bucket %s already exists.\n", domain.ELF_OBJECTS_BUCKET_NAME)
+		} else {
+			log.Fatalf("failed to create %s rustfs bucket: %v", domain.ELF_OBJECTS_BUCKET_NAME, err)
+		}
+	}
 
 	jwksRepo, err := repos.NewJWKSRepo(db)
 	if err != nil {
@@ -128,7 +139,7 @@ func main() {
 	devicesHandler := handlers.NewDevicesHandler(devicesService)
 	backendv1connect.RegisterDeviceServiceHandler(server, devicesHandler)
 
-	buildsRepo := repos.NewBuildsRepo(db)
+	buildsRepo := repos.NewBuildsRepo(db, rustfsClient)
 	buildsService := services.NewBuildService(buildsRepo)
 	buildsHandler := handlers.NewBuildsHandler(buildsService)
 	backendv1connect.RegisterBuildServiceHandler(server, buildsHandler)
@@ -144,6 +155,7 @@ func main() {
 	connecthttp.Mount(mux, server)
 	mux.HandleFunc("POST /devices/reg", devicesRegHandler.RegDevice)
 
-	log.Printf("Connect server listening on :%s", env.MAIN_PORT)
-	log.Fatalf("server failed: %v", http.ListenAndServe(":"+env.MAIN_PORT, mux))
+	mainPort := os.Getenv("MAIN_PORT")
+	log.Printf("Connect server listening on :%s", mainPort)
+	log.Fatalf("server failed: %v", http.ListenAndServe(":"+mainPort, mux))
 }

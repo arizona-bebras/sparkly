@@ -6,6 +6,8 @@ import (
 	"github.com/google/uuid"
 )
 
+const ELF_OBJECTS_BUCKET_NAME = "elf-objects"
+
 type Build struct {
 	ID             uuid.UUID
 	ParkID         uuid.UUID
