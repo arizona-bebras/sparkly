@@ -16,6 +16,19 @@ static_resources:
                 merge_slashes: true
                 path_with_escaped_slashes_action: REJECT_REQUEST
                 codec_type: AUTO
+                local_reply_config:
+                  mappers:
+                    - filter:
+                        metadata_filter:
+                          matcher:
+                            filter: envoy.filters.http.session_identity
+                            path: [{ key: authenticated }]
+                            value: { bool_match: false }
+                          match_if_key_not_found: false
+                      status_code: 401
+                      body: { inline_string: Unauthorized }
+                      headers_to_add:
+                        - header: { key: www-authenticate, value: Bearer }
                 route_config:
                   name: services
                   max_direct_response_body_size_bytes: 65536
@@ -36,6 +49,9 @@ static_resources:
                           typed_per_filter_config: &public
                             envoy.filters.http.jwt_authn:
                               "@type": type.googleapis.com/envoy.extensions.filters.http.jwt_authn.v3.PerRouteConfig
+                              disabled: true
+                            envoy.filters.http.session_identity:
+                              "@type": type.googleapis.com/envoy.extensions.filters.http.lua.v3.LuaPerRoute
                               disabled: true
                             envoy.filters.http.rbac:
                               "@type": type.googleapis.com/envoy.extensions.filters.http.rbac.v3.RBACPerRoute
@@ -100,6 +116,7 @@ static_resources:
                             headers:remove("x-device-id")
                             headers:remove("x-park-id")
                             headers:remove("x-user-id")
+                            headers:remove("x-token-id")
                             headers:remove("x-forwarded-client-cert")
                           end
                   - name: envoy.filters.http.jwt_authn
@@ -120,7 +137,7 @@ static_resources:
                           payload_in_metadata: access_token
                       requirement_map:
                         access_token: { provider_name: backend }
-                        # RBAC requires a verified identity after both filters run.
+                        # Either cookie can establish a backend session.
                         backend_session: { allow_missing_or_failed: {} }
                   # Separate filters verify the cookies independently even though
                   # both token types share the same issuer and signing keys.
@@ -136,87 +153,56 @@ static_resources:
                           payload_in_metadata: refresh_token
                       requirement_map:
                         backend_session: { allow_missing_or_failed: {} }
-                  - name: envoy.filters.http.lua
+                  - name: envoy.filters.http.session_identity
                     typed_config:
                       "@type": type.googleapis.com/envoy.extensions.filters.http.lua.v3.Lua
-                      inline_code: |
-                        function envoy_on_request(handle)
-                          local headers = handle:headers()
-                          headers:remove("x-user-id")
-                          headers:remove("x-token-id")
-                          local metadata = handle:streamInfo():dynamicMetadata():get("envoy.filters.http.jwt_authn") or {}
-                          local function identity(payload, kind, claim, header)
-                            if type(payload) ~= "table" or payload.type ~= kind then
-                              return
-                            end
-                            local id = payload[claim]
-                            if type(id) == "string" and #id > 0 and not id:find("[%z\1-\31\127]") then
-                              headers:add(header, id)
+                      default_source_code:
+                        inline_string: |
+                          local function identity(payload, kind, claim)
+                            if type(payload) == "table" and payload.type == kind then
+                              local id = payload[claim]
+                              if type(id) == "string" and #id > 0 and not id:find("[%z\1-\31\127]") then
+                                return id
+                              end
                             end
                           end
-                          identity(metadata.access_token, "access", "id", "x-user-id")
-                          identity(metadata.refresh_token, "refresh", "token_id", "x-token-id")
-                        end
+
+                          function envoy_on_request(handle)
+                            local metadata = handle:streamInfo():dynamicMetadata()
+                            local claims = metadata:get("envoy.filters.http.jwt_authn") or {}
+                            local user_id = identity(claims.access_token, "access", "id")
+                            local token_id = identity(claims.refresh_token, "refresh", "token_id")
+                            if not user_id and not token_id then
+                              metadata:set("envoy.filters.http.session_identity", "authenticated", false)
+                              return
+                            end
+
+                            local headers = handle:headers()
+                            if user_id then
+                              headers:add("x-user-id", user_id)
+                            end
+                            if token_id then
+                              headers:add("x-token-id", token_id)
+                            end
+                            metadata:set("envoy.filters.http.session_identity", "authenticated", true)
+                          end
                   - name: envoy.filters.http.rbac
                     typed_config:
                       "@type": type.googleapis.com/envoy.extensions.filters.http.rbac.v3.RBAC
                       rules:
                         action: ALLOW
                         policies:
-                          access_identity:
+                          # Fail closed if the session script cannot finish.
+                          authenticated_session:
                             permissions:
                               - any: true
                             principals:
-                              - and_ids:
-                                  ids:
-                                    - sourced_metadata:
-                                        metadata_source: DYNAMIC
-                                        metadata_matcher:
-                                          filter: envoy.filters.http.jwt_authn
-                                          path:
-                                            [{ key: access_token }, { key: id }]
-                                          value:
-                                            string_match:
-                                              safe_regex:
-                                                regex: '[^\x00-\x1f\x7f]+'
-                                    - sourced_metadata:
-                                        metadata_source: DYNAMIC
-                                        metadata_matcher:
-                                          filter: envoy.filters.http.jwt_authn
-                                          path:
-                                            [
-                                              { key: access_token },
-                                              { key: type },
-                                            ]
-                                          value:
-                                            string_match: { exact: access }
-                          refresh_identity:
-                            # Only the backend has an interceptor that resolves
-                            # the session in the database and issues a new cookie.
-                            permissions:
-                              - url_path:
-                                  path: { prefix: /sparkly.backend. }
-                            principals:
-                              - and_ids:
-                                  ids:
-                                    - sourced_metadata:
-                                        metadata_source: DYNAMIC
-                                        metadata_matcher:
-                                          filter: envoy.filters.http.jwt_authn
-                                          path:
-                                            [{ key: refresh_token }, { key: token_id }]
-                                          value:
-                                            string_match:
-                                              safe_regex:
-                                                regex: '[^\x00-\x1f\x7f]+'
-                                    - sourced_metadata:
-                                        metadata_source: DYNAMIC
-                                        metadata_matcher:
-                                          filter: envoy.filters.http.jwt_authn
-                                          path:
-                                            [{ key: refresh_token }, { key: type }]
-                                          value:
-                                            string_match: { exact: refresh }
+                              - sourced_metadata:
+                                  metadata_source: DYNAMIC
+                                  metadata_matcher:
+                                    filter: envoy.filters.http.session_identity
+                                    path: [{ key: authenticated }]
+                                    value: { bool_match: true }
                   - name: envoy.filters.http.router
                     typed_config:
                       "@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
