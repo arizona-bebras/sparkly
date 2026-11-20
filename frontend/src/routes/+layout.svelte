@@ -10,7 +10,7 @@
   import { SvelteQueryDevtools } from '@tanstack/svelte-query-devtools';
   import { goto } from '$app/navigation';
   import { page } from '$app/state';
-    import { entities } from '@/stores/entities.svelte';
+  import { entities } from '@/stores/entities.svelte';
 
   let { children } = $props();
 
@@ -25,10 +25,6 @@
   const queryClient = new QueryClient({
     queryCache: new QueryCache({
       onError: handleAuthError,
-      onSuccess: () => {
-        console.log('Query succeeded');
-        console.log('Devices:', entities.devices);
-      },
     }),
     mutationCache: new MutationCache({
       onError: handleAuthError,

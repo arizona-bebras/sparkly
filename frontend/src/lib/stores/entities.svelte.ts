@@ -18,6 +18,15 @@ class EntitiesDatabase {
   groups = new EntityTable<DeviceGroup>();
   issues = new EntityTable<Issue>();
   parks = new EntityTable<Park>();
+
+  clear() {
+    this.builds.clear();
+    this.devices.clear();
+    this.releases.clear();
+    this.groups.clear();
+    this.issues.clear();
+    this.parks.clear();
+  }
 }
 
 export const entities = new EntitiesDatabase();

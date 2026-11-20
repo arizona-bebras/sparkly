@@ -21,59 +21,50 @@ import {
   IssueSeverity,
 } from './gen/backend/proto/service_pb';
 
-const singleEntityMap: Record<string, { table: EntityTable<any>; key: string }> = {
-  GetBuild: { table: entities.builds, key: 'build' },
-  GetDevice: { table: entities.devices, key: 'device' },
-  GetIssue: { table: entities.issues, key: 'issue' },
-  GetPark: { table: entities.parks, key: 'park' },
-  GetGroup: { table: entities.groups, key: 'group' },
-  GetRelease: { table: entities.releases, key: 'release' },
+const deleteEntityMap: Record<string, EntityTable<any>> = {
+  DeleteBuild: entities.builds,
+  DeleteGroup: entities.groups,
+  DeleteIssue: entities.issues,
+  DeletePark: entities.parks,
+  DeleteRelease: entities.releases,
 };
 
-const entityCollections: Array<{ key: string; table: EntityTable<any>; isList?: boolean }> = [
-  { key: 'builds', table: entities.builds, isList: true },
-  { key: 'build', table: entities.builds },
-  { key: 'devices', table: entities.devices, isList: true },
-  { key: 'device', table: entities.devices },
-  { key: 'issues', table: entities.issues, isList: true },
-  { key: 'issue', table: entities.issues },
-  { key: 'groups', table: entities.groups, isList: true },
-  { key: 'group', table: entities.groups },
-  { key: 'parks', table: entities.parks, isList: true },
-  { key: 'park', table: entities.parks },
-  { key: 'releases', table: entities.releases, isList: true },
-  { key: 'release', table: entities.releases },
-];
+const entityTableMap: Record<string, { table: EntityTable<any>; isList?: boolean }> = {
+  builds: { table: entities.builds, isList: true },
+  build: { table: entities.builds },
+  devices: { table: entities.devices, isList: true },
+  device: { table: entities.devices },
+  issues: { table: entities.issues, isList: true },
+  issue: { table: entities.issues },
+  groups: { table: entities.groups, isList: true },
+  group: { table: entities.groups },
+  parks: { table: entities.parks, isList: true },
+  park: { table: entities.parks },
+  releases: { table: entities.releases, isList: true },
+  release: { table: entities.releases },
+};
 
 const entitiesInterceptor: Interceptor = (next) => async (req) => {
-  if (!req.stream) {
-    const id = (req.message as { id?: string })?.id;
-    const entityConfig = singleEntityMap[req.method.name];
-    if (id && entityConfig && entityConfig.table.has(id)) {
-      return {
-        stream: false,
-        service: req.service,
-        method: req.method,
-        header: new Headers(),
-        trailer: new Headers(),
-        message: { [entityConfig.key]: entityConfig.table.get(id)! } as any,
-      };
-    }
-  }
-
   const res = await next(req);
 
   if (!res.stream && res.message) {
     const msg = res.message as any;
+    const deleteTable = deleteEntityMap[req.method.name];
+    const reqId = (req.message as { id?: string })?.id;
+    if (deleteTable && reqId && msg?.success) {
+      deleteTable.delete(reqId);
+      return res;
+    }
 
-    for (const { key, table, isList } of entityCollections) {
+    for (const key of Object.keys(msg)) {
+      const config = entityTableMap[key];
+      if (!config) continue;
+
       const data = msg[key];
-      if (!data) continue;
-
-      if (isList && Array.isArray(data)) {
-        table.setMany(data);
-      } else if (!isList && data.id) {
-        table.set(data.id, data);
+      if (config.isList && Array.isArray(data)) {
+        config.table.setMany(data);
+      } else if (!config.isList && data?.id) {
+        config.table.set(data.id, data);
       }
     }
   }
