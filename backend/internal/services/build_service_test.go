@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 	"errors"
+	"strings"
 	"testing"
 	"time"
 
@@ -14,6 +15,7 @@ import (
 
 type mockBuildsRepo struct {
 	parks     map[uuid.UUID]bool
+	releases  map[uuid.UUID]bool
 	builds    map[uuid.UUID]domain.Build
 	userParks map[uuid.UUID]map[uuid.UUID]bool
 }
@@ -21,6 +23,7 @@ type mockBuildsRepo struct {
 func newMockBuildsRepo() *mockBuildsRepo {
 	return &mockBuildsRepo{
 		parks:     make(map[uuid.UUID]bool),
+		releases:  make(map[uuid.UUID]bool),
 		builds:    make(map[uuid.UUID]domain.Build),
 		userParks: make(map[uuid.UUID]map[uuid.UUID]bool),
 	}
@@ -28,6 +31,10 @@ func newMockBuildsRepo() *mockBuildsRepo {
 
 func (m *mockBuildsRepo) addPark(parkID uuid.UUID) {
 	m.parks[parkID] = true
+}
+
+func (m *mockBuildsRepo) addRelease(releaseID uuid.UUID) {
+	m.releases[releaseID] = true
 }
 
 func (m *mockBuildsRepo) allow(userID, parkID uuid.UUID) {
@@ -53,21 +60,21 @@ func (m *mockBuildsRepo) CreateBuild(ctx context.Context, userID uuid.UUID, data
 	if !m.hasAccess(userID, data.ParkID) {
 		return domain.Build{}, domain.ErrParkAccessDenied
 	}
+	if data.ReleaseID != nil && !m.releases[*data.ReleaseID] {
+		return domain.Build{}, domain.ErrReleaseNotFound
+	}
 	id := uuid.New()
 	b := domain.Build{
-		ID:        id,
-		ParkID:    data.ParkID,
-		Version:   data.Version,
-		CreatedAt: time.Now(),
+		ID:           id,
+		ParkID:       data.ParkID,
+		ElfObjectKey: "elf-" + id.String(),
+		CreatedAt:    time.Now(),
+	}
+	if data.ReleaseID != nil {
+		b.ReleaseID = *data.ReleaseID
 	}
 	if data.Commit != nil {
 		b.Commit = *data.Commit
-	}
-	if data.ElfObjectKey != nil {
-		b.ElfObjectKey = *data.ElfObjectKey
-	}
-	if data.DwarfObjectKey != nil {
-		b.DwarfObjectKey = *data.DwarfObjectKey
 	}
 	m.builds[id] = b
 	return b, nil
@@ -90,10 +97,16 @@ func (m *mockBuildsRepo) GetBuilds(ctx context.Context, filters domain.GetBuilds
 		if b.ParkID != filters.ParkID {
 			continue
 		}
-		if filters.Version != nil && b.Version != *filters.Version {
+		if filters.ReleaseID != nil && b.ReleaseID != *filters.ReleaseID {
 			continue
 		}
-		if filters.Commit != nil && b.Commit != *filters.Commit {
+		if filters.Commit != nil && !strings.Contains(b.Commit, *filters.Commit) {
+			continue
+		}
+		if filters.FromTime != nil && b.CreatedAt.Before(*filters.FromTime) {
+			continue
+		}
+		if filters.ToTime != nil && b.CreatedAt.After(*filters.ToTime) {
 			continue
 		}
 		result = append(result, b)
@@ -106,17 +119,14 @@ func (m *mockBuildsRepo) UpdateBuild(ctx context.Context, newData domain.UpdateB
 	if !ok || !m.hasAccess(userID, b.ParkID) {
 		return domain.Build{}, domain.ErrBuildNotFound
 	}
-	if newData.Version != nil {
-		b.Version = *newData.Version
+	if newData.ReleaseID != nil {
+		if !m.releases[*newData.ReleaseID] {
+			return domain.Build{}, domain.ErrReleaseNotFound
+		}
+		b.ReleaseID = *newData.ReleaseID
 	}
 	if newData.Commit != nil {
 		b.Commit = *newData.Commit
-	}
-	if newData.ElfObjectKey != nil {
-		b.ElfObjectKey = *newData.ElfObjectKey
-	}
-	if newData.DwarfObjectKey != nil {
-		b.DwarfObjectKey = *newData.DwarfObjectKey
 	}
 	m.builds[buildID] = b
 	return b, nil
@@ -141,26 +151,30 @@ func TestBuildServiceCRUD(t *testing.T) {
 
 	userID := uuid.New()
 	parkID := uuid.New()
+	releaseID := uuid.New()
 	repo.allow(userID, parkID)
+	repo.addRelease(releaseID)
 
 	ctx := withUserBuildCtx(context.Background(), userID)
 
 	commit := "abc1234"
-	elf := "elf/key"
-	dwarf := "dwarf/key"
+	releaseIDStr := releaseID.String()
+	elf := []byte("elf binary payload")
 
-	created, err := svc.CreateBuild(ctx, parkID.String(), domain.CreateBuildParams{
-		Version:        "1.0.0",
-		Commit:         &commit,
-		ElfObjectKey:   &elf,
-		DwarfObjectKey: &dwarf,
+	created, err := svc.CreateBuild(ctx, CreateBuildDTO{
+		ParkID:    parkID.String(),
+		ReleaseID: &releaseIDStr,
+		Commit:    &commit,
+		ElfObject: elf,
 	})
-
 	if err != nil {
 		t.Fatalf("unexpected create build error: %v", err)
 	}
-	if created.Version != "1.0.0" || created.Commit != commit || created.ElfObjectKey != elf || created.DwarfObjectKey != dwarf {
+	if created.ParkID != parkID || created.ReleaseID != releaseID || created.Commit != commit {
 		t.Fatalf("unexpected created build data: %+v", created)
+	}
+	if created.ElfObjectKey == "" {
+		t.Fatal("expected non-empty ElfObjectKey")
 	}
 
 	got, err := svc.GetBuild(ctx, created.ID.String())
@@ -179,18 +193,43 @@ func TestBuildServiceCRUD(t *testing.T) {
 		t.Fatalf("expected 1 build, got %d", len(builds))
 	}
 
-	newVersion := "1.0.1"
-	updated, err := svc.UpdateBuild(ctx, created.ID.String(), domain.UpdateBuildParams{
-		Version:        &newVersion,
-		Commit:         nil,
-		ElfObjectKey:   nil,
-		DwarfObjectKey: nil,
+	buildsByRelease, err := svc.GetBuilds(ctx, BuildFiltersDTO{
+		ParkID:    parkID.String(),
+		ReleaseID: &releaseIDStr,
+	})
+	if err != nil {
+		t.Fatalf("unexpected get builds by release error: %v", err)
+	}
+	if len(buildsByRelease) != 1 {
+		t.Fatalf("expected 1 build, got %d", len(buildsByRelease))
+	}
+
+	buildsByCommit, err := svc.GetBuilds(ctx, BuildFiltersDTO{
+		ParkID: parkID.String(),
+		Commit: &commit,
+	})
+	if err != nil {
+		t.Fatalf("unexpected get builds by commit error: %v", err)
+	}
+	if len(buildsByCommit) != 1 {
+		t.Fatalf("expected 1 build, got %d", len(buildsByCommit))
+	}
+
+	newReleaseID := uuid.New()
+	repo.addRelease(newReleaseID)
+	newReleaseIDStr := newReleaseID.String()
+	newCommit := "def5678"
+
+	updated, err := svc.UpdateBuild(ctx, UpdateBuildDTO{
+		BuildID:   created.ID.String(),
+		ReleaseID: &newReleaseIDStr,
+		Commit:    &newCommit,
 	})
 	if err != nil {
 		t.Fatalf("unexpected update build error: %v", err)
 	}
-	if updated.Version != newVersion {
-		t.Fatalf("expected version %s, got %s", newVersion, updated.Version)
+	if updated.ReleaseID != newReleaseID || updated.Commit != newCommit {
+		t.Fatalf("expected release %s commit %s, got %+v", newReleaseIDStr, newCommit, updated)
 	}
 
 	err = svc.DeleteBuild(ctx, created.ID.String())
@@ -210,72 +249,135 @@ func TestBuildServiceValidationAndAuthErrors(t *testing.T) {
 
 	userID := uuid.New()
 	parkID := uuid.New()
+	releaseID := uuid.New()
 	ctxWithoutUser := context.Background()
 	ctx := withUserBuildCtx(context.Background(), userID)
 
-	_, err := svc.CreateBuild(ctxWithoutUser, parkID.String(), domain.CreateBuildParams{
-		Version:        "1.0.0",
-		Commit:         nil,
-		ElfObjectKey:   nil,
-		DwarfObjectKey: nil,
+	releaseIDStr := releaseID.String()
+	commit := "abc"
+	invalidUUID := "invalid-uuid"
+
+	_, err := svc.CreateBuild(ctxWithoutUser, CreateBuildDTO{
+		ParkID: parkID.String(),
 	})
 	if !errors.Is(err, domain.ErrUnknownUser) {
 		t.Fatalf("expected ErrUnknownUser, got %v", err)
 	}
 
-	_, err = svc.CreateBuild(ctx, "invalid-uuid", domain.CreateBuildParams{
-		Version:        "1.0.0",
-		Commit:         nil,
-		ElfObjectKey:   nil,
-		DwarfObjectKey: nil,
+	_, err = svc.GetBuild(ctxWithoutUser, uuid.New().String())
+	if !errors.Is(err, domain.ErrUnknownUser) {
+		t.Fatalf("expected ErrUnknownUser, got %v", err)
+	}
+
+	_, err = svc.GetBuilds(ctxWithoutUser, BuildFiltersDTO{ParkID: parkID.String()})
+	if !errors.Is(err, domain.ErrUnknownUser) {
+		t.Fatalf("expected ErrUnknownUser, got %v", err)
+	}
+
+	_, err = svc.UpdateBuild(ctxWithoutUser, UpdateBuildDTO{BuildID: uuid.New().String()})
+	if !errors.Is(err, domain.ErrUnknownUser) {
+		t.Fatalf("expected ErrUnknownUser, got %v", err)
+	}
+
+	err = svc.DeleteBuild(ctxWithoutUser, uuid.New().String())
+	if !errors.Is(err, domain.ErrUnknownUser) {
+		t.Fatalf("expected ErrUnknownUser, got %v", err)
+	}
+
+	_, err = svc.CreateBuild(ctx, CreateBuildDTO{
+		ParkID: invalidUUID,
 	})
 	if !errors.Is(err, domain.ErrInvalidID) {
 		t.Fatalf("expected ErrInvalidID, got %v", err)
 	}
 
-	_, err = svc.GetBuild(ctx, "invalid-uuid")
-	if !errors.Is(err, domain.ErrInvalidID) {
-		t.Fatalf("expected ErrInvalidID, got %v", err)
-	}
-
-	_, err = svc.GetBuilds(ctx, BuildFiltersDTO{ParkID: "invalid-uuid"})
-	if !errors.Is(err, domain.ErrInvalidID) {
-		t.Fatalf("expected ErrInvalidID, got %v", err)
-	}
-
-	_, err = svc.UpdateBuild(ctx, "invalid-uuid", domain.UpdateBuildParams{
-		Version:        nil,
-		Commit:         nil,
-		ElfObjectKey:   nil,
-		DwarfObjectKey: nil,
+	_, err = svc.CreateBuild(ctx, CreateBuildDTO{
+		ParkID:    parkID.String(),
+		ReleaseID: &invalidUUID,
 	})
 	if !errors.Is(err, domain.ErrInvalidID) {
 		t.Fatalf("expected ErrInvalidID, got %v", err)
 	}
 
-	err = svc.DeleteBuild(ctx, "invalid-uuid")
+	_, err = svc.GetBuild(ctx, invalidUUID)
 	if !errors.Is(err, domain.ErrInvalidID) {
 		t.Fatalf("expected ErrInvalidID, got %v", err)
 	}
 
-	_, err = svc.CreateBuild(ctx, parkID.String(), domain.CreateBuildParams{
-		Version:        "1.0.0",
-		Commit:         nil,
-		ElfObjectKey:   nil,
-		DwarfObjectKey: nil,
+	_, err = svc.GetBuilds(ctx, BuildFiltersDTO{
+		ParkID: invalidUUID,
+	})
+	if !errors.Is(err, domain.ErrInvalidID) {
+		t.Fatalf("expected ErrInvalidID, got %v", err)
+	}
+
+	_, err = svc.GetBuilds(ctx, BuildFiltersDTO{
+		ParkID:    parkID.String(),
+		ReleaseID: &invalidUUID,
+	})
+	if !errors.Is(err, domain.ErrInvalidID) {
+		t.Fatalf("expected ErrInvalidID, got %v", err)
+	}
+
+	_, err = svc.UpdateBuild(ctx, UpdateBuildDTO{
+		BuildID: invalidUUID,
+	})
+	if !errors.Is(err, domain.ErrInvalidID) {
+		t.Fatalf("expected ErrInvalidID, got %v", err)
+	}
+
+	_, err = svc.UpdateBuild(ctx, UpdateBuildDTO{
+		BuildID:   uuid.New().String(),
+		ReleaseID: &invalidUUID,
+	})
+	if !errors.Is(err, domain.ErrInvalidID) {
+		t.Fatalf("expected ErrInvalidID, got %v", err)
+	}
+
+	err = svc.DeleteBuild(ctx, invalidUUID)
+	if !errors.Is(err, domain.ErrInvalidID) {
+		t.Fatalf("expected ErrInvalidID, got %v", err)
+	}
+
+	_, err = svc.CreateBuild(ctx, CreateBuildDTO{
+		ParkID: parkID.String(),
 	})
 	if !errors.Is(err, domain.ErrParkNotFound) {
 		t.Fatalf("expected ErrParkNotFound, got %v", err)
 	}
 
 	repo.addPark(parkID)
-	_, err = svc.CreateBuild(ctx, parkID.String(), domain.CreateBuildParams{
-		Version:        "1.0.0",
-		Commit:         nil,
-		ElfObjectKey:   nil,
-		DwarfObjectKey: nil,
+	_, err = svc.CreateBuild(ctx, CreateBuildDTO{
+		ParkID: parkID.String(),
 	})
 	if !errors.Is(err, domain.ErrParkAccessDenied) {
 		t.Fatalf("expected ErrParkAccessDenied, got %v", err)
+	}
+
+	repo.allow(userID, parkID)
+	_, err = svc.CreateBuild(ctx, CreateBuildDTO{
+		ParkID:    parkID.String(),
+		ReleaseID: &releaseIDStr,
+		Commit:    &commit,
+	})
+	if !errors.Is(err, domain.ErrReleaseNotFound) {
+		t.Fatalf("expected ErrReleaseNotFound, got %v", err)
+	}
+
+	_, err = svc.GetBuild(ctx, uuid.New().String())
+	if !errors.Is(err, domain.ErrBuildNotFound) {
+		t.Fatalf("expected ErrBuildNotFound, got %v", err)
+	}
+
+	_, err = svc.UpdateBuild(ctx, UpdateBuildDTO{
+		BuildID: uuid.New().String(),
+	})
+	if !errors.Is(err, domain.ErrBuildNotFound) {
+		t.Fatalf("expected ErrBuildNotFound, got %v", err)
+	}
+
+	err = svc.DeleteBuild(ctx, uuid.New().String())
+	if !errors.Is(err, domain.ErrBuildNotFound) {
+		t.Fatalf("expected ErrBuildNotFound, got %v", err)
 	}
 }

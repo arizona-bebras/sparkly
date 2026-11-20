@@ -6,10 +6,12 @@ import (
 	"github.com/google/uuid"
 )
 
+const ELF_OBJECTS_BUCKET_NAME = "elf-objects"
+
 type Build struct {
 	ID             uuid.UUID
 	ParkID         uuid.UUID
-	Version        string
+	ReleaseID      uuid.UUID
 	Commit         string
 	ElfObjectKey   string
 	DwarfObjectKey string
@@ -17,24 +19,21 @@ type Build struct {
 }
 
 type CreateBuildParams struct {
-	ParkID         uuid.UUID
-	Version        string
-	Commit         *string
-	ElfObjectKey   *string
-	DwarfObjectKey *string
+	ParkID    uuid.UUID
+	ReleaseID *uuid.UUID
+	Commit    *string
+	ElfObject []byte
 }
 
 type UpdateBuildParams struct {
-	Version        *string
-	Commit         *string
-	ElfObjectKey   *string
-	DwarfObjectKey *string
+	ReleaseID *uuid.UUID
+	Commit    *string
 }
 
 type GetBuildsFilters struct {
-	ParkID   uuid.UUID
-	Version  *string
-	Commit   *string
-	FromTime *time.Time
-	ToTime   *time.Time
+	ParkID    uuid.UUID
+	ReleaseID *uuid.UUID
+	Commit    *string
+	FromTime  *time.Time
+	ToTime    *time.Time
 }
