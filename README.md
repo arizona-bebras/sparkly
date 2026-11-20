@@ -80,3 +80,10 @@ POSTGRES_HOST=localhost POSTGRES_PORT=5432 POSTGRES_DB=sparkly \
 Контейнеры продолжат обращаться к `backend:8080`, даже если профиль backend выключен. Локальный сервер должен слушать `0.0.0.0` или доступный Docker интерфейс хоста; сервер, привязанный только к `127.0.0.1`, может быть недоступен контейнерам на Linux. Для локального frontend: `pnpm nx run frontend:dev -- --host 0.0.0.0 --port 3000`.
 
 Порты можно переопределить через `FRONTEND_PORT`, `BACKEND_PORT`, `ANALYTICS_PORT`, `ML_PORT`, `POSTGRES_PORT`, `CLICKHOUSE_HTTP_PORT`, `CLICKHOUSE_NATIVE_PORT` в окружении или корневом `.env`. Межсервисные URL должны использовать **порт хоста** после переопределения. При изменении порта frontend задайте также `FRONTEND_ORIGIN` (по умолчанию `http://localhost:3000`). Backend получает адрес БД из `POSTGRES_HOST` (в Compose — `postgres`, вне Docker — `localhost`) и `POSTGRES_PORT`.
+
+## Kubernetes
+
+The [Sparkly Helm chart](charts/sparkly/README.md) deploys the application behind
+`sparkly.run`, with SNI TCP passthrough for `ingest.devices.sparkly.run` and
+`enroll.devices.sparkly.run`. It uses operator-provided PostgreSQL, ClickHouse,
+and RabbitMQ, plus step-ca certificates managed through Kubernetes Secrets.

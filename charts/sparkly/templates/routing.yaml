@@ -1,0 +1,49 @@
+{{- if .Values.routing.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "sparkly.fullname" . }}
+  labels:
+    {{- include "sparkly.labels" . | nindent 4 }}
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: {{ .Values.routing.entryPoint | quote }}
+    traefik.ingress.kubernetes.io/router.tls: "true"
+    {{- with .Values.routing.annotations }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  ingressClassName: {{ .Values.routing.ingressClassName }}
+  tls:
+    - hosts: [{{ .Values.routing.appHost | quote }}]
+      secretName: {{ .Values.certificates.appSecretName }}
+  rules:
+    - host: {{ .Values.routing.appHost | quote }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: envoy
+                port: {name: http}
+{{- range $name, $route := dict "ingest" (dict "host" .Values.routing.ingestHost "port" 10001) "enroll" (dict "host" .Values.routing.enrollHost "port" 10002) }}
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRouteTCP
+metadata:
+  name: {{ include "sparkly.fullname" $ }}-{{ $name }}
+  labels:
+    {{- include "sparkly.labels" $ | nindent 4 }}
+  annotations:
+    kubernetes.io/ingress.class: {{ $.Values.routing.ingressClassName | quote }}
+spec:
+  entryPoints: [{{ $.Values.routing.entryPoint | quote }}]
+  routes:
+    - match: {{ printf "HostSNI(`%s`)" $route.host | quote }}
+      services:
+        - name: envoy
+          port: {{ $route.port }}
+  tls:
+    passthrough: true
+{{- end }}
+{{- end }}

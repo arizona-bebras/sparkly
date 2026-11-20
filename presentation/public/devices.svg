@@ -1,0 +1,89 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720" viewBox="0 0 1280 720" fill="none">
+  <defs>
+    <linearGradient id="case" x2=".7" y2="1" gradientUnits="objectBoundingBox">
+      <stop stop-color="#708095"/><stop offset=".5" stop-color="#425166"/><stop offset="1" stop-color="#24303F"/>
+    </linearGradient>
+    <linearGradient id="light" x2=".55" y2="1" gradientUnits="objectBoundingBox">
+      <stop stop-color="#E2E8F0"/><stop offset=".52" stop-color="#BAC6D4"/><stop offset="1" stop-color="#94A3B8"/>
+    </linearGradient>
+    <linearGradient id="screen" x2=".8" y2="1" gradientUnits="objectBoundingBox">
+      <stop stop-color="#24303F"/><stop offset="1" stop-color="#0B0F14"/>
+    </linearGradient>
+    <radialGradient id="shadow">
+      <stop stop-color="#080D12" stop-opacity=".85"/><stop offset="1" stop-color="#080D12" stop-opacity="0"/>
+    </radialGradient>
+    <pattern id="vents" width="8" height="4" patternUnits="userSpaceOnUse"><path d="M1 2h5" stroke="#263843" stroke-linecap="round"/></pattern>
+    <pattern id="terminals" width="17" height="17" patternUnits="userSpaceOnUse">
+      <path fill="#364558" d="M0 0h16v17H0z"/><path fill="#24303F" d="M3 4h10v8H3z"/><path d="M6 8h4" stroke="#94A3B8"/>
+    </pattern>
+  </defs>
+
+  <rect x=".5" y="224.5" width="1279" height="431" rx="13" fill="#131A22" stroke="#24303F"/>
+  <path d="M256 225v430M512 225v430M768 225v430M1024 225v430" stroke="#24303F"/>
+
+  <!-- DIN rail controller -->
+  <ellipse cx="129" cy="469" rx="107" ry="28" fill="url(#shadow)"/>
+  <g transform="translate(36 305)">
+    <path d="M14 32 36 5h139l14 25v117l-19 22H14z" fill="#202F3A" stroke="#80939F"/>
+    <path d="M14 32 36 5h139l-15 27z" fill="#9AAAB2"/>
+    <path d="M14 32h146v137H14z" fill="url(#case)" stroke="#8A9EA8"/>
+    <path d="M160 32 175 5v142l-15 22z" fill="#24343E"/>
+    <path d="M20 34h136v18H20zm0 113h136v18H20z" fill="url(#terminals)"/>
+    <path d="M28 67h116v53H28z" fill="#17262D" stroke="#58717C"/>
+    <path d="M38 82h44m-44 8h30m-30 8h35" stroke="#738B97" stroke-width="2"/>
+    <circle cx="105" cy="92" r="3" fill="#F59E0B"/><circle cx="117" cy="92" r="3" fill="#10B981"/><circle cx="129" cy="92" r="3" fill="#58717C"/>
+    <path d="M32 130h106" stroke="#8096A4" stroke-dasharray="5 4"/>
+  </g>
+
+  <!-- Environmental sensor -->
+  <ellipse cx="385" cy="469" rx="85" ry="24" fill="url(#shadow)"/>
+  <g transform="translate(325 292)">
+    <rect x="9" y="1" width="114" height="175" rx="24" fill="#526773" stroke="#899BA3"/>
+    <rect x="1" y="1" width="111" height="169" rx="22" fill="url(#light)" stroke="#E4E9EA"/>
+    <rect x="17" y="19" width="79" height="48" rx="8" fill="url(#screen)"/>
+    <path d="M30 51l12-4 10 3 9-13 9 6 12-9" stroke="#38BDF8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M19 88h75v59H19z" fill="url(#vents)"/>
+    <circle cx="56" cy="78" r="3" fill="#F59E0B"/>
+  </g>
+
+  <!-- Communications gateway -->
+  <ellipse cx="638" cy="469" rx="106" ry="24" fill="url(#shadow)"/>
+  <g transform="translate(551 272)">
+    <path d="m25 130-9-85m145 85 7-110" stroke="#17252F" stroke-width="17" stroke-linecap="round"/>
+    <path d="m23 124-8-79m148 78 6-103" stroke="#78919E" stroke-width="2" stroke-linecap="round"/>
+    <path d="M2 135l22-19h137l20 19v47l-11 13H11L2 182z" fill="#273944" stroke="#8399A5"/>
+    <path d="m2 135 22-19h137l20 19z" fill="#879EAB"/>
+    <rect x="2" y="135" width="179" height="50" rx="5" fill="url(#case)" stroke="#8099A6"/>
+    <path d="M17 147h66v23H17z" fill="#1B2B34"/>
+    <path d="M24 152h21v13H24zm31 0h21v13H55z" fill="#4C6370" stroke="#94AAB6"/>
+    <path d="M27 161h15m16 0h15" stroke="#F59E0B" stroke-dasharray="2 2"/>
+    <circle cx="138" cy="160" r="3" fill="#F59E0B"/><circle cx="151" cy="160" r="3" fill="#10B981"/><circle cx="164" cy="160" r="3" fill="#10B981"/>
+  </g>
+
+  <!-- Lighting controller -->
+  <ellipse cx="894" cy="469" rx="108" ry="23" fill="url(#shadow)"/>
+  <g transform="translate(800 350)">
+    <path d="M3 42h25v38H3zm161 0h25v38h-25z" fill="#566D79" stroke="#A1B0B9"/>
+    <circle cx="14" cy="61" r="4" fill="#253742"/><circle cx="179" cy="61" r="4" fill="#253742"/>
+    <path d="M20 24 37 9h126l12 16v78l-13 11H20z" fill="#657985" stroke="#C1CDD1"/>
+    <path d="m20 24 17-15h126l-15 15z" fill="#DFE6E9"/>
+    <rect x="20" y="24" width="141" height="80" rx="6" fill="url(#light)" stroke="#E3E9EB"/>
+    <path d="M25 36h22v53H25zm107 0h22v53h-22z" fill="#2E424E"/>
+    <path d="M29 45h14m-14 12h14m-14 12h14m-14 12h14m93-36h14m-14 12h14m-14 12h14m-14 12h14" stroke="#AABBC5" stroke-width="2"/>
+    <path d="M58 72h13l6-17 10 23 8-12h24M61 42h38" stroke="#465D68" stroke-width="2" stroke-linejoin="round"/>
+    <circle cx="117" cy="42" r="3" fill="#F59E0B"/>
+  </g>
+
+  <!-- Payment terminal -->
+  <ellipse cx="1150" cy="469" rx="94" ry="26" fill="url(#shadow)"/>
+  <g transform="translate(1084 270)">
+    <path d="M42 14 110 4a15 15 0 0 1 16 15l5 148a23 23 0 0 1-15 22l-73 16-16-16z" fill="#233746" stroke="#7694A3"/>
+    <path d="m33 6 70 1a14 14 0 0 1 14 15l-8 156a18 18 0 0 1-18 17l-74-2a15 15 0 0 1-15-17L14 23A18 18 0 0 1 33 6z" fill="url(#case)" stroke="#A5B6BE"/>
+    <path d="M31 21h63l-1 8H30z" fill="#152730"/>
+    <path d="M26 43h76l-4 63H21z" fill="url(#screen)" stroke="#819BA7"/>
+    <path d="M35 57h34m-35 10h47m-48 20h20" stroke="#94A3B8" stroke-width="2"/>
+    <path d="m83 85 4 4 8-9" stroke="#F59E0B" stroke-width="2"/>
+    <path d="M29 120h14m10 0h14m10 0h12m-61 13h14m10 0h14m10 0h12m-61 13h14m10 0h14m10 0h12m-61 13h14m10 0h14m10 0h12" stroke="#17252F" stroke-width="7" stroke-linecap="round"/>
+    <path d="M75 159h12" stroke="#10B981" stroke-width="5" stroke-linecap="round"/>
+  </g>
+</svg>
