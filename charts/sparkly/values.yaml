@@ -1,0 +1,114 @@
+# Registry path shared by the release images. Configure once for a different GHCR owner/repo.
+global:
+  imageRegistry: ghcr.io/arizona-bebras/sparkly
+
+nameOverride: ""
+fullnameOverride: ""
+imagePullSecrets: []
+nodeSelector: {}
+tolerations: []
+affinity: {}
+podAnnotations: {}
+
+# Empty image tags inherit Chart.appVersion, set by the release workflow.
+# Repository names are relative to global.imageRegistry.
+# A component can still override its tag when needed.
+components:
+  envoy:
+    enabled: true
+    replicas: 2
+    image: {repository: envoy, tag: "", pullPolicy: IfNotPresent}
+    resources: {requests: {cpu: 100m, memory: 128Mi}, limits: {memory: 512Mi}}
+  frontend:
+    enabled: true
+    replicas: 2
+    image: {repository: frontend, tag: "", pullPolicy: IfNotPresent}
+    resources: {requests: {cpu: 100m, memory: 128Mi}, limits: {memory: 512Mi}}
+  backend:
+    enabled: true
+    # Startup performs schema migrations; keep one replica until migrations are coordinated.
+    replicas: 1
+    image: {repository: backend, tag: "", pullPolicy: IfNotPresent}
+    resources: {requests: {cpu: 100m, memory: 128Mi}, limits: {memory: 512Mi}}
+  analytics:
+    enabled: true
+    replicas: 1
+    image: {repository: analytics, tag: "", pullPolicy: IfNotPresent}
+    resources: {requests: {cpu: 100m, memory: 128Mi}, limits: {memory: 512Mi}}
+  # The current ML entrypoint is a stub and exits without serving HTTP.
+  ml:
+    enabled: false
+    replicas: 1
+    image: {repository: ml, tag: "", pullPolicy: IfNotPresent}
+    resources: {requests: {cpu: 100m, memory: 128Mi}, limits: {memory: 512Mi}}
+  # Supply a worker image and an existing PVC containing firmware.elf before enabling.
+  symbolicator:
+    enabled: false
+    replicas: 1
+    image: {repository: symbolicator, tag: "", pullPolicy: IfNotPresent}
+    resources: {requests: {cpu: 100m, memory: 256Mi}, limits: {memory: 1Gi}}
+
+routing:
+  enabled: true
+  ingressClassName: traefik
+  entryPoint: websecure
+  annotations: {}
+  appHost: sparkly.run
+  ingestHost: ingest.devices.sparkly.run
+  enrollHost: enroll.devices.sparkly.run
+
+certificates:
+  enabled: true
+  # Existing step-issuer resource backed by your step-ca (not the device JWK provisioner).
+  issuerRef:
+    name: sparkly-step-ca
+    kind: StepClusterIssuer
+    group: certmanager.step.sm
+  duration: 24h
+  renewBefore: 8h
+  appSecretName: sparkly-web-tls
+  deviceSecretName: sparkly-devices-tls
+
+# All referenced Secrets must already exist in the release namespace.
+postgres:
+  host: sparkly-postgres-rw
+  port: 5432
+  database: sparkly
+  credentialsSecret: sparkly-postgres-app
+  usernameKey: username
+  passwordKey: password
+clickhouse:
+  host: clickhouse-sparkly
+  port: 9000
+  database: sparkly
+  credentialsSecret: sparkly-clickhouse-app
+  usernameKey: username
+  passwordKey: password
+rabbitmq:
+  # Full amqp(s) URI including percent-encoded credentials and vhost.
+  connectionSecret: sparkly-rabbitmq-app
+  urlKey: uri
+backend:
+  jwksSecret: sparkly-backend
+  jwksMasterKeyKey: JWKS_MASTER_KEY
+analytics:
+  rawPersistenceWorkers: 4
+stepCA:
+  url: https://step-ca.step-ca.svc.cluster.local:9000
+  provisioner: sparkly-devices
+  credentialsSecret: sparkly-device-provisioner
+  privateKeyKey: provisioner.key
+  keyIDKey: provisioner.kid
+  # Public device root bundle, separate from provisioner credentials and TLS issuer CA.
+  trustSecret: sparkly-device-trust
+  rootKey: root_ca.crt
+symbolicator:
+  firmwareClaimName: ""
+
+networkPolicy:
+  enabled: true
+  # Restrict gateway listeners to ingress-controller pods, including across namespaces.
+  ingressNamespaceSelector:
+    kubernetes.io/metadata.name: traefik
+  ingressPodSelector:
+    app.kubernetes.io/name: traefik

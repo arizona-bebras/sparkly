@@ -1,0 +1,133 @@
+{{- $ports := dict "envoy" 10000 "frontend" 3000 "backend" 8080 "analytics" 8081 "ml" 8082 }}
+{{- range $name, $component := .Values.components }}
+{{- if $component.enabled }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "sparkly.fullname" $ }}-{{ $name }}
+  labels:
+    {{- include "sparkly.labels" $ | nindent 4 }}
+    app.kubernetes.io/component: {{ $name }}
+spec:
+  replicas: {{ $component.replicas }}
+  {{- if or (eq $name "backend") (eq $name "analytics") }}
+  strategy: {type: Recreate}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "sparkly.selector" (dict "root" $ "component" $name) | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "sparkly.selector" (dict "root" $ "component" $name) | nindent 8 }}
+      {{- with $.Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: {{ ternary 1000 65532 (eq $name "frontend") }}
+        runAsGroup: 65532
+        fsGroup: 65532
+        seccompProfile: {type: RuntimeDefault}
+      {{- with $.Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: {{ $name }}
+          image: {{ include "sparkly.image" (dict "root" $ "image" $component.image) | quote }}
+          imagePullPolicy: {{ $component.image.pullPolicy }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: {drop: [ALL]}
+          {{- if eq $name "symbolicator" }}
+          workingDir: /app
+          args: [worker, /app/fixtures/firmware.elf]
+          {{- end }}
+          {{- if ne $name "symbolicator" }}
+          ports:
+            - {name: http, containerPort: {{ index $ports $name }}}
+            {{- if eq $name "envoy" }}
+            - {name: ingest-tls, containerPort: 10001}
+            - {name: enroll-tls, containerPort: 10002}
+            {{- end }}
+          startupProbe:
+            tcpSocket: {port: http}
+            periodSeconds: 5
+            failureThreshold: 60
+          readinessProbe:
+            tcpSocket: {port: http}
+            periodSeconds: 5
+          livenessProbe:
+            tcpSocket: {port: http}
+            periodSeconds: 10
+            failureThreshold: 6
+          {{- end }}
+          env:
+            {{- include "sparkly.env" (dict "root" $ "component" $name) | nindent 12 }}
+          resources:
+            {{- toYaml $component.resources | nindent 12 }}
+          volumeMounts:
+            - {name: tmp, mountPath: /tmp}
+            {{- if eq $name "envoy" }}
+            - {name: pki, mountPath: /run/envoy-pki, readOnly: true}
+            {{- else if eq $name "backend" }}
+            - {name: provisioner, mountPath: /run/step-ca, readOnly: true}
+            {{- else if eq $name "symbolicator" }}
+            - {name: firmware, mountPath: /app/fixtures, readOnly: true}
+            {{- end }}
+      volumes:
+        - name: tmp
+          emptyDir: {}
+        {{- if eq $name "envoy" }}
+        - name: pki
+          projected:
+            defaultMode: 0440
+            sources:
+              - secret:
+                  name: {{ $.Values.certificates.deviceSecretName }}
+                  items:
+                    - {key: tls.crt, path: server-chain.crt}
+                    - {key: tls.key, path: server.key}
+              - secret:
+                  name: {{ $.Values.stepCA.trustSecret }}
+                  items:
+                    - {key: {{ $.Values.stepCA.rootKey }}, path: root_ca.crt}
+        {{- else if eq $name "backend" }}
+        - name: provisioner
+          projected:
+            defaultMode: 0440
+            sources:
+              - secret:
+                  name: {{ $.Values.stepCA.credentialsSecret }}
+                  items:
+                    - {key: {{ $.Values.stepCA.privateKeyKey }}, path: provisioner.key}
+                    - {key: {{ $.Values.stepCA.keyIDKey }}, path: provisioner.kid}
+              - secret:
+                  name: {{ $.Values.stepCA.trustSecret }}
+                  items:
+                    - {key: {{ $.Values.stepCA.rootKey }}, path: root_ca.crt}
+        {{- else if eq $name "symbolicator" }}
+        - name: firmware
+          persistentVolumeClaim:
+            claimName: {{ required "symbolicator.firmwareClaimName is required when symbolicator is enabled" $.Values.symbolicator.firmwareClaimName }}
+        {{- end }}
+      {{- with $.Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with $.Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with $.Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- end }}
+{{- end }}
