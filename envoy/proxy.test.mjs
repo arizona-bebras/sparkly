@@ -163,8 +163,8 @@ test('Envoy routing, JWT authentication, and device mTLS', { timeout: 90000 }, a
     assert.equal(post.headers.get('allow'), 'GET, HEAD');
   });
   await t.test('JWKS failure denies backend access', async () => {
-    assert.equal((await request(rpc, auth())).status, 403);
-    assert.equal((await request(rpc, { cookie: `refresh_token=${refreshToken()}` })).status, 403);
+    assert.equal((await request(rpc, auth())).status, 401);
+    assert.equal((await request(rpc, { cookie: `refresh_token=${refreshToken()}` })).status, 401);
     jwksAvailable = true;
   });
   for (const path of ['/', '/auth/signin', '/auth/signup', '/_app/immutable/app.js',
@@ -199,8 +199,7 @@ test('Envoy routing, JWT authentication, and device mTLS', { timeout: 90000 }, a
   ];
   for (const [path, service, upstreamPath] of protectedRoutes) {
     await t.test(`protected ${path}`, async () => {
-      assert.equal((await request(path, { 'x-user-id': 'attacker', 'x-token-id': 'attacker' })).status,
-        service === 'backend' ? 403 : 401);
+      assert.equal((await request(path, { 'x-user-id': 'attacker', 'x-token-id': 'attacker' })).status, 401);
       const response = await request(path, { ...auth(), 'x-user-id': 'attacker', 'x-token-id': 'attacker',
         'x-device-id': 'attacker', 'x-park-id': 'attacker', 'x-forwarded-client-cert': 'attacker' });
       assert.equal(response.status, 200);
@@ -208,28 +207,40 @@ test('Envoy routing, JWT authentication, and device mTLS', { timeout: 90000 }, a
     });
   }
   const invalidCredentials = [
-    ['malformed', 403, auth('invalid')],
-    ['forged signature', 403, auth(`${token().split('.').slice(0, 2).join('.')}.AAAA`)],
-    ['expired', 403, auth(token({ exp: now() - 10 }))],
-    ['not yet valid', 403, auth(token({ nbf: now() + 300 }))],
-    ['missing expiration', 403, auth(token({ exp: undefined }))],
-    ['missing id', 403, auth(token({ id: undefined }))],
-    ['empty id', 403, auth(token({ id: '' }))],
-    ['non-string id', 403, auth(token({ id: 123 }))],
-    ['unsafe id', 403, auth(token({ id: 'user\r\nspoof: yes' }))],
-    ['refresh token in access cookie', 403, auth(token({ type: 'refresh' }))],
-    ['access token in refresh cookie', 403, { cookie: `refresh_token=${token()}` }],
-    ['Authorization header only', 403, { authorization: `Bearer ${token()}` }],
+    ['malformed', auth('invalid')],
+    ['both cookies malformed', { cookie: 'access_token=invalid; refresh_token=invalid' }],
+    ['forged signature', auth(`${token().split('.').slice(0, 2).join('.')}.AAAA`)],
+    ['expired', auth(token({ exp: now() - 10 }))],
+    ['not yet valid', auth(token({ nbf: now() + 300 }))],
+    ['missing expiration', auth(token({ exp: undefined }))],
+    ['missing id', auth(token({ id: undefined }))],
+    ['empty id', auth(token({ id: '' }))],
+    ['non-string id', auth(token({ id: 123 }))],
+    ['unsafe id', auth(token({ id: 'user\r\nspoof: yes' }))],
+    ['refresh token in access cookie', auth(token({ type: 'refresh' }))],
+    ['access token in refresh cookie', { cookie: `refresh_token=${token()}` }],
+    ['Authorization header only', { authorization: `Bearer ${token()}` }],
   ];
-  for (const [label, status, headers] of invalidCredentials) {
-    await t.test(`${label} returns ${status}`, async () => {
-      assert.equal((await request(rpc, {
+  for (const [label, headers] of invalidCredentials) {
+    await t.test(`${label} returns 401`, async () => {
+      const response = await request(rpc, {
         ...headers, 'x-user-id': 'attacker', 'x-token-id': 'attacker',
-      })).status, status);
+      });
+      assert.equal(response.status, 401);
+      assert.equal(response.headers.get('www-authenticate'), 'Bearer');
     });
   }
   await t.test('query parameter token is not accepted', async () => {
-    assert.equal((await request(`${rpc}?access_token=${token()}`)).status, 403);
+    assert.equal((await request(`${rpc}?access_token=${token()}`)).status, 401);
+  });
+  await t.test('gRPC receives Unauthenticated for a missing backend session', async () => {
+    const response = await fetch(`http://127.0.0.1:${port}${rpc}`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/grpc' },
+      signal: AbortSignal.timeout(5000),
+    });
+    assert.equal(response.status, 200);
+    assert.equal(response.headers.get('grpc-status'), '16');
   });
   for (const [label, access] of [
     ['absent', undefined], ['expired', token({ exp: now() - 10 })], ['malformed', 'invalid'],
@@ -265,7 +276,7 @@ test('Envoy routing, JWT authentication, and device mTLS', { timeout: 90000 }, a
       assert.equal((await request(rpc, {
         cookie: `access_token=${token({ exp: now() - 10 })}; ${cookie}`,
         'x-user-id': 'attacker', 'x-token-id': 'attacker',
-      })).status, 403);
+      })).status, 401);
       const response = await request(rpc, { cookie: `access_token=${token()}; ${cookie}` });
       assert.equal(response.status, 200);
       assert.equal((await response.json()).token, null);
