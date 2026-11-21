@@ -93,6 +93,28 @@ class ChartTests(unittest.TestCase):
                 if item["name"] in {"RABBITMQ_URL", "POSTGRES_PASSWORD", "CLICKHOUSE_PASSWORD", "JWKS_MASTER_KEY"}:
                     self.assertIn("secretKeyRef", item["valueFrom"])
 
+    def test_s3_configuration_is_backend_only(self):
+        custom = render("--set", "s3.endpointURL=https://s3.example.test,s3.region=eu-west-1,"
+                        "s3.credentialsSecret=custom-s3,s3.accessKeyKey=access,s3.secretKeyKey=secret",
+                        "--set", "components.ml.enabled=true,components.symbolicator.enabled=true,"
+                        "symbolicator.firmwareClaimName=firmware")
+        for docs, endpoint, region, secret, access_key, secret_key in [
+            (self.docs, "http://rustfs:9100", "us-east-1", "sparkly-s3-app", "RUSTFS_ACCESS_KEY", "RUSTFS_SECRET_KEY"),
+            (custom, "https://s3.example.test", "eu-west-1", "custom-s3", "access", "secret"),
+        ]:
+            expected = {
+                "RUSTFS_ENDPOINT_URL": {"value": endpoint},
+                "RUSTFS_REGION": {"value": region},
+                "RUSTFS_ACCESS_KEY": {"valueFrom": {"secretKeyRef": {"name": secret, "key": access_key}}},
+                "RUSTFS_SECRET_KEY": {"valueFrom": {"secretKeyRef": {"name": secret, "key": secret_key}}},
+            }
+            for deployment in by_kind(docs, "Deployment"):
+                container = deployment["spec"]["template"]["spec"]["containers"][0]
+                s3_env = {item["name"]: {k: v for k, v in item.items() if k != "name"}
+                          for item in container["env"] if item["name"].startswith("RUSTFS_")}
+                with self.subTest(endpoint=endpoint, component=container["name"]):
+                    self.assertEqual(s3_env, expected if container["name"] == "backend" else {})
+
     def test_service_names_match_image_config_independent_of_release_name(self):
         docs = render("--set", "fullnameOverride=custom", "--set", "routing.appHost=example.test",
                       "--set", "certificates.enabled=false", "--set", "networkPolicy.enabled=false",
@@ -151,7 +173,8 @@ class ChartTests(unittest.TestCase):
     def test_rejects_invalid_topology_and_values(self):
         for args in [("routing.enrollHost=sparkly.run",), ("components.envoy.enabled=false",),
                      ("components.symbolicator.enabled=true",), ("components.backend.replicas=0",),
-                     ("analytics.rawPersistenceWorkers=0",)]:
+                     ("analytics.rawPersistenceWorkers=0",), ("s3.endpointURL=rustfs:9100",),
+                     ("s3.credentialsSecret=",)]:
             with self.subTest(args=args), self.assertRaises(subprocess.CalledProcessError):
                 render("--set", *args)
 
