@@ -48,7 +48,7 @@
     <Dialog.Header>
       <div class="flex items-center gap-2">
         <Package class="size-5 text-primary" />
-        <Dialog.Title>Сборка {build?.version ?? ''}</Dialog.Title>
+        <Dialog.Title>Сборка {build?.releaseId ?? ''}</Dialog.Title>
       </div>
       <Dialog.Description>Сведения и метаданные сборки прошивки.</Dialog.Description>
     </Dialog.Header>
@@ -79,10 +79,10 @@
 
         <div class="grid grid-cols-2 gap-3">
           <div class="flex flex-col gap-1.5 rounded-lg border bg-muted/20 p-3">
-            <span class="text-xs font-medium text-muted-foreground">Версия</span>
+            <span class="text-xs font-medium text-muted-foreground">Релиз</span>
             <div>
               <Badge variant="secondary" class="font-mono text-xs">
-                {build.version}
+                {build.releaseId}
               </Badge>
             </div>
           </div>

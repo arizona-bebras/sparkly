@@ -82,7 +82,7 @@
       const [response] = await Promise.all([
         client.build.getBuilds({
           parkId,
-          version: versionParam,
+          releaseId: versionParam,
           commit: commitParam,
           fromTime,
           toTime,
@@ -220,7 +220,7 @@
 >
   <Dialog.Content class="sm:max-w-md">
     <Dialog.Header>
-      <Dialog.Title>Удалить сборку {deletingBuild?.version}?</Dialog.Title>
+      <Dialog.Title>Удалить сборку {deletingBuild?.releaseId}?</Dialog.Title>
       <Dialog.Description>
         Вы уверены, что хотите удалить эту сборку? Запись о сборке будет удалена из базы данных. Это
         действие нельзя отменить.
@@ -230,8 +230,8 @@
     {#if deletingBuild}
       <div class="flex flex-col gap-1.5 rounded-lg border bg-muted/30 p-3 text-xs font-mono">
         <div class="flex justify-between">
-          <span class="text-muted-foreground">Версия:</span>
-          <span class="text-foreground font-semibold">{deletingBuild.version}</span>
+          <span class="text-muted-foreground">Релиз:</span>
+          <span class="text-foreground font-semibold">{deletingBuild.releaseId}</span>
         </div>
         <div class="flex justify-between">
           <span class="text-muted-foreground">ID:</span>

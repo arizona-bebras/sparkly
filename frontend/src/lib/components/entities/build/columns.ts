@@ -29,22 +29,22 @@ export interface BuildColumnCallbacks {
 
 export function createColumns(callbacks: BuildColumnCallbacks = {}) {
   return columnHelper.columns([
-    columnHelper.accessor('version', {
-      header: 'Версия',
+    columnHelper.accessor('releaseId', {
+      header: 'Релиз',
       filterFn: (row, _columnId, filterValue) => {
         const q = String(filterValue ?? '')
           .toLowerCase()
           .trim();
         if (!q) return true;
         return (
-          row.original.version.toLowerCase().includes(q) ||
+          row.original.releaseId.toLowerCase().includes(q) ||
           row.original.commit.toLowerCase().includes(q) ||
           row.original.id.toLowerCase().includes(q)
         );
       },
       cell: ({ row }) =>
         renderComponent(BuildVersionCell, {
-          version: row.original.version,
+          version: row.original.releaseId,
           id: row.original.id,
         }),
     }),
