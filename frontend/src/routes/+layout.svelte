@@ -10,7 +10,6 @@
   import { SvelteQueryDevtools } from '@tanstack/svelte-query-devtools';
   import { goto } from '$app/navigation';
   import { page } from '$app/state';
-  import { entities } from '@/stores/entities.svelte';
 
   let { children } = $props();
 
