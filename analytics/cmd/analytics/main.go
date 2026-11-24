@@ -72,6 +72,12 @@ func run() error {
 	}
 	defer rawConsumer.Close()
 
+	resultsConsumer, err := msgq.NewSymbolicatedResultsConsumer(broker, repos.NewSymbolicatedEventsRepo(conn))
+	if err != nil {
+		return fmt.Errorf("failed to init symbolication results consumer: %w", err)
+	}
+	defer resultsConsumer.Close()
+
 	groupMembershipRepo := repos.NewGroupMembershipRepo(conn)
 	groupMembershipService := services.NewGroupMembershipService(groupMembershipRepo)
 	deviceGroupsConsumer, err := msgq.NewDeviceGroupsQueueConsumer(broker, groupMembershipService)
@@ -79,8 +85,10 @@ func run() error {
 		return fmt.Errorf("failed to init group_membership consumer: %w", err)
 	}
 
-	appCtx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	signalCtx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
+	appCtx, cancelApp := context.WithCancelCause(signalCtx)
+	defer cancelApp(nil)
 
 	if err := rawConsumer.Listen(appCtx); err != nil {
 		return fmt.Errorf("failed to start raw persistence consumer: %w", err)
@@ -91,6 +99,18 @@ func run() error {
 	if err := deviceGroupsConsumer.Listen(appCtx); err != nil {
 		return fmt.Errorf("failed to start group_membership consumer: %w", err)
 	}
+
+	resultsFailure, err := resultsConsumer.Listen(appCtx)
+	if err != nil {
+		return fmt.Errorf("failed to start symbolication results consumer: %w", err)
+	}
+	go func() {
+		select {
+		case err := <-resultsFailure:
+			cancelApp(err)
+		case <-appCtx.Done():
+		}
+	}()
 
 	httpServer := &http.Server{
 		Addr:              ":" + cfg.Port,
@@ -113,6 +133,9 @@ func run() error {
 	log.Printf("analytics listening on :%s", cfg.Port)
 	if err := httpServer.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 		return fmt.Errorf("server failed: %w", err)
+	}
+	if err := context.Cause(appCtx); err != nil && !errors.Is(err, context.Canceled) {
+		return fmt.Errorf("symbolication results consumer stopped: %w", err)
 	}
 	return nil
 }

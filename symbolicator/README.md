@@ -38,9 +38,8 @@ table. Tests also cover missing/mismatched builds, mixed-boot batches, malformed
 defmt frames, exact uint64 deltas, and agent/service protobuf compatibility.
 
 The worker preserves analytics' server batch ID, authenticated device/park identity,
-and receipt timestamp. It does not infer ownership from the parcel. Analytics
-will add group membership, event timestamps, and boot sequences when result
-persistence is implemented. The worker does not write to ClickHouse.
+and receipt timestamp. Analytics consumes the result and stores event rows in
+ClickHouse.
 
 The request envelope limit is 8 MiB, allowing for base64 and JSON expansion of
 analytics' 1 MiB binary parcels. Per-event decoding failures preserve usable fields
@@ -66,19 +65,17 @@ Output follows the proposed typed ClickHouse tables, with these explicit details
   a float; counter deltas use exact `counter_delta` integers rather than losing
   precision in a float. Unknown IDs and invalid/mismatched measurements produce
   unresolved rows. Non-finite gauge values become null with a diagnostic.
-- Logs preserve raw text/target/truncation, or decode a complete defmt frame with
-  the ELF's table/encoding. Defmt source module/file/line are returned when the
-  debug metadata provides them. Original defmt bytes remain in `defmt_raw_hex`.
-  `decode_status` describes message decoding; frame resolution is represented by
-  nullable frame fields and diagnostics. `trace_status` retains capture quality.
-- Frames retain unsigned PCs, optional function/file/line, and one row per inline
-  frame when DWARF provides it. `module` is the matched ELF build ID; the protocol
-  does not supply module names or relocation bases. Fixed-address firmware is
-  supported; PIE/shared-library rebasing and raw stack unwinding are future work.
+- Logs preserve raw text and truncation, or decode a complete defmt frame with
+  the ELF's table and encoding. The optional `module` holds the raw log target
+  or the defmt module. It can be present even when `frames` is empty.
+  Original defmt bytes remain in `defmt_raw_hex`.
+  A null `message` indicates that decoding produced no text. `trace_status`
+  retains capture quality.
+- Captured stack frames retain unsigned PCs, optional function/file/line, and one
+  row per inline frame when DWARF provides it. The event's `build_id` holds the ELF build ID.
+  Fixed-address firmware is supported. PIE/shared-library rebasing and raw stack
+  unwinding are future work.
 - Crash stack bytes use hex `stack`; registers remain uint64 values.
-- Log `fingerprint` is a deterministic SHA-256 of build, level, message, target,
-  encoded defmt bytes and captured PCs. This is a local placeholder, not a final
-  incident-grouping policy. Incidents and group membership require external data.
 
 The output is an intermediate result, not ClickHouse DDL or an insert statement.
 
@@ -90,10 +87,9 @@ analytics version-1 envelope: `schema_version`, `batch_id`, `device_id`, `park_i
 `received_at`, and nested protobuf JSON `payload`. Content type must be
 `application/json`; an AMQP message ID, when supplied, must equal `batch_id`.
 
-Results contain `schema_version: 1`, `result_version: 1`, the same correlation and
-ownership fields, `status` (`complete` or `partial` when diagnostics exist),
-`symbol_build_ids` (the artifacts actually used), and `result` (the decoder output
-described above). AMQP `message_id` and `correlation_id` both equal `batch_id`.
+Results contain `schema_version: 1`, `result_version: 5`, the same correlation and
+ownership fields, and `result` (the decoder output described above). AMQP
+`message_id` and `correlation_id` both equal `batch_id`.
 Results are published through the default exchange with mandatory routing,
 persistent delivery mode, and publisher confirms, with a 10-second publish timeout.
 
@@ -106,8 +102,8 @@ Restart the process (or use a process supervisor) to resume; automatic reconnect
 is not implemented. SIGINT/SIGTERM finish the current task before stopping intake.
 
 Delivery is at least once. A crash after publishing but before acknowledging can
-produce duplicate results with the same batch ID. The worker does not deduplicate.
-Analytics' result consumer has not been implemented, so results remain queued.
+produce duplicate results with the same batch ID. Analytics deduplicates events
+by park, server batch ID, and event index in its ClickHouse views.
 
 ## Code boundaries and symbol providers
 
@@ -123,9 +119,8 @@ Analytics' result consumer has not been implemented, so results remain queued.
 missing artifact, or an error for a failed lookup. The use case splits parcels at
 boot transitions, requests symbols by effective build ID, caches lookups within
 the task, and retains original event indices. Returned ELF build IDs are checked.
-Missing artifacts produce unresolved rows and diagnostics; transient lookup
-errors leave the request retryable. The result lists all artifacts used; the
-legacy `result.symbol_build_id` is set when exactly one artifact was used.
+Missing artifacts produce unresolved rows and diagnostics. Transient lookup
+errors leave the request eligible for retry.
 
 To add S3, implement that port in a new infrastructure adapter, including fetching,
 ELF validation and cache policy, and inject it in `main`. The fixed provider,

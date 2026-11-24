@@ -13,7 +13,7 @@ use crate::{
 
 pub const MAX_REQUEST_BYTES: usize = 8 << 20;
 const SCHEMA_VERSION: u32 = 1;
-const RESULT_VERSION: u32 = 1;
+const RESULT_VERSION: u32 = 5;
 
 // Mirrors analytics/internal/msgq/parcel_message.go. Keep transport DTOs out of the domain.
 #[derive(Deserialize)]
@@ -34,9 +34,7 @@ struct ResultMessage<'a> {
     device_id: Uuid,
     park_id: Uuid,
     received_at: DateTime<Utc>,
-    status: &'static str,
     result: &'a Output,
-    symbol_build_ids: &'a [String],
 }
 
 pub fn decode_request(
@@ -84,13 +82,7 @@ pub fn encode_result(batch: &SymbolicatedBatch) -> Result<Vec<u8>> {
         device_id: context.device_id(),
         park_id: context.park_id(),
         received_at: context.received_at(),
-        status: if batch.output.diagnostics.is_empty() {
-            "complete"
-        } else {
-            "partial"
-        },
         result: &batch.output,
-        symbol_build_ids: &batch.symbol_build_ids,
     })
     .context("encode symbolication result")
 }

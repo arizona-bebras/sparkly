@@ -2,11 +2,13 @@ package db_test
 
 import (
 	"context"
+	"database/sql"
 	"os"
 	"testing"
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/pressly/goose/v3"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
 
@@ -16,34 +18,40 @@ import (
 	agentv1 "sparkly/analytics/proto/agent/v1"
 )
 
-func TestClickHouseRawBatchRepository(t *testing.T) {
+func testClickHouse(t *testing.T) (context.Context, *sql.DB) {
+	t.Helper()
 	if os.Getenv("CLICKHOUSE_TEST") != "1" {
 		t.Skip("set CLICKHOUSE_TEST=1 to test against ClickHouse")
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
-	defer cancel()
+	t.Cleanup(cancel)
 	admin, err := db.Open(ctx)
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer admin.Close()
+	t.Cleanup(func() { admin.Close() })
 	name := "analytics_test_" + uuid.New().String()[:8]
 	if _, err := admin.ExecContext(ctx, "CREATE DATABASE "+name); err != nil {
 		t.Fatal(err)
 	}
-	defer func() {
+	t.Cleanup(func() {
 		cleanup, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancel()
 		if _, err := admin.ExecContext(cleanup, "DROP DATABASE "+name); err != nil {
 			t.Error(err)
 		}
-	}()
+	})
 	t.Setenv("CLICKHOUSE_DB", name)
 	conn, err := db.Open(ctx)
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer conn.Close()
+	t.Cleanup(func() { conn.Close() })
+	return ctx, conn
+}
+
+func TestClickHouseRawBatchRepository(t *testing.T) {
+	ctx, conn := testClickHouse(t)
 	for range 2 {
 		if err := db.Migrate(ctx, conn); err != nil {
 			t.Fatal(err)
@@ -113,4 +121,35 @@ func TestClickHouseRawBatchRepository(t *testing.T) {
 	if versions != 1 {
 		t.Fatalf("migration applied %d times", versions)
 	}
+}
+
+func TestClickHouseSymbolicatedEventsMigration(t *testing.T) {
+	ctx, conn := testClickHouse(t)
+	migrations, err := goose.NewProvider(goose.DialectClickHouse, conn, os.DirFS("migrations"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := migrations.UpTo(ctx, 2); err != nil {
+		t.Fatal(err)
+	}
+
+	assertEventSchemaCount := func(want uint64) {
+		t.Helper()
+		const query = `SELECT count() FROM system.tables WHERE database = currentDatabase()
+			AND name IN ('logs', 'metrics', 'boots', 'crashes', 'logs_deduplicated',
+				'metrics_deduplicated', 'boots_deduplicated', 'crashes_deduplicated')`
+		var got uint64
+		if err := conn.QueryRowContext(ctx, query).Scan(&got); err != nil || got != want {
+			t.Fatalf("event schema objects: got %d, want %d, error %v", got, want, err)
+		}
+	}
+	assertEventSchemaCount(0)
+	if err := db.Migrate(ctx, conn); err != nil {
+		t.Fatal(err)
+	}
+	assertEventSchemaCount(8)
+	if _, err := migrations.DownTo(ctx, 2); err != nil {
+		t.Fatal(err)
+	}
+	assertEventSchemaCount(0)
 }
