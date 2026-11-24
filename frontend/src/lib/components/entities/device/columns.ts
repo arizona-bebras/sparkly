@@ -1,6 +1,7 @@
 import { createColumnHelper, renderComponent } from '@tanstack/svelte-table';
 import type { Device } from '$proto';
 import type { DataTableFeatures } from '$lib/components/ui/data-table/data-table-features.js';
+import DeviceActionsCell from './cells/DeviceActionsCell.svelte';
 import DeviceDateCell from './cells/DeviceDateCell.svelte';
 import DeviceGroupsCell from './cells/DeviceGroupsCell.svelte';
 import DeviceNameCell from './cells/DeviceNameCell.svelte';
@@ -36,6 +37,7 @@ export const columns = columnHelper.columns([
       renderComponent(DeviceNameCell, {
         name: row.original.name,
         id: row.original.id,
+        parkId: row.original.parkId,
       }),
   }),
   columnHelper.accessor('groupIds', {
@@ -57,6 +59,15 @@ export const columns = columnHelper.columns([
     cell: ({ row }) =>
       renderComponent(DeviceDateCell, {
         time: formatTimestamp(row.original.updatedAt),
+      }),
+  }),
+  columnHelper.display({
+    id: 'actions',
+    header: '',
+    cell: ({ row }) =>
+      renderComponent(DeviceActionsCell, {
+        parkId: row.original.parkId,
+        id: row.original.id,
       }),
   }),
 ]);
