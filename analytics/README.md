@@ -62,8 +62,27 @@ MergeTree table does not deduplicate them. All raw workers cancel pending writes
 and wait for shutdown before the database is closed.
 
 The [symbolicator worker](../symbolicator/README.md) consumes `symbolication_requests`
-and publishes results to `symbolication_results`. Analytics has no result consumer
-yet, so symbolicated results remain queued.
+and publishes results to `symbolication_results`. Analytics consumes results
+in versions 1 through 3 and writes one row per event to `logs`, `metrics`,
+`boots`, or `crashes`. Metric counter deltas, frame addresses, and registers
+retain their unsigned 64-bit values.
+Event diagnostics are stored with their rows. Diagnostics without a matching event
+row are emitted in the analytics service log.
+
+The first element of a log's `frames` array represents the log site. Its
+`module` is the log target or source module, and `file` and `line` can identify
+the source location. Captured stack frames follow. Analytics converts queued
+version-1 results to this layout before insertion.
+
+Query `logs_deduplicated`, `metrics_deduplicated`, `boots_deduplicated`, and
+`crashes_deduplicated` for one logical row per park, server batch ID, and event
+index. Inserts commit per
+table, so rows can become visible before the other tables finish. The consumer
+acknowledges RabbitMQ after all applicable inserts succeed. It retries failed
+writes with backoff and shuts analytics down on an unexpected consumer exit.
+To retain rejected results, configure a RabbitMQ dead-letter policy on
+`symbolication_results`.
+
 The existing group-membership consumer and ClickHouse startup checks/migrations
 still run. Set `RABBITMQ_URL` to the AMQP connection URL (default
 `amqp://localhost:5672/`); Compose supplies its configured credentials and vhost.
@@ -93,10 +112,12 @@ Set `RABBITMQ_TEST_URL` to run the broker integration test. It uses uniquely nam
 queues and an exchange, verifies concurrent ingest copies and unroutable-message
 handling, and removes its topology afterward. It does not consume application queues.
 
-Set both `CLICKHOUSE_TEST=1` and `RABBITMQ_TEST_URL` to also run the raw persistence
-end-to-end test. It writes through a temporary raw queue into an isolated database,
+Set both `CLICKHOUSE_TEST=1` and `RABBITMQ_TEST_URL` to run the persistence
+end-to-end tests against temporary queues and isolated databases. The raw test
 checks the stored ID/identity/timestamp/payload and acknowledgement, and verifies
-that the corresponding symbolication request stays queued.
+that the corresponding symbolication request stays queued. The result test forces
+a partial write and verifies retries, deduplication before merges, and exact
+unsigned values.
 
 ## Code boundaries
 

@@ -20,8 +20,14 @@ fn decodes_dictionary_dwarf_defmt_and_crashes_from_a_real_elf() {
     assert_eq!(out.metrics[0].name.as_deref(), Some("device.temperature"));
     assert_eq!(out.metrics[0].value, Some(23.5));
     assert_eq!(out.logs[0].message.as_deref(), Some("sensor ready"));
-    let frame = &out.logs[0].frames[0];
+    let source = &out.logs[0].frames[0];
+    assert_eq!(source.module.as_deref(), Some("fixture"));
+    assert_eq!(source.pc, None);
+    assert_eq!(source.function, None);
+    let frame = &out.logs[0].frames[1];
     assert_eq!(frame.function.as_deref(), Some("sampled_function"));
+    assert!(frame.pc.is_some());
+    assert!(frame.module.is_none());
     assert!(frame.file.as_ref().unwrap().ends_with("firmware.c"));
     assert!(frame.line.unwrap() > 0);
     assert_eq!(out.logs[1].message.as_deref(), Some("temperature=42"));
@@ -54,7 +60,7 @@ fn boot_transition_switches_symbols_without_guessing_for_mismatched_builds() {
     let out = symbolicate(&parcel, &symbols);
     assert!(out.metrics[0].name.is_none());
     assert_eq!(out.logs[0].message.as_deref(), Some("sensor ready"));
-    assert!(out.logs[0].frames[0].function.is_none());
+    assert!(out.logs[0].frames[1].function.is_none());
     assert_eq!(out.logs[1].message.as_deref(), Some("temperature=42"));
     assert!(out.crashes[0].frames[0].function.is_some());
     assert!(!out.diagnostics.is_empty());
@@ -71,6 +77,7 @@ fn malformed_defmt_does_not_prevent_later_frames_from_decoding() {
     parcel.events.push(valid);
     let out = symbolicate(&parcel, &symbols);
     assert!(out.logs[1].message.is_none());
+    assert!(out.logs[1].frames[0].module.is_none());
     assert_eq!(out.logs[1].defmt_raw_hex.as_deref(), Some("ff"));
     assert_eq!(out.logs[2].message.as_deref(), Some("temperature=42"));
     assert!(!out.diagnostics.is_empty());

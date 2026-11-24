@@ -55,5 +55,4 @@ impl BatchContext {
 pub struct SymbolicatedBatch {
     pub context: BatchContext,
     pub output: Output,
-    pub symbol_build_ids: Vec<String>,
 }

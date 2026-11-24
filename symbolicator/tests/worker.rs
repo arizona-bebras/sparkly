@@ -105,12 +105,8 @@ async fn fixed_provider_matches_existing_decoder_and_preserves_metadata() {
         assert_eq!(encoded[field], message[field]);
     }
     assert_eq!(encoded["schema_version"], 1);
-    assert_eq!(encoded["result_version"], 1);
-    assert_eq!(encoded["status"], "complete");
-    assert_eq!(
-        encoded["symbol_build_ids"],
-        json!([result.output.symbol_build_id])
-    );
+    assert_eq!(encoded["result_version"], 3);
+    assert_eq!(encoded["result"]["diagnostics"], json!([]));
 }
 
 struct RecordingProvider {
@@ -164,13 +160,18 @@ async fn provider_is_replaceable_and_boot_transitions_keep_original_event_indice
         .await
         .unwrap();
     assert_eq!(*calls.borrow(), vec!["missing-build", &build_id]);
-    assert!(result.output.logs[0].frames[0].function.is_none());
-    assert!(result.output.logs[2].frames[0].function.is_some());
+    assert!(result.output.logs[0].frames[1].function.is_none());
+    assert!(result.output.logs[2].frames[1].function.is_some());
     assert_eq!(result.output.logs[2].common.event_index, 5);
     assert_eq!(result.output.boots[0].common.event_index, 4);
     assert!(!result.output.diagnostics.is_empty());
     let encoded: Value = serde_json::from_slice(&encode_result(&result).unwrap()).unwrap();
-    assert_eq!(encoded["status"], "partial");
+    assert!(
+        !encoded["result"]["diagnostics"]
+            .as_array()
+            .unwrap()
+            .is_empty()
+    );
 }
 
 #[tokio::test]
@@ -223,5 +224,10 @@ async fn unresolved_results_preserve_exact_counters_without_symbols() {
         Some(u64::MAX)
     );
     assert_eq!(encoded["result"]["producer_batch_id"], "0102");
-    assert_eq!(encoded["status"], "partial");
+    assert!(
+        !encoded["result"]["diagnostics"]
+            .as_array()
+            .unwrap()
+            .is_empty()
+    );
 }

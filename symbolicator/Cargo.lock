@@ -2509,7 +2509,6 @@ dependencies = [
  "prost-build",
  "serde",
  "serde_json",
- "sha2",
  "sparkly-build",
  "sparkly-core",
  "sparkly-protocol",

@@ -168,12 +168,21 @@ async fn publishes_correlated_results_and_rejects_invalid_requests() {
     for field in ["batch_id", "device_id", "park_id", "received_at"] {
         assert_eq!(body[field], message[field]);
     }
-    assert_eq!(body["status"], "complete");
+    assert_eq!(body["result_version"], 3);
+    assert_eq!(body["result"]["diagnostics"], serde_json::json!([]));
+    for field in ["status", "symbol_build_ids"] {
+        assert!(body.get(field).is_none());
+    }
+    assert!(body["result"].get("symbol_build_id").is_none());
     assert_eq!(body["result"]["logs"][1]["message"], "temperature=42");
-    assert_eq!(
-        body["result"]["logs"][0]["frames"][0]["function"],
-        "sampled_function"
-    );
+    let log = &body["result"]["logs"][0];
+    assert_eq!(log["frames"][0]["module"], "fixture");
+    assert!(log["frames"][0]["pc"].is_null());
+    assert_eq!(log["frames"][1]["function"], "sampled_function");
+    assert!(log["frames"][1]["module"].is_null());
+    for field in ["target", "file", "line", "fingerprint", "decode_status"] {
+        assert!(log.get(field).is_none());
+    }
     let queue = fixture
         .channel
         .queue_declare(

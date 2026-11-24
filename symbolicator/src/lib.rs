@@ -5,7 +5,6 @@ pub mod infrastructure;
 
 use anyhow::{Context, Result};
 use serde::Serialize;
-use sha2::{Digest, Sha256};
 use std::{collections::BTreeMap, path::Path};
 
 #[allow(clippy::useless_borrows_in_formatting)] // pbjson-generated code
@@ -64,9 +63,10 @@ pub struct MetricRow {
     pub decode_status: String,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Default, Serialize)]
 pub struct Frame {
-    pub pc: u64,
+    pub pc: Option<u64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub module: Option<String>,
     pub function: Option<String>,
     pub file: Option<String>,
@@ -77,17 +77,12 @@ pub struct Frame {
 pub struct LogRow {
     #[serde(flatten)]
     pub common: Common,
-    pub fingerprint: String,
     pub level: Option<String>,
     pub message: Option<String>,
-    pub target: Option<String>,
-    pub file: Option<String>,
-    pub line: Option<u32>,
     pub truncated: bool,
     pub trace_status: String,
     pub frames: Vec<Frame>,
     pub defmt_raw_hex: Option<String>,
-    pub decode_status: String,
 }
 
 #[derive(Debug, Serialize)]
@@ -111,7 +106,6 @@ pub struct Diagnostic {
 pub struct Output {
     pub producer_batch_id: String,
     pub dropped_records: u64,
-    pub symbol_build_id: String,
     pub boots: Vec<BootRow>,
     pub metrics: Vec<MetricRow>,
     pub logs: Vec<LogRow>,
@@ -172,8 +166,8 @@ impl Symbols {
                     .map_err(|e| anyhow::anyhow!(e.to_string()))?;
                 while let Some(frame) = frames.next()? {
                     result.push(Frame {
-                        pc: pc.pc,
-                        module: Some(self.build_id.clone()),
+                        pc: Some(pc.pc),
+                        module: None,
                         function: frame
                             .function
                             .and_then(|f| f.demangle().ok().map(|s| s.into_owned())),
@@ -191,8 +185,8 @@ impl Symbols {
             }
             if result.len() == start {
                 result.push(Frame {
-                    pc: pc.pc,
-                    module: Some(self.build_id.clone()),
+                    pc: Some(pc.pc),
+                    module: None,
                     function: self.loader.find_symbol(pc.pc).map(str::to_owned),
                     file: None,
                     line: None,
@@ -234,7 +228,7 @@ fn resolve_frames(
         None => pcs
             .iter()
             .map(|frame| Frame {
-                pc: frame.pc,
+                pc: Some(frame.pc),
                 module: None,
                 function: None,
                 file: None,
@@ -252,7 +246,6 @@ pub(crate) fn symbolicate_optional(parcel: &wire::Parcel, symbols: Option<&Symbo
     let mut out = Output {
         producer_batch_id: hex::encode(&parcel.batch_id),
         dropped_records: parcel.dropped_records,
-        symbol_build_id: symbols.map(|s| s.build_id.clone()).unwrap_or_default(),
         ..Output::default()
     };
     if let Some(error) = symbols.and_then(|s| s.defmt_error.as_ref()) {
@@ -321,15 +314,17 @@ pub(crate) fn symbolicate_optional(parcel: &wire::Parcel, symbols: Option<&Symbo
                 });
             }
             Some(wire::event::Payload::Log(log)) => {
-                let frames = resolve_frames(&log.frames, matching_symbols, index, &mut out);
+                let mut frames = vec![Frame::default()];
+                frames.extend(resolve_frames(
+                    &log.frames,
+                    matching_symbols,
+                    index,
+                    &mut out,
+                ));
                 let mut row = LogRow {
                     common,
-                    fingerprint: String::new(),
                     level: None,
                     message: None,
-                    target: None,
-                    file: None,
-                    line: None,
                     truncated: false,
                     trace_status: wire::TraceStatus::try_from(log.trace_status)
                         .map(|s| {
@@ -340,17 +335,17 @@ pub(crate) fn symbolicate_optional(parcel: &wire::Parcel, symbols: Option<&Symbo
                         .unwrap_or_else(|_| "UNKNOWN".into()),
                     frames,
                     defmt_raw_hex: None,
-                    decode_status: "unresolved".into(),
                 };
+                // The first frame is the log site, followed by any captured stack frames.
+                let source = &mut row.frames[0];
                 match &log.content {
                     Some(wire::log::Content::RawLog(raw)) => {
                         row.level = wire::LogLevel::try_from(raw.level)
                             .ok()
                             .map(|l| l.as_str_name().trim_start_matches("LOG_LEVEL_").to_owned());
                         row.message = Some(raw.message.clone());
-                        row.target = Some(raw.target.clone());
+                        source.module = Some(raw.target.clone());
                         row.truncated = raw.truncated;
-                        row.decode_status = "decoded".into();
                     }
                     Some(wire::log::Content::DefmtLog(bytes)) => {
                         row.defmt_raw_hex = Some(hex::encode(bytes));
@@ -365,13 +360,12 @@ pub(crate) fn symbolicate_optional(parcel: &wire::Parcel, symbols: Option<&Symbo
                                     if let Some(location) =
                                         symbols.defmt_locations.get(&frame.index())
                                     {
-                                        row.target = Some(location.module.clone());
-                                        row.file = Some(location.file.display().to_string());
-                                        row.line = location.line.try_into().ok();
+                                        source.module = Some(location.module.clone());
+                                        source.file = Some(location.file.display().to_string());
+                                        source.line = location.line.try_into().ok();
                                     }
                                     row.level =
                                         frame.level().map(|l| format!("{l:?}").to_uppercase());
-                                    row.decode_status = "decoded".into();
                                 }
                                 Err(error) => {
                                     diagnostic(&mut out, index, format!("defmt frame: {error}"))
@@ -388,18 +382,6 @@ pub(crate) fn symbolicate_optional(parcel: &wire::Parcel, symbols: Option<&Symbo
                     }
                     None => diagnostic(&mut out, index, "log has no content"),
                 }
-                // Deterministic local fingerprint; not an incident grouping policy.
-                row.fingerprint = hex::encode(Sha256::digest(
-                    serde_json::to_vec(&(
-                        &row.common.build_id,
-                        &row.level,
-                        &row.message,
-                        &row.target,
-                        &row.defmt_raw_hex,
-                        log.frames.iter().map(|f| f.pc).collect::<Vec<_>>(),
-                    ))
-                    .expect("serializable fingerprint fields"),
-                ));
                 out.logs.push(row);
             }
             Some(wire::event::Payload::Crash(crash)) => {

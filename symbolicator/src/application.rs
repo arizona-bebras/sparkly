@@ -1,8 +1,4 @@
-use std::{
-    collections::{BTreeSet, HashMap},
-    future::Future,
-    rc::Rc,
-};
+use std::{collections::HashMap, future::Future, rc::Rc};
 
 use crate::{
     Output, Symbols,
@@ -40,7 +36,6 @@ impl<P: SymbolProvider> SymbolicationService<P> {
             ..Output::default()
         };
         let mut artifacts = HashMap::new();
-        let mut used_builds = BTreeSet::new();
         let mut boot = parcel.initial_boot.clone();
         let mut start = 0;
         while start < parcel.events.len() {
@@ -70,9 +65,6 @@ impl<P: SymbolProvider> SymbolicationService<P> {
             } else {
                 None
             };
-            if let Some(symbols) = symbols {
-                used_builds.insert(symbols.build_id().to_owned());
-            }
             // Each span has a stable boot context. Boot events remain real output rows.
             let end = parcel.events[start + 1..]
                 .iter()
@@ -87,14 +79,9 @@ impl<P: SymbolProvider> SymbolicationService<P> {
             append_output(&mut output, symbolicate_optional(&span, symbols), start);
             start = end;
         }
-        let symbol_build_ids: Vec<_> = used_builds.into_iter().collect();
-        if symbol_build_ids.len() == 1 {
-            output.symbol_build_id = symbol_build_ids[0].clone();
-        }
         Ok(SymbolicatedBatch {
             context: task.context,
             output,
-            symbol_build_ids,
         })
     }
 }
