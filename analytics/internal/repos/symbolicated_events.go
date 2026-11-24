@@ -29,7 +29,7 @@ func (r *SymbolicatedEventsRepo) StoreSymbolicatedBatch(ctx context.Context, bat
 	logs := make([][]any, 0, len(out.Logs))
 	for _, event := range out.Logs {
 		logs = append(logs, append(common(event.SymbolicatedEvent), event.Level, event.Message,
-			logFrameTuples(event.Frames), event.Truncated, event.TraceStatus, event.DefmtRawHex))
+			event.Module, frameTuples(event.Frames), event.Truncated, event.TraceStatus, event.DefmtRawHex))
 	}
 	if err := r.insertEvents(ctx, insertSymbolicatedLogs, logs); err != nil {
 		return fmt.Errorf("insert logs: %w", err)
@@ -55,11 +55,7 @@ func (r *SymbolicatedEventsRepo) StoreSymbolicatedBatch(ctx context.Context, bat
 
 	crashes := make([][]any, 0, len(out.Crashes))
 	for _, event := range out.Crashes {
-		frames := make([][]any, 0, len(event.Frames))
-		for _, frame := range event.Frames {
-			frames = append(frames, []any{*frame.PC, frame.Function, frame.File, frame.Line})
-		}
-		crashes = append(crashes, append(common(event.SymbolicatedEvent), frames,
+		crashes = append(crashes, append(common(event.SymbolicatedEvent), frameTuples(event.Frames),
 			event.SP, event.Reason, event.Stack, event.Registers))
 	}
 	if err := r.insertEvents(ctx, insertSymbolicatedCrashes, crashes); err != nil {
@@ -72,7 +68,7 @@ func (r *SymbolicatedEventsRepo) StoreSymbolicatedBatch(ctx context.Context, bat
 const symbolicatedEventColumns = "park_id, device_id, batch_id, event_index, received_at, boot_id, build_id, monotonic_us, diagnostics"
 
 const insertSymbolicatedLogs = "INSERT INTO logs (" + symbolicatedEventColumns + `,
-	level, message, frames, truncated, trace_status, defmt_raw_hex)`
+	level, message, module, frames, truncated, trace_status, defmt_raw_hex)`
 
 const insertSymbolicatedMetrics = "INSERT INTO metrics (" + symbolicatedEventColumns + `,
 	metric_id, name, kind, value, counter_delta, decode_status)`
@@ -83,10 +79,10 @@ const insertSymbolicatedBoots = "INSERT INTO boots (" + symbolicatedEventColumns
 const insertSymbolicatedCrashes = "INSERT INTO crashes (" + symbolicatedEventColumns + `,
 	frames, sp, reason, stack_hex, registers)`
 
-func logFrameTuples(frames []domain.SymbolicatedFrame) [][]any {
+func frameTuples(frames []domain.SymbolicatedFrame) [][]any {
 	tuples := make([][]any, 0, len(frames))
 	for _, frame := range frames {
-		tuples = append(tuples, []any{frame.PC, frame.Module, frame.Function, frame.File, frame.Line})
+		tuples = append(tuples, []any{*frame.PC, frame.Function, frame.File, frame.Line})
 	}
 	return tuples
 }

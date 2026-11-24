@@ -63,16 +63,16 @@ and wait for shutdown before the database is closed.
 
 The [symbolicator worker](../symbolicator/README.md) consumes `symbolication_requests`
 and publishes results to `symbolication_results`. Analytics consumes results
-in versions 1 through 3 and writes one row per event to `logs`, `metrics`,
+in versions 1 through 5 and writes one row per event to `logs`, `metrics`,
 `boots`, or `crashes`. Metric counter deltas, frame addresses, and registers
 retain their unsigned 64-bit values.
 Event diagnostics are stored with their rows. Diagnostics without a matching event
 row are emitted in the analytics service log.
 
-The first element of a log's `frames` array represents the log site. Its
-`module` is the log target or source module, and `file` and `line` can identify
-the source location. Captured stack frames follow. Analytics converts queued
-version-1 results to this layout before insertion.
+A log's `module` column holds the raw target or the decoded defmt module.
+The `frames` array contains the captured backtrace, including file and line
+when resolved. Analytics extracts the module from older result formats before
+insertion.
 
 Query `logs_deduplicated`, `metrics_deduplicated`, `boots_deduplicated`, and
 `crashes_deduplicated` for one logical row per park, server batch ID, and event

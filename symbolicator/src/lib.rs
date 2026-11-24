@@ -63,11 +63,9 @@ pub struct MetricRow {
     pub decode_status: String,
 }
 
-#[derive(Debug, Default, Serialize)]
+#[derive(Debug, Serialize)]
 pub struct Frame {
-    pub pc: Option<u64>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub module: Option<String>,
+    pub pc: u64,
     pub function: Option<String>,
     pub file: Option<String>,
     pub line: Option<u32>,
@@ -81,6 +79,8 @@ pub struct LogRow {
     pub message: Option<String>,
     pub truncated: bool,
     pub trace_status: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub module: Option<String>,
     pub frames: Vec<Frame>,
     pub defmt_raw_hex: Option<String>,
 }
@@ -166,8 +166,7 @@ impl Symbols {
                     .map_err(|e| anyhow::anyhow!(e.to_string()))?;
                 while let Some(frame) = frames.next()? {
                     result.push(Frame {
-                        pc: Some(pc.pc),
-                        module: None,
+                        pc: pc.pc,
                         function: frame
                             .function
                             .and_then(|f| f.demangle().ok().map(|s| s.into_owned())),
@@ -185,8 +184,7 @@ impl Symbols {
             }
             if result.len() == start {
                 result.push(Frame {
-                    pc: Some(pc.pc),
-                    module: None,
+                    pc: pc.pc,
                     function: self.loader.find_symbol(pc.pc).map(str::to_owned),
                     file: None,
                     line: None,
@@ -228,8 +226,7 @@ fn resolve_frames(
         None => pcs
             .iter()
             .map(|frame| Frame {
-                pc: Some(frame.pc),
-                module: None,
+                pc: frame.pc,
                 function: None,
                 file: None,
                 line: None,
@@ -314,13 +311,6 @@ pub(crate) fn symbolicate_optional(parcel: &wire::Parcel, symbols: Option<&Symbo
                 });
             }
             Some(wire::event::Payload::Log(log)) => {
-                let mut frames = vec![Frame::default()];
-                frames.extend(resolve_frames(
-                    &log.frames,
-                    matching_symbols,
-                    index,
-                    &mut out,
-                ));
                 let mut row = LogRow {
                     common,
                     level: None,
@@ -333,18 +323,19 @@ pub(crate) fn symbolicate_optional(parcel: &wire::Parcel, symbols: Option<&Symbo
                                 .to_owned()
                         })
                         .unwrap_or_else(|_| "UNKNOWN".into()),
-                    frames,
+                    module: None,
+                    frames: resolve_frames(&log.frames, matching_symbols, index, &mut out),
                     defmt_raw_hex: None,
                 };
-                // The first frame is the log site, followed by any captured stack frames.
-                let source = &mut row.frames[0];
                 match &log.content {
                     Some(wire::log::Content::RawLog(raw)) => {
                         row.level = wire::LogLevel::try_from(raw.level)
                             .ok()
                             .map(|l| l.as_str_name().trim_start_matches("LOG_LEVEL_").to_owned());
                         row.message = Some(raw.message.clone());
-                        source.module = Some(raw.target.clone());
+                        if !raw.target.is_empty() {
+                            row.module = Some(raw.target.clone());
+                        }
                         row.truncated = raw.truncated;
                     }
                     Some(wire::log::Content::DefmtLog(bytes)) => {
@@ -360,9 +351,7 @@ pub(crate) fn symbolicate_optional(parcel: &wire::Parcel, symbols: Option<&Symbo
                                     if let Some(location) =
                                         symbols.defmt_locations.get(&frame.index())
                                     {
-                                        source.module = Some(location.module.clone());
-                                        source.file = Some(location.file.display().to_string());
-                                        source.line = location.line.try_into().ok();
+                                        row.module = Some(location.module.clone());
                                     }
                                     row.level =
                                         frame.level().map(|l| format!("{l:?}").to_uppercase());

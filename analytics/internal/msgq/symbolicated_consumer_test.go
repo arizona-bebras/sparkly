@@ -55,9 +55,26 @@ func symbolicationV3FixtureDelivery() amqp.Delivery {
 	return msg
 }
 
+func symbolicationV4FixtureDelivery() amqp.Delivery {
+	msg := symbolicationV3FixtureDelivery()
+	msg.Body = bytes.Replace(msg.Body, []byte(`"result_version":3`), []byte(`"result_version":4`), 1)
+	msg.Body = bytes.Replace(msg.Body, []byte(`"frames":[{"pc":null,"module":"app::sensor","function":null,"file":"src/sensor.rs","line":42},`),
+		[]byte(`"source":{"module":"app::sensor","file":"src/sensor.rs","line":42},"frames":[`), 1)
+	return msg
+}
+
+func symbolicationV5FixtureDelivery() amqp.Delivery {
+	msg := symbolicationV4FixtureDelivery()
+	msg.Body = bytes.Replace(msg.Body, []byte(`"result_version":4`), []byte(`"result_version":5`), 1)
+	msg.Body = bytes.Replace(msg.Body, []byte(`"source":{"module":"app::sensor","file":"src/sensor.rs","line":42}`),
+		[]byte(`"module":"app::sensor"`), 1)
+	return msg
+}
+
 func TestDecodeSymbolicatedBatch(t *testing.T) {
 	for name, delivery := range map[string]amqp.Delivery{
-		"v1": symbolicationFixtureDelivery(), "v2": symbolicationV2FixtureDelivery(), "v3": symbolicationV3FixtureDelivery(),
+		"v1": symbolicationFixtureDelivery(), "v2": symbolicationV2FixtureDelivery(),
+		"v3": symbolicationV3FixtureDelivery(), "v4": symbolicationV4FixtureDelivery(), "v5": symbolicationV5FixtureDelivery(),
 	} {
 		t.Run(name, func(t *testing.T) {
 			batch, err := decodeSymbolicatedBatch(delivery)
@@ -74,11 +91,11 @@ func TestDecodeSymbolicatedBatch(t *testing.T) {
 			if batch.Output.Diagnostics[0].Unattached || !batch.Output.Diagnostics[1].Unattached {
 				t.Fatalf("unexpected diagnostic attachment: %+v", batch.Output.Diagnostics)
 			}
-			frames := batch.Output.Logs[0].Frames
-			if len(frames) != 2 || frames[0].PC != nil || frames[0].Module == nil || *frames[0].Module != "app::sensor" ||
-				frames[0].File == nil || *frames[0].File != "src/sensor.rs" || frames[0].Line == nil || *frames[0].Line != 42 ||
-				frames[1].PC == nil || *frames[1].PC != math.MaxUint64 || frames[1].Module != nil {
-				t.Fatalf("unexpected source or stack frames: %+v", frames)
+			entry := batch.Output.Logs[0]
+			frames := entry.Frames
+			if entry.Module == nil || *entry.Module != "app::sensor" ||
+				len(frames) != 1 || frames[0].PC == nil || *frames[0].PC != math.MaxUint64 {
+				t.Fatalf("unexpected module or stack frames: %+v", entry)
 			}
 		})
 	}
@@ -119,7 +136,7 @@ func TestSymbolicationResultsRejectMalformedDelivery(t *testing.T) {
 		{"wrong correlation ID", func(msg *amqp.Delivery) { msg.CorrelationId = "unexpected" }},
 		{"trailing JSON", func(msg *amqp.Delivery) { msg.Body = append(msg.Body, []byte(" {}")...) }},
 		{"unsupported version", func(msg *amqp.Delivery) {
-			msg.Body = bytes.Replace(msg.Body, []byte(`"result_version":1`), []byte(`"result_version":4`), 1)
+			msg.Body = bytes.Replace(msg.Body, []byte(`"result_version":1`), []byte(`"result_version":6`), 1)
 		}},
 	} {
 		t.Run(tc.name, func(t *testing.T) {

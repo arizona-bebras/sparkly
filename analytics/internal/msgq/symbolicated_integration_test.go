@@ -96,7 +96,7 @@ func TestSymbolicationResultsRabbitMQClickHouse(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
-	publish(symbolicationV3FixtureDelivery())
+	publish(symbolicationV5FixtureDelivery())
 
 	select {
 	case err := <-firstError:
@@ -122,7 +122,7 @@ func TestSymbolicationResultsRabbitMQClickHouse(t *testing.T) {
 	if _, err := conn.ExecContext(ctx, "RENAME TABLE crashes_unavailable TO crashes"); err != nil {
 		t.Fatal(err)
 	}
-	publish(symbolicationFixtureDelivery()) // The equivalent legacy result with the same batch ID.
+	publish(symbolicationV4FixtureDelivery()) // The equivalent legacy result with the same batch ID.
 	for range 2 {
 		select {
 		case <-successes:
@@ -143,11 +143,9 @@ func TestSymbolicationResultsRabbitMQClickHouse(t *testing.T) {
 	assertCount("SELECT count() FROM metrics_deduplicated", 1)
 	assertCount("SELECT count() FROM boots_deduplicated WHERE reset_reason = 'power_on' AND raw_reset_reason = 17", 1)
 	assertCount("SELECT count() FROM raw_batches", 0)
-	assertCount(`SELECT count() FROM logs_deduplicated WHERE length(frames) = 2
-		AND tupleElement(frames[1], 'pc') IS NULL AND tupleElement(frames[1], 'module') = 'app::sensor'
-		AND tupleElement(frames[1], 'file') = 'src/sensor.rs' AND tupleElement(frames[1], 'line') = 42
-		AND tupleElement(frames[2], 'pc') = toUInt64('18446744073709551615')
-		AND tupleElement(frames[2], 'module') IS NULL`, 1)
+	assertCount(`SELECT count() FROM logs_deduplicated WHERE length(frames) = 1
+		AND module = 'app::sensor'
+		AND tupleElement(frames[1], 'pc') = toUInt64('18446744073709551615')`, 1)
 
 	var copies uint64
 	if err := conn.QueryRowContext(ctx, "SELECT count() FROM logs").Scan(&copies); err != nil || copies < 3 {

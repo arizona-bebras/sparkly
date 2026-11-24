@@ -66,15 +66,13 @@ Output follows the proposed typed ClickHouse tables, with these explicit details
   precision in a float. Unknown IDs and invalid/mismatched measurements produce
   unresolved rows. Non-finite gauge values become null with a diagnostic.
 - Logs preserve raw text and truncation, or decode a complete defmt frame with
-  the ELF's table and encoding. The first frame represents the log site. Its
-  `module` is the raw log target or the defmt source module, and its `file` and
-  `line` come from defmt debug metadata when available. The log site has a null
-  `pc` and `function`. Original defmt bytes remain in `defmt_raw_hex`.
+  the ELF's table and encoding. The optional `module` holds the raw log target
+  or the defmt module. It can be present even when `frames` is empty.
+  Original defmt bytes remain in `defmt_raw_hex`.
   A null `message` indicates that decoding produced no text. `trace_status`
   retains capture quality.
 - Captured stack frames retain unsigned PCs, optional function/file/line, and one
-  row per inline frame when DWARF provides it. The capture has no module names,
-  so JSON omits `module` on these frames. The event's `build_id` holds the ELF build ID.
+  row per inline frame when DWARF provides it. The event's `build_id` holds the ELF build ID.
   Fixed-address firmware is supported. PIE/shared-library rebasing and raw stack
   unwinding are future work.
 - Crash stack bytes use hex `stack`; registers remain uint64 values.
@@ -89,7 +87,7 @@ analytics version-1 envelope: `schema_version`, `batch_id`, `device_id`, `park_i
 `received_at`, and nested protobuf JSON `payload`. Content type must be
 `application/json`; an AMQP message ID, when supplied, must equal `batch_id`.
 
-Results contain `schema_version: 1`, `result_version: 3`, the same correlation and
+Results contain `schema_version: 1`, `result_version: 5`, the same correlation and
 ownership fields, and `result` (the decoder output described above). AMQP
 `message_id` and `correlation_id` both equal `batch_id`.
 Results are published through the default exchange with mandatory routing,

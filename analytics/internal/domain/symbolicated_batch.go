@@ -49,7 +49,6 @@ type SymbolicatedMetric struct {
 
 type SymbolicatedFrame struct {
 	PC       *uint64 `json:"pc"`
-	Module   *string `json:"module"`
 	Function *string `json:"function"`
 	File     *string `json:"file"`
 	Line     *uint32 `json:"line"`
@@ -59,6 +58,7 @@ type SymbolicatedLog struct {
 	SymbolicatedEvent
 	Level       *string             `json:"level"`
 	Message     *string             `json:"message"`
+	Module      *string             `json:"module"`
 	Frames      []SymbolicatedFrame `json:"frames"`
 	Truncated   bool                `json:"truncated"`
 	TraceStatus string              `json:"trace_status"`

@@ -12,7 +12,8 @@ CREATE TABLE IF NOT EXISTS logs (
     diagnostics Array(String),
     level Nullable(String),
     message Nullable(String),
-    frames Array(Tuple(pc Nullable(UInt64), module Nullable(String), function Nullable(String), file Nullable(String), line Nullable(UInt32))),
+    module Nullable(String),
+    frames Array(Tuple(pc UInt64, function Nullable(String), file Nullable(String), line Nullable(UInt32))),
     truncated Bool,
     trace_status String,
     defmt_raw_hex Nullable(String)

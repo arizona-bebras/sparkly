@@ -13,7 +13,7 @@ use crate::{
 
 pub const MAX_REQUEST_BYTES: usize = 8 << 20;
 const SCHEMA_VERSION: u32 = 1;
-const RESULT_VERSION: u32 = 3;
+const RESULT_VERSION: u32 = 5;
 
 // Mirrors analytics/internal/msgq/parcel_message.go. Keep transport DTOs out of the domain.
 #[derive(Deserialize)]

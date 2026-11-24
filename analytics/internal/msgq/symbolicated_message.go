@@ -29,9 +29,16 @@ type symbolicationResultOutput struct {
 
 type symbolicationResultLog struct {
 	domain.SymbolicatedLog
-	Target *string `json:"target"`
-	File   *string `json:"file"`
-	Line   *uint32 `json:"line"`
+	Frames []symbolicationResultFrame `json:"frames"`
+	Target *string                    `json:"target"`
+	Source *struct {
+		Module *string `json:"module"`
+	} `json:"source"`
+}
+
+type symbolicationResultFrame struct {
+	domain.SymbolicatedFrame
+	Module *string `json:"module"`
 }
 
 func (result *symbolicationResultOutput) normalize(version int) domain.SymbolicatedOutput {
@@ -40,12 +47,22 @@ func (result *symbolicationResultOutput) normalize(version int) domain.Symbolica
 		out.Logs = make([]domain.SymbolicatedLog, 0, len(result.Logs))
 		for _, entry := range result.Logs {
 			row := entry.SymbolicatedLog
-			if version == 1 && row.Frames != nil {
-				for i := range row.Frames {
-					row.Frames[i].Module = nil // v1 used this field for the ELF build ID.
+			frames := entry.Frames
+			switch {
+			case version == 1:
+				row.Module = entry.Target
+			case version < 4 && len(frames) > 0 && frames[0].PC == nil && frames[0].Function == nil:
+				// Versions 2 and 3 carried the log site in an artificial first frame.
+				row.Module = frames[0].Module
+				frames = frames[1:]
+			case version == 4 && entry.Source != nil:
+				row.Module = entry.Source.Module
+			}
+			if frames != nil {
+				row.Frames = make([]domain.SymbolicatedFrame, 0, len(frames))
+				for _, frame := range frames {
+					row.Frames = append(row.Frames, frame.SymbolicatedFrame)
 				}
-				source := domain.SymbolicatedFrame{Module: entry.Target, File: entry.File, Line: entry.Line}
-				row.Frames = append([]domain.SymbolicatedFrame{source}, row.Frames...)
 			}
 			out.Logs = append(out.Logs, row)
 		}
@@ -62,7 +79,7 @@ func decodeSymbolicatedBatch(msg amqp.Delivery) (domain.SymbolicatedBatch, error
 	if err := json.Unmarshal(msg.Body, &envelope); err != nil {
 		return batch, fmt.Errorf("decode result envelope: %w", err)
 	}
-	if envelope.SchemaVersion != 1 || envelope.ResultVersion < 1 || envelope.ResultVersion > 3 {
+	if envelope.SchemaVersion != 1 || envelope.ResultVersion < 1 || envelope.ResultVersion > 5 {
 		return batch, fmt.Errorf("unsupported symbolication schema/result version %d/%d", envelope.SchemaVersion, envelope.ResultVersion)
 	}
 	if envelope.BatchID == uuid.Nil {
@@ -123,10 +140,10 @@ func validateSymbolicatedOutput(out domain.SymbolicatedOutput) error {
 		if err := validateEvent(event.SymbolicatedEvent); err != nil {
 			return err
 		}
-		if len(event.Frames) == 0 || event.Frames[0].PC != nil || event.Frames[0].Function != nil {
-			return fmt.Errorf("invalid log at event index %d", *event.Index)
+		if event.Frames == nil {
+			return fmt.Errorf("frames array is required at event index %d", *event.Index)
 		}
-		for _, frame := range event.Frames[1:] {
+		for _, frame := range event.Frames {
 			if frame.PC == nil {
 				return fmt.Errorf("frame PC is required at event index %d", *event.Index)
 			}
