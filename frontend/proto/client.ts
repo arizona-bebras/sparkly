@@ -8,7 +8,6 @@ import {
   TimestampSchema,
 } from '@bufbuild/protobuf/wkt';
 import {
-  BuildSchema,
   BuildService,
   DeviceSchema,
   DeviceService,
@@ -20,9 +19,7 @@ import {
   UserService,
   type Build,
   type Device,
-  type DeviceGroup,
   type Issue,
-  type Park,
   type Release,
   IssueSeverity,
 } from './gen/backend/proto/service_pb';
@@ -291,6 +288,8 @@ export const client = {
   park: createClient(ParkService, transport),
   device: createClient(DeviceService, transport),
   issue: createClient(IssueService, transport),
+  build: createClient(BuildService, transport),
+  release: createClient(ReleaseService, transport),
   analytics: new Proxy(analyticsClient, {
     get(target, prop, receiver) {
       if (prop === 'analyzeDevice') {
@@ -321,5 +320,5 @@ export const client = {
   },
 };
 
-export type { Device, Issue, Release, AnalyzeDeviceRequest, AnalyzeDeviceResponse, Log };
+export type { Build, Device, Issue, Release, AnalyzeDeviceRequest, AnalyzeDeviceResponse, Log };
 export { IssueSeverity, DeviceSchema, IssueSchema, ReleaseSchema, AnalyticsService, LogLevel };
