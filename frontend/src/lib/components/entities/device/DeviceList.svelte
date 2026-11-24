@@ -12,6 +12,8 @@
 
   let { parkId }: { parkId: string } = $props();
 
+  const queryClient = useQueryClient();
+
   function getUrlGroups(): string[] {
     const groups = page.url.searchParams.getAll('group');
     if (groups.length > 0) return groups;
@@ -57,6 +59,17 @@
     enabled: !!parkId,
   }));
 
+  $effect(() => {
+    const groups = groupsQuery.data?.groups;
+    if (groups) {
+      for (const group of groups) {
+        if (group.id) {
+          queryClient.setQueryData(['group', group.id], group);
+        }
+      }
+    }
+  });
+
   const availableGroups = $derived.by(() => {
     const list = groupsQuery.data?.groups ?? [];
     return list.map((g) => ({
@@ -69,8 +82,6 @@
     const trimmed = searchQuery.trim();
     return trimmed.length > 0 ? trimmed.slice(0, 30) : undefined;
   });
-
-  const queryClient = useQueryClient();
 
   const devicesQuery = createQuery(() => ({
     queryKey: ['devices', parkId, selectedGroupIds, searchParam],
