@@ -9,7 +9,9 @@
 **/__pycache__
 **/.ruff_cache
 **/.svelte-kit
-**/build
+build
+frontend/build
+!frontend/src/**
 **/dist
 **/bin
 **/target

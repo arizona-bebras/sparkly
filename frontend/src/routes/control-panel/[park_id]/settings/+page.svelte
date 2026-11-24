@@ -6,8 +6,6 @@
   import { RustIcon, CIcon } from '$lib/components/icons/index.js';
   import ParkCodeBlock from '$lib/components/entities/park/ParkCodeBlock.svelte';
 
-  const parkId = $derived(page.params.park_id);
-
   const initialOpen =
     page.url.searchParams.has('onboarding') ||
     page.url.searchParams.get('open') === 'onboarding' ||
@@ -20,43 +18,93 @@
     selectedLang = lang;
   }
 
-  const codeByLang = {
+  const examples = {
     rust: {
-      step1: `qniot::initialize("iFUCKyRMoM===");`,
-      step1File: 'main.rs',
-      step2: `let token = qniot.getDeviceToken();\nflash.write(&token);`,
-      step2File: 'auth.rs',
-      step3: `let token = flash.getToken();\nlogger.init(qniot.logger(token));\n\ninfo!("все работает");\ncounter!("reboots").increment(1);`,
-      step3File: 'telemetry.rs',
+      file: 'main.rs',
+      install: `# Установите CLI Sparkly.
+cargo install sparkly-cli --locked
+
+# В каталоге прошивки добавьте зависимости и настройте линкер.
+sparkly init --chip esp32s3 --sdk-path /path/to/sparkly/agent`,
+      configure: `use sparkly_agent::{counter, metric};
+use sparkly_esp::{Agent, Config};
+
+let config = Config::new(
+    ENROLLMENT_URL,
+    INGEST_URL,
+    include_bytes!("sparkly-ca.pem"),
+)
+.with_enrollment_token(provisioning.enrollment_token());`,
+      start: `// Используем Wi-Fi и постоянное хранилище прошивки.
+let mut agent = Agent::start(config, &wifi, &mut credentials)?;
+log::info!("Датчик запущен");`,
+      sample: `// Вызывайте в цикле приложения.
+let temperature = read_temperature_c();
+metric!("sensor.temperature_c").set(temperature);
+counter!("sensor.samples").increment(1);
+if temperature > 40.0 {
+    log::warn!("Высокая температура датчика: {temperature:.1} °C");
+}
+
+agent.poll().await?;`,
     },
     c: {
-      step1: `qniot_initialize("iFUCKyRMoM===");`,
-      step1File: 'main.c',
-      step2: `char* token = qniot_get_device_token();\nflash_write(token);`,
-      step2File: 'auth.c',
-      step3: `char* token = flash_get_token();\nlogger_init(qniot_logger(token));\n\ninfo("все работает");\ncounter_increment("reboots", 1);`,
-      step3File: 'telemetry.c',
+      file: 'main.c',
+      install: `# Включите модуль в prj.conf: CONFIG_SPARKLY=y
+west update sparkly`,
+      configure: `#include <sparkly/zephyr.h>
+
+const sparkly_config_t config = {
+    .enrollment_url = ENROLLMENT_URL,
+    .ingest_url = INGEST_URL,
+    .ca_pem = sparkly_ca_pem,
+    .enrollment_token = provisioning_enrollment_token(),
+};`,
+      start: `// Адаптер подключает сеть и постоянное хранилище Zephyr.
+sparkly_agent_t *agent = NULL;
+int status = sparkly_agent_start(&config, &zephyr_port, &agent);
+if (status != SPARKLY_OK) {
+    return status;
+}
+SPARKLY_LOG_INFO("Датчик запущен");`,
+      sample: `// Вызывайте в цикле приложения.
+double temperature = read_temperature_c();
+SPARKLY_METRIC_SET("sensor.temperature_c", temperature);
+SPARKLY_COUNTER_ADD("sensor.samples", 1);
+if (temperature > 40.0) {
+    SPARKLY_LOG_WARN("Температура датчика выше 40 °C");
+}
+
+status = sparkly_agent_poll(agent);
+if (status != SPARKLY_OK) {
+    return status;
+}`,
     },
   };
 
+  const example = $derived(examples[selectedLang]);
   const steps = $derived([
     {
       number: 1,
-      title: 'Инициализация прошивки токеном парка',
-      code: codeByLang[selectedLang].step1,
-      file: codeByLang[selectedLang].step1File,
+      title: 'Подключите библиотеку агента',
+      file: 'Терминал',
+      lang: 'bash' as const,
+      code: example.install,
     },
     {
       number: 2,
-      title: 'Регистрация устройства и сохранение токена',
-      code: codeByLang[selectedLang].step2,
-      file: codeByLang[selectedLang].step2File,
+      title: 'Передайте настройки подключения и токен парка',
+      code: example.configure,
     },
     {
       number: 3,
-      title: 'Отправка метрик и логов в сервис',
-      code: codeByLang[selectedLang].step3,
-      file: codeByLang[selectedLang].step3File,
+      title: 'Запустите агент при старте прошивки',
+      code: example.start,
+    },
+    {
+      number: 4,
+      title: 'Записывайте метрики и логи, обрабатывайте очередь',
+      code: example.sample,
     },
   ]);
 </script>
@@ -80,7 +128,7 @@
       <Accordion.Trigger class="px-5 py-4 hover:no-underline cursor-pointer">
         <div class="flex items-center gap-2.5">
           <span class="text-base font-semibold">Подключение устройства к парку</span>
-          <Badge variant="secondary" class="font-normal text-xs">3 шага</Badge>
+          <Badge variant="secondary" class="font-normal text-xs">{steps.length} шага</Badge>
         </div>
       </Accordion.Trigger>
 
@@ -107,7 +155,7 @@
                 class="flex items-center gap-1.5 font-medium cursor-pointer text-xs"
               >
                 <CIcon class="size-3.5" />
-                <span>C</span>
+                <span>Zephyr</span>
               </Tabs.Trigger>
             </Tabs.List>
           </Tabs.Root>
@@ -118,9 +166,9 @@
             <ParkCodeBlock
               number={step.number}
               title={step.title}
-              file={step.file}
+              file={step.file ?? example.file}
               code={step.code}
-              lang={selectedLang}
+              lang={step.lang ?? selectedLang}
               isLast={index === steps.length - 1}
             />
           {/each}

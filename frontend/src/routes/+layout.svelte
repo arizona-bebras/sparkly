@@ -22,10 +22,15 @@
   }
 
   const queryClient = new QueryClient({
-    queryCache: new QueryCache({ onError: handleAuthError }),
-    mutationCache: new MutationCache({ onError: handleAuthError }),
+    queryCache: new QueryCache({
+      onError: handleAuthError,
+    }),
+    mutationCache: new MutationCache({
+      onError: handleAuthError,
+    }),
     defaultOptions: {
       queries: {
+        staleTime: 1000 * 60 * 5,
         retry: (failureCount, error) => {
           if (error.message.includes('401') || error.message.includes('unauthenticated')) {
             return false;
