@@ -11,11 +11,17 @@
     class?: string;
     from?: Date;
     to?: Date;
+    activeItemId?: string | null;
   }
 
-  let { logs = [], boots = [], class: className, from, to }: Props = $props();
-
-  let activeItemId = $state<string | null>(null);
+  let {
+    logs = [],
+    boots = [],
+    class: className,
+    from,
+    to,
+    activeItemId = $bindable(null),
+  }: Props = $props();
 
   type SeriesKey = 'logs' | 'boots';
   type Shape = 'circle' | 'triangle' | 'diamond' | 'square';

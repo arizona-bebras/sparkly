@@ -153,8 +153,8 @@ export function formatDisplayDates(from: Date, to: Date): string {
 
   const isSameYear = from.getFullYear() === to.getFullYear();
 
-  const monthLong = new Intl.DateTimeFormat('ru-RU', { month: 'long' });
-  const monthShort = new Intl.DateTimeFormat('ru-RU', { month: 'short' });
+  const dayMonthLong = new Intl.DateTimeFormat('ru-RU', { day: 'numeric', month: 'long' });
+  const dayMonthShort = new Intl.DateTimeFormat('ru-RU', { day: 'numeric', month: 'short' });
   const fullDate = new Intl.DateTimeFormat('ru-RU', {
     day: 'numeric',
     month: 'short',
@@ -162,18 +162,18 @@ export function formatDisplayDates(from: Date, to: Date): string {
   });
 
   if (isSameDay) {
-    return `${from.getDate()} ${monthLong.format(from)}`;
+    return dayMonthLong.format(from);
   }
 
-  if (isSameMonth) {
-    return `${from.getDate()} – ${to.getDate()} ${monthLong.format(from)}`;
+  if (isSameMonth || isSameYear) {
+    const d1 = dayMonthShort.format(from).replace('.', '').replace('нояб', 'ноя');
+    const d2 = dayMonthShort.format(to).replace('.', '').replace('нояб', 'ноя');
+    return `${d1} – ${d2}`;
   }
 
-  if (isSameYear) {
-    return `${from.getDate()} ${monthShort.format(from)} – ${to.getDate()} ${monthShort.format(to)}`;
-  }
-
-  return `${fullDate.format(from)} – ${fullDate.format(to)}`;
+  const d1 = fullDate.format(from).replace('.', '').replace('нояб', 'ноя');
+  const d2 = fullDate.format(to).replace('.', '').replace('нояб', 'ноя');
+  return `${d1} – ${d2}`;
 }
 
 export function formatDisplayTimes(from: Date, to: Date): string {
@@ -181,7 +181,42 @@ export function formatDisplayTimes(from: Date, to: Date): string {
     hour: '2-digit',
     minute: '2-digit',
   });
-  return `${timeFmt.format(from)} ➔ ${timeFmt.format(to)}`;
+  return `${timeFmt.format(from)} – ${timeFmt.format(to)}`;
+}
+
+export function formatDisplayRange(from: Date, to: Date): string {
+  const isSameDay =
+    from.getFullYear() === to.getFullYear() &&
+    from.getMonth() === to.getMonth() &&
+    from.getDate() === to.getDate();
+
+  const isSameYear = from.getFullYear() === to.getFullYear();
+
+  const dateShort = new Intl.DateTimeFormat('ru-RU', { day: 'numeric', month: 'short' });
+  const dateWithYear = new Intl.DateTimeFormat('ru-RU', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  });
+  const timeFmt = new Intl.DateTimeFormat('ru-RU', { hour: '2-digit', minute: '2-digit' });
+
+  const t1 = timeFmt.format(from);
+  const t2 = timeFmt.format(to);
+
+  if (isSameDay) {
+    const d = dateShort.format(from).replace('.', '').replace('нояб', 'ноя');
+    return `${d}, ${t1} – ${t2}`;
+  }
+
+  if (isSameYear) {
+    const d1 = dateShort.format(from).replace('.', '').replace('нояб', 'ноя');
+    const d2 = dateShort.format(to).replace('.', '').replace('нояб', 'ноя');
+    return `${d1}, ${t1} – ${d2}, ${t2}`;
+  }
+
+  const d1 = dateWithYear.format(from).replace('.', '').replace('нояб', 'ноя');
+  const d2 = dateWithYear.format(to).replace('.', '').replace('нояб', 'ноя');
+  return `${d1} – ${d2}`;
 }
 
 export function formatTimeRange(from: Date, to: Date): string {

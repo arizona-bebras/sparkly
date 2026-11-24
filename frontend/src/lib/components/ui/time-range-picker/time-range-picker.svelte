@@ -4,12 +4,11 @@
   import { goto } from '$app/navigation';
   import type { DateRange } from 'bits-ui';
   import { today, getLocalTimeZone } from '@internationalized/date';
-  import { Calendar, ChevronDown, Clock, Search } from '@lucide/svelte';
+  import { Calendar, ChevronDown, Clock } from '@lucide/svelte';
   import { Button, buttonVariants } from '$lib/components/ui/button/index.js';
   import { Input } from '$lib/components/ui/input/index.js';
   import * as Popover from '$lib/components/ui/popover/index.js';
   import { RangeCalendar } from '$lib/components/ui/range-calendar/index.js';
-  import { Badge } from '$lib/components/ui/badge/index.js';
   import { cn } from '$lib/utils.js';
   import {
     PRESETS,
@@ -17,7 +16,6 @@
     dateToCalendarDate,
     formatDisplayDates,
     formatDisplayTimes,
-    formatTimeRange,
     getTimeString,
     type PresetKey,
     type TimeRange,
@@ -34,7 +32,6 @@
   } = $props();
 
   let isOpen = $state(false);
-  let presetSearch = $state('');
 
   const defaultPreset = PRESETS.find((p) => p.id === 'today')!;
 
@@ -78,6 +75,19 @@
   });
   let fromTimeString = $state(getTimeString(initialRange.from));
   let toTimeString = $state(getTimeString(initialRange.to));
+  let draftPreset = $state<PresetKey | undefined>(initialRange.preset);
+
+  $effect(() => {
+    if (isOpen) {
+      calendarRange = {
+        start: dateToCalendarDate(internalValue.from),
+        end: dateToCalendarDate(internalValue.to),
+      };
+      fromTimeString = getTimeString(internalValue.from);
+      toTimeString = getTimeString(internalValue.to);
+      draftPreset = internalValue.preset;
+    }
+  });
 
   function updateUrl(range: TimeRange) {
     if (!syncUrl) return;
@@ -104,19 +114,15 @@
   function selectPreset(presetId: PresetKey) {
     const preset = PRESETS.find((p) => p.id === presetId);
     if (!preset) return;
-    const newRange: TimeRange = { ...preset.getRange(), preset: preset.id };
-    internalValue = newRange;
-    value = newRange;
+    const range = preset.getRange();
 
+    draftPreset = preset.id;
     calendarRange = {
-      start: dateToCalendarDate(newRange.from),
-      end: dateToCalendarDate(newRange.to),
+      start: dateToCalendarDate(range.from),
+      end: dateToCalendarDate(range.to),
     };
-    fromTimeString = getTimeString(newRange.from);
-    toTimeString = getTimeString(newRange.to);
-
-    updateUrl(newRange);
-    isOpen = false;
+    fromTimeString = getTimeString(range.from);
+    toTimeString = getTimeString(range.to);
   }
 
   function parseTime(str: string, defaultH: number, defaultM: number): [number, number] {
@@ -127,6 +133,7 @@
   }
 
   function handleTimeInput(e: Event, setter: (val: string) => void) {
+    draftPreset = undefined;
     const target = e.currentTarget as HTMLInputElement;
     let val = target.value.replace(/[^\d:]/g, '');
     if (val.length === 2 && !val.includes(':')) {
@@ -154,6 +161,7 @@
     const newRange: TimeRange = {
       from: startDate,
       to: endDate,
+      preset: draftPreset,
     };
 
     internalValue = newRange;
@@ -163,22 +171,13 @@
   }
 
   function setToNow() {
+    draftPreset = undefined;
     calendarRange = {
       ...calendarRange,
       end: today(getLocalTimeZone()),
     };
     toTimeString = getTimeString(new Date());
   }
-
-  const filteredPresets = $derived.by(() => {
-    const q = presetSearch.trim().toLowerCase();
-    if (!q) return PRESETS;
-    return PRESETS.filter((p) => p.label.toLowerCase().includes(q));
-  });
-
-  const activePreset = $derived(
-    internalValue.preset ? PRESETS.find((p) => p.id === internalValue.preset) : undefined,
-  );
 
   const displayDates = $derived(formatDisplayDates(internalValue.from, internalValue.to));
   const displayTimes = $derived(formatDisplayTimes(internalValue.from, internalValue.to));
@@ -195,36 +194,27 @@
     class={buttonVariants({
       variant: 'outline',
       class: cn(
-        'h-auto py-1.5 px-3.5 gap-3.5 cursor-pointer text-left transition-all hover:border-primary/40 rounded-xl bg-card shadow-xs',
+        'h-9 px-2.5 py-1 gap-2 cursor-pointer text-left bg-background hover:bg-muted/50 border-border/80 rounded-lg transition-colors shrink-0',
         className,
       ),
     })}
   >
-    <div class="flex flex-col gap-0.5 min-w-0">
-      <div class="flex items-center gap-2">
-        <span class="text-xs sm:text-sm font-semibold tracking-tight text-foreground">
-          {displayDates}
-        </span>
-        {#if activePreset}
-          <Badge
-            variant="secondary"
-            class="rounded-md px-1.5 py-0 text-[10px] font-medium tracking-wide uppercase bg-primary/10 text-primary border border-primary/20"
-          >
-            {activePreset.label}
-          </Badge>
-        {/if}
-      </div>
+    <Calendar class="size-3.5 text-muted-foreground shrink-0 self-center" />
 
-      <div class="flex items-center gap-1.5 text-[11px] font-mono text-muted-foreground">
-        <Clock class="size-3 text-muted-foreground/70 shrink-0" />
-        <span>{displayTimes}</span>
-      </div>
+    <div class="flex flex-col justify-center min-w-0 leading-none gap-0.5">
+      <span class="text-xs font-semibold tracking-tight text-foreground select-none">
+        {displayDates}
+      </span>
+      <span class="text-[10px] font-mono text-muted-foreground/80 tracking-tight select-none">
+        {displayTimes}
+      </span>
     </div>
 
     <ChevronDown
-      class="size-3.5 text-muted-foreground/60 shrink-0 ml-auto transition-transform duration-200 {isOpen
-        ? 'rotate-180'
-        : ''}"
+      class={cn(
+        'size-3 text-muted-foreground/70 shrink-0 ml-0.5 self-center transition-transform duration-200',
+        isOpen && 'rotate-180',
+      )}
     />
   </Popover.Trigger>
 
@@ -232,9 +222,7 @@
     class="w-auto p-0 shadow-xl overflow-hidden rounded-xl border border-border"
     align="end"
   >
-    <!-- Top section: side-by-side columns with exact height match -->
     <div class="flex flex-col sm:flex-row divide-y sm:divide-y-0 sm:divide-x divide-border">
-      <!-- Left Panel: Calendar (Dates only) -->
       <div class="flex flex-col p-3.5 w-[295px] gap-2.5">
         <div class="flex items-center justify-between">
           <span class="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
@@ -253,28 +241,16 @@
         </div>
       </div>
 
-      <!-- Right Panel: Quick Presets List (matching height) -->
       <div class="flex flex-col p-3.5 w-[245px] gap-2.5 bg-muted/20">
-        <div class="relative">
-          <Search
-            class="size-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none"
-          />
-          <Input
-            placeholder="Поиск пресетов..."
-            bind:value={presetSearch}
-            class="h-8 pl-8 text-xs bg-background"
-          />
-        </div>
-
         <span
           class="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground px-0.5"
         >
           Быстрые диапазоны
         </span>
 
-        <div class="flex flex-col gap-0.5 flex-1 max-h-[295px] overflow-y-auto pr-0.5">
-          {#each filteredPresets as preset (preset.id)}
-            {@const isActive = internalValue.preset === preset.id}
+        <div class="flex flex-col gap-0.5 flex-1 max-h-[300px] overflow-y-auto pr-0.5">
+          {#each PRESETS as preset (preset.id)}
+            {@const isActive = draftPreset === preset.id}
             <button
               type="button"
               class={cn(
@@ -290,14 +266,11 @@
                 <span class="size-1.5 rounded-full bg-primary shrink-0"></span>
               {/if}
             </button>
-          {:else}
-            <div class="text-xs text-muted-foreground text-center py-4">Диапазоны не найдены</div>
           {/each}
         </div>
       </div>
     </div>
 
-    <!-- Bottom Unified Footer: Manual Time Inputs + Apply Action -->
     <div
       class="border-t border-border bg-muted/40 p-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3"
     >
