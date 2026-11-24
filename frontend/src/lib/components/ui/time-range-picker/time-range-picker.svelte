@@ -75,17 +75,68 @@
   });
   let fromTimeString = $state(getTimeString(initialRange.from));
   let toTimeString = $state(getTimeString(initialRange.to));
-  let draftPreset = $state<PresetKey | undefined>(initialRange.preset);
+
+  let selectedPresetRange = $state<{
+    id: PresetKey;
+    startDateStr: string;
+    endDateStr: string;
+    fromTime: string;
+    toTime: string;
+  } | null>(
+    initialRange.preset
+      ? {
+          id: initialRange.preset,
+          startDateStr: dateToCalendarDate(initialRange.from).toString(),
+          endDateStr: dateToCalendarDate(initialRange.to).toString(),
+          fromTime: getTimeString(initialRange.from),
+          toTime: getTimeString(initialRange.to),
+        }
+      : null,
+  );
+
+  const draftPreset = $derived.by(() => {
+    if (!selectedPresetRange) return undefined;
+    const currentStart = calendarRange.start?.toString();
+    const currentEnd = calendarRange.end
+      ? calendarRange.end.toString()
+      : calendarRange.start?.toString();
+
+    if (
+      currentStart !== selectedPresetRange.startDateStr ||
+      currentEnd !== selectedPresetRange.endDateStr ||
+      fromTimeString !== selectedPresetRange.fromTime ||
+      toTimeString !== selectedPresetRange.toTime
+    ) {
+      return undefined;
+    }
+    return selectedPresetRange.id;
+  });
 
   $effect(() => {
     if (isOpen) {
+      const startCd = dateToCalendarDate(internalValue.from);
+      const endCd = dateToCalendarDate(internalValue.to);
+      const fTime = getTimeString(internalValue.from);
+      const tTime = getTimeString(internalValue.to);
+
       calendarRange = {
-        start: dateToCalendarDate(internalValue.from),
-        end: dateToCalendarDate(internalValue.to),
+        start: startCd,
+        end: endCd,
       };
-      fromTimeString = getTimeString(internalValue.from);
-      toTimeString = getTimeString(internalValue.to);
-      draftPreset = internalValue.preset;
+      fromTimeString = fTime;
+      toTimeString = tTime;
+
+      if (internalValue.preset) {
+        selectedPresetRange = {
+          id: internalValue.preset,
+          startDateStr: startCd.toString(),
+          endDateStr: endCd.toString(),
+          fromTime: fTime,
+          toTime: tTime,
+        };
+      } else {
+        selectedPresetRange = null;
+      }
     }
   });
 
@@ -116,13 +167,25 @@
     if (!preset) return;
     const range = preset.getRange();
 
-    draftPreset = preset.id;
+    const startCd = dateToCalendarDate(range.from);
+    const endCd = dateToCalendarDate(range.to);
+    const fTime = getTimeString(range.from);
+    const tTime = getTimeString(range.to);
+
     calendarRange = {
-      start: dateToCalendarDate(range.from),
-      end: dateToCalendarDate(range.to),
+      start: startCd,
+      end: endCd,
     };
-    fromTimeString = getTimeString(range.from);
-    toTimeString = getTimeString(range.to);
+    fromTimeString = fTime;
+    toTimeString = tTime;
+
+    selectedPresetRange = {
+      id: preset.id,
+      startDateStr: startCd.toString(),
+      endDateStr: endCd.toString(),
+      fromTime: fTime,
+      toTime: tTime,
+    };
   }
 
   function parseTime(str: string, defaultH: number, defaultM: number): [number, number] {
@@ -133,7 +196,7 @@
   }
 
   function handleTimeInput(e: Event, setter: (val: string) => void) {
-    draftPreset = undefined;
+    selectedPresetRange = null;
     const target = e.currentTarget as HTMLInputElement;
     let val = target.value.replace(/[^\d:]/g, '');
     if (val.length === 2 && !val.includes(':')) {
@@ -171,7 +234,7 @@
   }
 
   function setToNow() {
-    draftPreset = undefined;
+    selectedPresetRange = null;
     calendarRange = {
       ...calendarRange,
       end: today(getLocalTimeZone()),
