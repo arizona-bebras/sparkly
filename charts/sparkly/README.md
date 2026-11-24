@@ -40,6 +40,10 @@ behavior are preserved from the repository gateway configuration.
   declare the application's exchanges and queues. Backend and analytics perform
   their schema migrations at startup; grant the required DDL privileges (including
   PostgreSQL `pg_trgm`). Database names and broker vhosts must exist first.
+- An S3-compatible endpoint reachable by the backend. Configure `s3.endpointURL`
+  and `s3.region` for your storage service. The defaults assume a namespace-local
+  `rustfs` Service on port 9100 and the `us-east-1` region. The backend attempts
+  to create the `elf-objects` bucket at startup and uses it for build artifacts.
 
 Traefik passthrough configuration follows the
 [IngressRouteTCP reference](https://doc.traefik.io/traefik/reference/routing-configuration/kubernetes/crd/tcp/ingressroutetcp/).
@@ -62,6 +66,7 @@ provide a Secret containing a complete URI.
 | `sparkly-clickhouse-app` | `username`, `password` | analytics |
 | `sparkly-rabbitmq-app` | `uri` | backend, analytics, optional symbolicator |
 | `sparkly-backend` | `JWKS_MASTER_KEY` | backend |
+| `sparkly-s3-app` | `RUSTFS_ACCESS_KEY`, `RUSTFS_SECRET_KEY` | backend only |
 | `sparkly-device-provisioner` | `provisioner.key`, `provisioner.kid` | backend only |
 | `sparkly-device-trust` | `root_ca.crt` | backend and Envoy |
 
@@ -85,6 +90,10 @@ kubectl -n sparkly create secret generic sparkly-device-provisioner \
 kubectl -n sparkly create secret generic sparkly-device-trust \
   --from-file=root_ca.crt=/secure/device-root-ca.crt
 ```
+
+If your S3 Secret uses a different name or keys, set `s3.credentialsSecret`,
+`s3.accessKeyKey`, and `s3.secretKeyKey`. Restart the backend pods after rotating
+these credentials so they reload the Secret-backed environment variables.
 
 cert-manager creates and renews `sparkly-web-tls` and `sparkly-devices-tls`, each
 with `tls.crt`/`tls.key`, using the configured step issuer. The chart requests
@@ -134,6 +143,9 @@ clickhouse:
   credentialsSecret: my-clickhouse-app
 rabbitmq:
   connectionSecret: my-rabbitmq-uri
+s3:
+  endpointURL: https://s3.example.com
+  credentialsSecret: my-s3-app
 stepCA:
   url: https://step-ca.pki.svc.cluster.local:9000
 networkPolicy:
