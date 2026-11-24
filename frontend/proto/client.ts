@@ -8,15 +8,21 @@ import {
   TimestampSchema,
 } from '@bufbuild/protobuf/wkt';
 import {
+  BuildSchema,
+  BuildService,
   DeviceSchema,
   DeviceService,
   IssueSchema,
   IssueService,
   ParkService,
   ReleaseSchema,
+  ReleaseService,
   UserService,
+  type Build,
   type Device,
+  type DeviceGroup,
   type Issue,
+  type Park,
   type Release,
   IssueSeverity,
 } from './gen/backend/proto/service_pb';

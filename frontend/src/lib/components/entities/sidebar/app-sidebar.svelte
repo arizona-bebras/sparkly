@@ -4,14 +4,17 @@
   import { page } from '$app/state';
   import { createQuery } from '@tanstack/svelte-query';
   import { client } from '$proto';
-  import SparklesIcon from '@lucide/svelte/icons/sparkles';
-  import LayoutDashboardIcon from '@lucide/svelte/icons/layout-dashboard';
-  import CpuIcon from '@lucide/svelte/icons/cpu';
-  import CircleAlertIcon from '@lucide/svelte/icons/circle-alert';
-  import BoxesIcon from '@lucide/svelte/icons/boxes';
-  import RocketIcon from '@lucide/svelte/icons/rocket';
-  import SettingsIcon from '@lucide/svelte/icons/settings';
-  import ArrowLeftIcon from '@lucide/svelte/icons/arrow-left';
+  import {
+    Sparkles,
+    LayoutDashboard,
+    Cpu,
+    Boxes,
+    Rocket,
+    Package,
+    CircleAlert,
+    Settings,
+    ArrowLeft,
+  } from '@lucide/svelte';
 
   const parkId = $derived(page.params.park_id ?? '');
   const currentPath = $derived(page.url.pathname);
@@ -31,31 +34,37 @@
     {
       title: 'Панель управления',
       url: basePath,
-      icon: LayoutDashboardIcon,
+      icon: LayoutDashboard,
       isActive: currentPath === basePath || currentPath === `${basePath}/`,
     },
     {
       title: 'Устройства',
       url: `${basePath}/devices`,
-      icon: CpuIcon,
+      icon: Cpu,
       isActive: currentPath.startsWith(`${basePath}/devices`),
     },
     {
       title: 'Группы',
       url: `${basePath}/groups`,
-      icon: BoxesIcon,
+      icon: Boxes,
       isActive: currentPath.startsWith(`${basePath}/groups`),
     },
     {
       title: 'Релизы',
       url: `${basePath}/releases`,
-      icon: RocketIcon,
+      icon: Rocket,
       isActive: currentPath.startsWith(`${basePath}/releases`),
+    },
+    {
+      title: 'Сборки',
+      url: `${basePath}/builds`,
+      icon: Package,
+      isActive: currentPath.startsWith(`${basePath}/builds`),
     },
     {
       title: 'Проблемы',
       url: `${basePath}/issues`,
-      icon: CircleAlertIcon,
+      icon: CircleAlert,
       isActive: currentPath.startsWith(`${basePath}/issues`),
     },
   ]);
@@ -64,7 +73,7 @@
     {
       title: 'Настройки парка',
       url: `${basePath}/settings`,
-      icon: SettingsIcon,
+      icon: Settings,
       isActive: currentPath.startsWith(`${basePath}/settings`),
     },
   ]);
@@ -76,7 +85,7 @@
       <div
         class="flex size-7 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground"
       >
-        <SparklesIcon class="size-4" />
+        <Sparkles class="size-4" />
       </div>
       <div class="flex flex-col min-w-0 flex-1 leading-tight group-data-[collapsible=icon]:hidden">
         {#if parkQuery.isPending && !park}
@@ -147,7 +156,7 @@
         <Sidebar.MenuButton tooltipContent="Ко всем паркам">
           {#snippet child({ props })}
             <a href="/" {...props}>
-              <ArrowLeftIcon />
+              <ArrowLeft />
               <span>Ко всем паркам</span>
             </a>
           {/snippet}

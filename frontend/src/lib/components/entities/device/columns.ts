@@ -3,7 +3,7 @@ import type { Device } from '$proto';
 import type { DataTableFeatures } from '$lib/components/ui/data-table/data-table-features.js';
 import DeviceActionsCell from './cells/DeviceActionsCell.svelte';
 import DeviceDateCell from './cells/DeviceDateCell.svelte';
-import DeviceIpCell from './cells/DeviceIpCell.svelte';
+import DeviceGroupsCell from './cells/DeviceGroupsCell.svelte';
 import DeviceNameCell from './cells/DeviceNameCell.svelte';
 
 const columnHelper = createColumnHelper<DataTableFeatures, Device>();
@@ -40,25 +40,25 @@ export const columns = columnHelper.columns([
         parkId: row.original.parkId,
       }),
   }),
-  columnHelper.accessor('ipAddress', {
-    header: 'IP-адрес',
+  columnHelper.accessor('groupIds', {
+    header: 'Группы',
     cell: ({ row }) =>
-      renderComponent(DeviceIpCell, {
-        ip: row.original.ipAddress,
+      renderComponent(DeviceGroupsCell, {
+        groupIds: row.original.groupIds ?? [],
       }),
   }),
-  columnHelper.accessor('lastSeenAt', {
-    header: 'Активность',
-    cell: ({ row }) =>
-      renderComponent(DeviceDateCell, {
-        time: formatTimestamp(row.original.lastSeenAt),
-      }),
-  }),
-  columnHelper.accessor('joinedAt', {
+  columnHelper.accessor('createdAt', {
     header: 'Подключено',
     cell: ({ row }) =>
       renderComponent(DeviceDateCell, {
-        time: formatTimestamp(row.original.joinedAt),
+        time: formatTimestamp(row.original.createdAt),
+      }),
+  }),
+  columnHelper.accessor('updatedAt', {
+    header: 'Обновлено',
+    cell: ({ row }) =>
+      renderComponent(DeviceDateCell, {
+        time: formatTimestamp(row.original.updatedAt),
       }),
   }),
   columnHelper.display({

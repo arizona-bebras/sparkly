@@ -88,6 +88,12 @@ rabbitmq:
   # Full amqp(s) URI including percent-encoded credentials and vhost.
   connectionSecret: sparkly-rabbitmq-app
   urlKey: uri
+s3:
+  endpointURL: http://rustfs:9100
+  region: us-east-1
+  credentialsSecret: sparkly-s3-app
+  accessKeyKey: RUSTFS_ACCESS_KEY
+  secretKeyKey: RUSTFS_SECRET_KEY
 backend:
   jwksSecret: sparkly-backend
   jwksMasterKeyKey: JWKS_MASTER_KEY

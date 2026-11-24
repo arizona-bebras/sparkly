@@ -125,15 +125,18 @@ func (Device) TableName() string {
 }
 
 func (d *Device) ToDomain() domain.Device {
-	groups := make([]uuid.UUID, 0, len(d.Groups))
-	for _, g := range d.Groups {
-		groups = append(groups, g.ID)
+	groupIDs := d.GroupIDs
+	if len(groupIDs) == 0 && len(d.Groups) > 0 {
+		groupIDs = make([]uuid.UUID, 0, len(d.Groups))
+		for _, g := range d.Groups {
+			groupIDs = append(groupIDs, g.ID)
+		}
 	}
 	return domain.Device{
 		ID:       d.ID,
 		Name:     d.Name,
 		ParkID:   d.ParkID,
-		GroupIDs: groups,
+		GroupIDs: groupIDs,
 	}
 }
 

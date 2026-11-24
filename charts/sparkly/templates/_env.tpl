@@ -27,6 +27,14 @@
 - name: JWKS_MASTER_KEY
   valueFrom:
     secretKeyRef: {name: {{ $v.backend.jwksSecret }}, key: {{ $v.backend.jwksMasterKeyKey }}}
+- {name: RUSTFS_ENDPOINT_URL, value: {{ $v.s3.endpointURL | quote }}}
+- {name: RUSTFS_REGION, value: {{ $v.s3.region | quote }}}
+- name: RUSTFS_ACCESS_KEY
+  valueFrom:
+    secretKeyRef: {name: {{ $v.s3.credentialsSecret | quote }}, key: {{ $v.s3.accessKeyKey | quote }}}
+- name: RUSTFS_SECRET_KEY
+  valueFrom:
+    secretKeyRef: {name: {{ $v.s3.credentialsSecret | quote }}, key: {{ $v.s3.secretKeyKey | quote }}}
 - {name: STEP_CA_URL, value: {{ $v.stepCA.url | quote }}}
 - {name: STEP_CA_PROVISIONER, value: {{ $v.stepCA.provisioner | quote }}}
 - {name: STEP_CA_ROOT_FILE, value: /run/step-ca/root_ca.crt}

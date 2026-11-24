@@ -17,7 +17,7 @@
     title?: string;
     file: string;
     code: string;
-    lang: 'rust' | 'c';
+    lang: 'rust' | 'c' | 'bash';
     isLast?: boolean;
     class?: string;
   } = $props();
@@ -47,7 +47,7 @@
         <CodeBlock.Title class="text-xs text-neutral-400 font-mono flex items-center gap-1.5">
           {#if lang === 'rust'}
             <RustIcon class="size-3.5 text-[#dea584]" />
-          {:else}
+          {:else if lang === 'c'}
             <CIcon class="size-3.5" />
           {/if}
           <span>{file}</span>

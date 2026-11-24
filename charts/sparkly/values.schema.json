@@ -303,6 +303,32 @@
         }
       }
     },
+    "s3": {
+      "type": "object",
+      "required": ["endpointURL", "region", "credentialsSecret", "accessKeyKey", "secretKeyKey"],
+      "properties": {
+        "endpointURL": {
+          "type": "string",
+          "pattern": "^https?://[^/\\s]+(/[^\\s]*)?$"
+        },
+        "region": {
+          "type": "string",
+          "minLength": 1
+        },
+        "credentialsSecret": {
+          "type": "string",
+          "minLength": 1
+        },
+        "accessKeyKey": {
+          "type": "string",
+          "minLength": 1
+        },
+        "secretKeyKey": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
     "stepCA": {
       "type": "object",
       "properties": {
