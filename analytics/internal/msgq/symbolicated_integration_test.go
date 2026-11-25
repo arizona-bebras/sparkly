@@ -29,35 +29,35 @@ func TestSymbolicationResultsRabbitMQClickHouse(t *testing.T) {
 	fixture := newParcelBrokerFixture(t)
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
-	admin, err := db.Open(ctx)
+	admin, _, err := db.Open(ctx)
 	if err != nil {
 		t.Fatal(err)
 	}
 	defer admin.Close()
 	name := "analytics_test_" + uuid.NewString()[:8]
-	if _, err := admin.ExecContext(ctx, "CREATE DATABASE "+name); err != nil {
+	if err := admin.Exec(ctx, "CREATE DATABASE "+name); err != nil {
 		t.Fatal(err)
 	}
 	defer func() {
 		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancel()
-		if _, err := admin.ExecContext(ctx, "DROP DATABASE "+name); err != nil {
+		if err := admin.Exec(ctx, "DROP DATABASE "+name); err != nil {
 			t.Error(err)
 		}
 	}()
 	t.Setenv("CLICKHOUSE_DB", name)
-	conn, err := db.Open(ctx)
+	conn, migrationDB, err := db.Open(ctx)
 	if err != nil {
 		t.Fatal(err)
 	}
 	defer conn.Close()
-	if err := db.Migrate(ctx, conn); err != nil {
+	if err := db.Migrate(ctx, migrationDB); err != nil {
 		t.Fatal(err)
 	}
 
 	// Fail the last insert so the delivery must wait for the crash table.
 	for _, query := range []string{"SYSTEM STOP MERGES logs", "RENAME TABLE crashes TO crashes_unavailable"} {
-		if _, err := conn.ExecContext(ctx, query); err != nil {
+		if err := conn.Exec(ctx, query); err != nil {
 			t.Fatal(err)
 		}
 	}
@@ -111,7 +111,7 @@ func TestSymbolicationResultsRabbitMQClickHouse(t *testing.T) {
 	assertCount := func(query string, want uint64) {
 		t.Helper()
 		var count uint64
-		if err := conn.QueryRowContext(ctx, query).Scan(&count); err != nil || count != want {
+		if err := conn.QueryRow(ctx, query).Scan(&count); err != nil || count != want {
 			t.Fatalf("%s returned %d, want %d, err %v", query, count, want, err)
 		}
 	}
@@ -119,7 +119,7 @@ func TestSymbolicationResultsRabbitMQClickHouse(t *testing.T) {
 	assertCount("SELECT count() FROM boots_deduplicated", 1)
 	assertCount("SELECT count() FROM metrics_deduplicated", 1)
 
-	if _, err := conn.ExecContext(ctx, "RENAME TABLE crashes_unavailable TO crashes"); err != nil {
+	if err := conn.Exec(ctx, "RENAME TABLE crashes_unavailable TO crashes"); err != nil {
 		t.Fatal(err)
 	}
 	publish(symbolicationV4FixtureDelivery()) // The equivalent legacy result with the same batch ID.
@@ -148,13 +148,13 @@ func TestSymbolicationResultsRabbitMQClickHouse(t *testing.T) {
 		AND tupleElement(frames[1], 'pc') = toUInt64('18446744073709551615')`, 1)
 
 	var copies uint64
-	if err := conn.QueryRowContext(ctx, "SELECT count() FROM logs").Scan(&copies); err != nil || copies < 3 {
+	if err := conn.QueryRow(ctx, "SELECT count() FROM logs").Scan(&copies); err != nil || copies < 3 {
 		t.Fatalf("expected physical log duplicates with merges disabled: %d, err %v", copies, err)
 	}
 	var counter, monotonic uint64
 	var receivedAt time.Time
 	var diagnostic string
-	err = conn.QueryRowContext(ctx, `SELECT counter_delta, monotonic_us, received_at, diagnostics[1]
+	err = conn.QueryRow(ctx, `SELECT counter_delta, monotonic_us, received_at, diagnostics[1]
 		FROM metrics_deduplicated`).Scan(&counter, &monotonic, &receivedAt, &diagnostic)
 	if err != nil || counter != math.MaxUint64 || monotonic != math.MaxUint64 ||
 		receivedAt.Nanosecond() != 123456789 || diagnostic != "unknown metric" {
@@ -162,7 +162,7 @@ func TestSymbolicationResultsRabbitMQClickHouse(t *testing.T) {
 	}
 	var pc, register uint64
 	var reason string
-	err = conn.QueryRowContext(ctx, `SELECT tupleElement(frames[1], 'pc'), registers['pc'], reason
+	err = conn.QueryRow(ctx, `SELECT tupleElement(frames[1], 'pc'), registers['pc'], reason
 		FROM crashes_deduplicated`).Scan(&pc, &register, &reason)
 	if err != nil || pc != math.MaxUint64 || register != math.MaxUint64 || reason != "panic" {
 		t.Fatalf("unexpected crash: %d %d %q, err %v", pc, register, reason, err)

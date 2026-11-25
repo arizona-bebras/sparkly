@@ -2,17 +2,18 @@ package repos
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
+
+	"github.com/ClickHouse/clickhouse-go/v2/lib/driver"
 
 	"sparkly/analytics/internal/domain"
 )
 
 type SymbolicatedEventsRepo struct {
-	db *sql.DB
+	db driver.Conn
 }
 
-func NewSymbolicatedEventsRepo(db *sql.DB) *SymbolicatedEventsRepo {
+func NewSymbolicatedEventsRepo(db driver.Conn) *SymbolicatedEventsRepo {
 	return &SymbolicatedEventsRepo{db: db}
 }
 
@@ -91,21 +92,15 @@ func (r *SymbolicatedEventsRepo) insertEvents(ctx context.Context, query string,
 	if len(rows) == 0 {
 		return nil
 	}
-	// The driver's transaction API sends the prepared native batch on Commit.
-	tx, err := r.db.BeginTx(ctx, nil)
+	batch, err := r.db.PrepareBatch(ctx, query)
 	if err != nil {
 		return err
 	}
-	defer tx.Rollback()
-	stmt, err := tx.PrepareContext(ctx, query)
-	if err != nil {
-		return err
-	}
-	defer stmt.Close()
+	defer batch.Abort()
 	for _, row := range rows {
-		if _, err := stmt.ExecContext(ctx, row...); err != nil {
+		if err := batch.Append(row...); err != nil {
 			return err
 		}
 	}
-	return tx.Commit()
+	return batch.Send()
 }

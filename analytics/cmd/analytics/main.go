@@ -41,13 +41,13 @@ func run() error {
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
-	conn, err := db.Open(ctx)
+	conn, migrationConn, err := db.Open(ctx)
 	if err != nil {
 		cancel()
 		return fmt.Errorf("db init failed: %w", err)
 	}
 	defer conn.Close()
-	if err := db.Migrate(ctx, conn); err != nil {
+	if err := db.Migrate(ctx, migrationConn); err != nil {
 		cancel()
 		return fmt.Errorf("db migration failed: %w", err)
 	}

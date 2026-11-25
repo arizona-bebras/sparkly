@@ -21,29 +21,29 @@ func TestRawConsumerRabbitMQClickHouse(t *testing.T) {
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
-	admin, err := db.Open(ctx)
+	admin, _, err := db.Open(ctx)
 	if err != nil {
 		t.Fatal(err)
 	}
 	defer admin.Close()
 	name := "analytics_test_" + uuid.NewString()[:8]
-	if _, err := admin.ExecContext(ctx, "CREATE DATABASE "+name); err != nil {
+	if err := admin.Exec(ctx, "CREATE DATABASE "+name); err != nil {
 		t.Fatal(err)
 	}
 	defer func() {
 		cleanup, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancel()
-		if _, err := admin.ExecContext(cleanup, "DROP DATABASE "+name); err != nil {
+		if err := admin.Exec(cleanup, "DROP DATABASE "+name); err != nil {
 			t.Error(err)
 		}
 	}()
 	t.Setenv("CLICKHOUSE_DB", name)
-	conn, err := db.Open(ctx)
+	conn, migrationDB, err := db.Open(ctx)
 	if err != nil {
 		t.Fatal(err)
 	}
 	defer conn.Close()
-	if err := db.Migrate(ctx, conn); err != nil {
+	if err := db.Migrate(ctx, migrationDB); err != nil {
 		t.Fatal(err)
 	}
 	fixture := newParcelBrokerFixture(t)
@@ -70,7 +70,7 @@ func TestRawConsumerRabbitMQClickHouse(t *testing.T) {
 	defer ticker.Stop()
 	for {
 		var count uint64
-		if err := conn.QueryRowContext(ctx, "SELECT count() FROM raw_batches").Scan(&count); err != nil {
+		if err := conn.QueryRow(ctx, "SELECT count() FROM raw_batches").Scan(&count); err != nil {
 			t.Fatal(err)
 		}
 		if count == 1 {
@@ -88,7 +88,7 @@ func TestRawConsumerRabbitMQClickHouse(t *testing.T) {
 	}
 	var id, device, park, payload string
 	var received time.Time
-	if err := conn.QueryRowContext(ctx, `SELECT toString(batch_id), toString(device_id), toString(park_id), received_at, toJSONString(payload_raw) FROM raw_batches`).Scan(&id, &device, &park, &received, &payload); err != nil {
+	if err := conn.QueryRow(ctx, `SELECT toString(batch_id), toString(device_id), toString(park_id), received_at, toJSONString(payload_raw) FROM raw_batches`).Scan(&id, &device, &park, &received, &payload); err != nil {
 		t.Fatal(err)
 	}
 	if id != want.BatchID.String() || device != want.DeviceID.String() || park != want.ParkID.String() || !received.Equal(want.ReceivedAt) {
