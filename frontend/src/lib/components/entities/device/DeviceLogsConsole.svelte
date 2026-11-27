@@ -23,12 +23,17 @@
     logs?: Log[];
     class?: string;
     activeLogId?: string | null;
+    selectedLevels?: number[];
   }
 
-  let { logs = [], class: className, activeLogId = $bindable(null) }: Props = $props();
+  let {
+    logs = [],
+    class: className,
+    activeLogId = $bindable(null),
+    selectedLevels = $bindable([]),
+  }: Props = $props();
 
   let searchQuery = $state('');
-  let selectedLevels = $state<number[]>([]);
   let expandedIds = $state<Set<string>>(new Set());
   let copiedLogId = $state<string | null>(null);
   let scrollContainer = $state<HTMLDivElement | null>(null);
@@ -64,7 +69,11 @@
     return counts;
   });
 
-  const availableLevels = $derived(ALL_LEVELS.filter((lvl) => (levelCounts[lvl.level] ?? 0) > 0));
+  const availableLevels = $derived(
+    ALL_LEVELS.filter(
+      (lvl) => (levelCounts[lvl.level] ?? 0) > 0 || selectedLevels.includes(lvl.level),
+    ),
+  );
 
   function toggleLevel(level: number, checked: boolean) {
     if (checked) {
@@ -283,7 +292,7 @@
           <button
             type="button"
             class={cn(
-              'mt-0.5 inline-flex size-4 shrink-0 items-center justify-center rounded text-zinc-500 hover:text-zinc-200 transition-colors',
+              'inline-flex size-4 shrink-0 items-center justify-center rounded text-zinc-500 hover:text-zinc-200 transition-colors',
               !hasDetails && 'opacity-30 cursor-default',
             )}
             disabled={!hasDetails}

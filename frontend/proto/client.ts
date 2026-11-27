@@ -230,8 +230,16 @@ export interface DeviceBoot {
   resetReason: string;
 }
 
+export interface DeviceCrash {
+  id: string;
+  timestamp: Timestamp;
+  buildId: string;
+  reason: string;
+}
+
 export type AnalyzeDeviceResult = AnalyzeDeviceResponse & {
   boots: DeviceBoot[];
+  crashes: DeviceCrash[];
 };
 
 function generateMockBoots(fromDate: Date, toDate: Date): DeviceBoot[] {
@@ -248,6 +256,24 @@ function generateMockBoots(fromDate: Date, toDate: Date): DeviceBoot[] {
     timestamp: timestampFromDate(new Date(fromTime + duration * b.offsetRatio)),
     buildId: b.buildId,
     resetReason: b.resetReason,
+  }));
+}
+
+function generateMockCrashes(fromDate: Date, toDate: Date): DeviceCrash[] {
+  const fromTime = fromDate.getTime();
+  const duration = toDate.getTime() - fromTime;
+  if (duration <= 0) return [];
+
+  const crashTemplates = [
+    { offsetRatio: 0.43, buildId: 'v1.2.0', reason: 'assertion_failed' },
+    { offsetRatio: 0.85, buildId: 'v1.2.0', reason: 'stack_canary_corrupt' },
+  ];
+
+  return crashTemplates.map(({ offsetRatio, buildId, reason }, index) => ({
+    id: `crash-${index + 1}`,
+    timestamp: timestampFromDate(new Date(fromTime + duration * offsetRatio)),
+    buildId,
+    reason,
   }));
 }
 
@@ -308,6 +334,7 @@ export const client = {
             : now;
           return Object.assign(res, {
             boots: generateMockBoots(fromDate, toDate),
+            crashes: generateMockCrashes(fromDate, toDate),
           });
         };
       }

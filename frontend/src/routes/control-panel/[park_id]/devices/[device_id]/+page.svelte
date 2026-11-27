@@ -17,6 +17,7 @@
 
   let selectedRange = $state<TimeRange>();
   let activeLogId = $state<string | null>(null);
+  let selectedLogLevels = $state<number[]>([]);
 
   const deviceQuery = createQuery(() => ({
     queryKey: ['device', deviceId],
@@ -157,13 +158,19 @@
         <DeviceLogsTimeline
           logs={analysisQuery.data.logs}
           boots={analysisQuery.data.boots}
+          crashes={analysisQuery.data.crashes}
           from={selectedRange?.from}
           to={selectedRange?.to}
           bind:activeItemId={activeLogId}
+          bind:selectedLevels={selectedLogLevels}
         />
       </div>
 
-      <DeviceLogsConsole logs={analysisQuery.data.logs} bind:activeLogId />
+      <DeviceLogsConsole
+        logs={analysisQuery.data.logs}
+        bind:activeLogId
+        bind:selectedLevels={selectedLogLevels}
+      />
     </div>
   {/if}
 </div>
