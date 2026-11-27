@@ -1,4 +1,3 @@
-
 package domain
 
 import (
@@ -35,7 +34,6 @@ type MLInsights struct{}
 
 type DeviceSummary struct {
 	DeviceID   uuid.UUID
-	BuildID    string
 	LastSeenAt time.Time
 }
 
@@ -57,5 +55,16 @@ type DeviceDetails struct {
 
 type GetDeviceDetailsFilters struct {
 	FromTime *time.Time
-	ToTime *time.Time
+	ToTime   *time.Time
+}
+
+type GetDeviceSummaryFilters struct {
+	GroupIDs *[]uuid.UUID
+	BuildIDs *[]uuid.UUID
+}
+
+type DeviceLatestReceiveTime struct {
+	ParkID    uuid.UUID
+	DeviceID  uuid.UUID
+	ReceivedAt time.Time
 }

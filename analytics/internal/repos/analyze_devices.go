@@ -40,82 +40,164 @@ func buildDeviceTimeFilter(deviceID uuid.UUID, filters domain.GetDeviceDetailsFi
 	return clause, args
 }
 
-func (r *AnalyzeDeviceRepo) GetDevicesSummary(ctx context.Context, parkID uuid.UUID) domain.DevicesSummary {
-	return domain.DevicesSummary{
-		Devices:   make([]domain.DeviceSummary, 0),
-		Timestamp: time.Now().UTC(),
+type logFrameRow struct {
+	PC       uint64  `ch:"pc"`
+	Function *string `ch:"function"`
+	File     *string `ch:"file"`
+	Line     *uint32 `ch:"line"`
+}
+
+type logRow struct {
+	ParkID     uuid.UUID      `ch:"park_id"`
+	DeviceID   uuid.UUID      `ch:"device_id"`
+	ReceivedAt time.Time      `ch:"received_at"`
+	BootID     sql.NullString `ch:"boot_id"`
+	BuildID    sql.NullString `ch:"build_id"`
+	Level      sql.NullString `ch:"level"`
+	Message    sql.NullString `ch:"message"`
+	Frames     []logFrameRow  `ch:"frames"`
+}
+
+type logsCountRow struct {
+	Info  uint64 `ch:"info"`
+	Warn  uint64 `ch:"warn"`
+	Error uint64 `ch:"error"`
+	Fatal uint64 `ch:"fatal"`
+	Trace uint64 `ch:"trace"`
+	Debug uint64 `ch:"debug"`
+	Total uint64 `ch:"total"`
+}
+
+type bootRow struct {
+	BootID          sql.NullString `ch:"boot_id"`
+	DeviceID        uuid.UUID      `ch:"device_id"`
+	ReceivedAt      time.Time      `ch:"received_at"`
+	BuildID         sql.NullString `ch:"build_id"`
+	Diagnostics     []string       `ch:"diagnostics"`
+	ResetReason     string         `ch:"reset_reason"`
+	FirmwareVersion string         `ch:"firmware_version"`
+	AgentVersion    string         `ch:"agent_version"`
+}
+
+type metricRow struct {
+	MetricID        uint64      `ch:"metric_id"`
+	AvgValue        float64     `ch:"avg_value"`
+	MinValue        float64     `ch:"min_value"`
+	MaxValue        float64     `ch:"max_value"`
+	PointValues     []float64   `ch:"point_values"`
+	PointTimestamps []time.Time `ch:"point_timestamps"`
+}
+
+func (r *AnalyzeDeviceRepo) logFrameToDomain(f logFrameRow) domain.StackFrame {
+	var line uint32
+	if f.Line != nil {
+		line = *f.Line
+	}
+
+	return domain.StackFrame{
+		PC:       f.PC,
+		Line:     line,
+		File:     f.File,
+		Function: f.Function,
+	}
+}
+
+func (r *AnalyzeDeviceRepo) logToDomain(l logRow) (domain.Log, error) {
+	var bootID *uuid.UUID
+	if l.BootID.Valid {
+		inMemBootID, err := uuid.Parse(l.BootID.String)
+		if err != nil {
+			return domain.Log{}, fmt.Errorf("failed to parse boot_id in log row: %w", err)
+		}
+		bootID = &inMemBootID
+	}
+
+	var buildID *uuid.UUID
+	if l.BuildID.Valid {
+		inMemBuildID, err := uuid.Parse(l.BuildID.String)
+		if err != nil {
+			return domain.Log{}, fmt.Errorf("failed to parse build_id in log row: %w", err)
+		}
+		buildID = &inMemBuildID
+	}
+
+	domainFrames := make([]domain.StackFrame, 0, len(l.Frames))
+	for _, f := range l.Frames {
+		domainFrames = append(domainFrames, r.logFrameToDomain(f))
+	}
+
+	return domain.Log{
+		ParkID:      l.ParkID,
+		DeviceID:    l.DeviceID,
+		BootID:      bootID,
+		BuildID:     buildID,
+		LogLevel:    domain.LogLevelFromString(l.Level.String),
+		Message:     l.Message.String,
+		Timestamp:   l.ReceivedAt,
+		StackFrames: domainFrames,
+		Attributes:  make(map[string]string),
+	}, nil
+}
+
+func (r *AnalyzeDeviceRepo) logsCountToDomain(row logsCountRow) domain.LogsCount {
+	return domain.LogsCount{
+		Info:  int64(row.Info),
+		Warn:  int64(row.Warn),
+		Error: int64(row.Error),
+		Fatal: int64(row.Fatal),
+		Trace: int64(row.Trace),
+		Debug: int64(row.Debug),
+		Total: int64(row.Total),
+	}
+}
+
+func (r *AnalyzeDeviceRepo) bootToDomain(b bootRow) (domain.Boot, error) {
+	var buildID *uuid.UUID
+	if b.BuildID.Valid {
+		inMemBuildID, err := uuid.Parse(b.BuildID.String)
+		if err != nil {
+			return domain.Boot{}, fmt.Errorf("failed to parse build_id in boot row: %w", err)
+		}
+		buildID = &inMemBuildID
+	}
+
+	diagnostics := b.Diagnostics
+	if diagnostics == nil {
+		diagnostics = make([]string, 0)
+	}
+
+	return domain.Boot{
+		ID:              b.BootID.String,
+		DeviceID:        b.DeviceID,
+		ReceivedAt:      b.ReceivedAt,
+		BuildID:         buildID,
+		Diagnostics:     diagnostics,
+		ResetReason:     b.ResetReason,
+		FirmwareVersion: b.FirmwareVersion,
+		AgentVersion:    b.AgentVersion,
+	}, nil
+}
+
+func (r *AnalyzeDeviceRepo) metricToDomain(m metricRow) domain.Metric {
+	pointsCount := min(len(m.PointValues), len(m.PointTimestamps))
+	chartPoints := make([]domain.MetricChartPoint, 0, pointsCount)
+	for i := range pointsCount {
+		chartPoints = append(chartPoints, domain.MetricChartPoint{
+			Value:     m.PointValues[i],
+			Timestamp: m.PointTimestamps[i],
+		})
+	}
+
+	return domain.Metric{
+		MetricID:    strconv.FormatUint(m.MetricID, 10),
+		AvgValue:    m.AvgValue,
+		MinValue:    m.MinValue,
+		MaxValue:    m.MaxValue,
+		ChartPoints: chartPoints,
 	}
 }
 
 func (r *AnalyzeDeviceRepo) getDeviceLogs(ctx context.Context, deviceID uuid.UUID, filters domain.GetDeviceDetailsFilters) ([]domain.Log, error) {
-	type frame struct {
-		PC       uint64  `ch:"pc"`
-		Function *string `ch:"function"`
-		File     *string `ch:"file"`
-		Line     *uint32 `ch:"line"`
-	}
-	type logRow struct {
-		ParkID     uuid.UUID      `ch:"park_id"`
-		DeviceID   uuid.UUID      `ch:"device_id"`
-		ReceivedAt time.Time      `ch:"received_at"`
-		BootID     sql.NullString `ch:"boot_id"`
-		BuildID    sql.NullString `ch:"build_id"`
-		Level      sql.NullString `ch:"level"`
-		Message    sql.NullString `ch:"message"`
-		Frames     []frame        `ch:"frames"`
-	}
-
-	frameToDomain := func(f frame) domain.StackFrame {
-		var line uint32
-		if f.Line != nil {
-			line = *f.Line
-		}
-
-		return domain.StackFrame{
-			PC:       f.PC,
-			Line:     line,
-			File:     f.File,
-			Function: f.Function,
-		}
-	}
-
-	logToDomain := func(l logRow) (domain.Log, error) {
-		var bootID *uuid.UUID
-		if l.BootID.Valid {
-			inMemBootID, err := uuid.Parse(l.BootID.String)
-			if err != nil {
-				return domain.Log{}, fmt.Errorf("failed to parse boot_id in log row: %w", err)
-			}
-			bootID = &inMemBootID
-		}
-
-		var buildID *uuid.UUID
-		if l.BuildID.Valid {
-			inMemBuildID, err := uuid.Parse(l.BuildID.String)
-			if err != nil {
-				return domain.Log{}, fmt.Errorf("failed to parse build_id in log row: %w", err)
-			}
-			buildID = &inMemBuildID
-		}
-
-		domainFrames := make([]domain.StackFrame, 0, len(l.Frames))
-		for _, f := range l.Frames {
-			domainFrames = append(domainFrames, frameToDomain(f))
-		}
-
-		return domain.Log{
-			ParkID:      l.ParkID,
-			DeviceID:    l.DeviceID,
-			BootID:      bootID,
-			BuildID:     buildID,
-			LogLevel:    domain.LogLevelFromString(l.Level.String),
-			Message:     l.Message.String,
-			Timestamp:   l.ReceivedAt,
-			StackFrames: domainFrames,
-			Attributes:  make(map[string]string),
-		}, nil
-	}
-
 	whereClause, args := buildDeviceTimeFilter(deviceID, filters)
 	query := fmt.Sprintf(`
 		SELECT
@@ -139,7 +221,7 @@ func (r *AnalyzeDeviceRepo) getDeviceLogs(ctx context.Context, deviceID uuid.UUI
 
 	domainLogs := make([]domain.Log, 0, len(logs))
 	for _, l := range logs {
-		domainLog, err := logToDomain(l)
+		domainLog, err := r.logToDomain(l)
 		if err != nil {
 			return nil, fmt.Errorf("failed to transform log object to domain: %w", err)
 		}
@@ -151,16 +233,6 @@ func (r *AnalyzeDeviceRepo) getDeviceLogs(ctx context.Context, deviceID uuid.UUI
 }
 
 func (r *AnalyzeDeviceRepo) getDeviceLogsCount(ctx context.Context, deviceID uuid.UUID, filters domain.GetDeviceDetailsFilters) (domain.LogsCount, error) {
-	type logsCountRow struct {
-		Info  uint64 `ch:"info"`
-		Warn  uint64 `ch:"warn"`
-		Error uint64 `ch:"error"`
-		Fatal uint64 `ch:"fatal"`
-		Trace uint64 `ch:"trace"`
-		Debug uint64 `ch:"debug"`
-		Total uint64 `ch:"total"`
-	}
-
 	whereClause, args := buildDeviceTimeFilter(deviceID, filters)
 	query := fmt.Sprintf(`
 		SELECT
@@ -183,57 +255,10 @@ func (r *AnalyzeDeviceRepo) getDeviceLogsCount(ctx context.Context, deviceID uui
 		return domain.LogsCount{}, nil
 	}
 
-	row := rows[0]
-	return domain.LogsCount{
-		Info:  int64(row.Info),
-		Warn:  int64(row.Warn),
-		Error: int64(row.Error),
-		Fatal: int64(row.Fatal),
-		Trace: int64(row.Trace),
-		Debug: int64(row.Debug),
-		Total: int64(row.Total),
-	}, nil
+	return r.logsCountToDomain(rows[0]), nil
 }
 
 func (r *AnalyzeDeviceRepo) getDeviceBoots(ctx context.Context, deviceID uuid.UUID, filters domain.GetDeviceDetailsFilters) ([]domain.Boot, error) {
-	type bootRow struct {
-		BootID          sql.NullString `ch:"boot_id"`
-		DeviceID        uuid.UUID      `ch:"device_id"`
-		ReceivedAt      time.Time      `ch:"received_at"`
-		BuildID         sql.NullString `ch:"build_id"`
-		Diagnostics     []string       `ch:"diagnostics"`
-		ResetReason     string         `ch:"reset_reason"`
-		FirmwareVersion string         `ch:"firmware_version"`
-		AgentVersion    string         `ch:"agent_version"`
-	}
-
-	bootToDomain := func(b bootRow) (domain.Boot, error) {
-		var buildID *uuid.UUID
-		if b.BuildID.Valid {
-			inMemBuildID, err := uuid.Parse(b.BuildID.String)
-			if err != nil {
-				return domain.Boot{}, fmt.Errorf("failed to parse build_id in boot row: %w", err)
-			}
-			buildID = &inMemBuildID
-		}
-
-		diagnostics := b.Diagnostics
-		if diagnostics == nil {
-			diagnostics = make([]string, 0)
-		}
-
-		return domain.Boot{
-			ID:              b.BootID.String,
-			DeviceID:        b.DeviceID,
-			ReceivedAt:      b.ReceivedAt,
-			BuildID:         buildID,
-			Diagnostics:     diagnostics,
-			ResetReason:     b.ResetReason,
-			FirmwareVersion: b.FirmwareVersion,
-			AgentVersion:    b.AgentVersion,
-		}, nil
-	}
-
 	whereClause, args := buildDeviceTimeFilter(deviceID, filters)
 	query := fmt.Sprintf(`
 		SELECT
@@ -257,7 +282,7 @@ func (r *AnalyzeDeviceRepo) getDeviceBoots(ctx context.Context, deviceID uuid.UU
 
 	domainBoots := make([]domain.Boot, 0, len(boots))
 	for _, b := range boots {
-		domainBoot, err := bootToDomain(b)
+		domainBoot, err := r.bootToDomain(b)
 		if err != nil {
 			return nil, fmt.Errorf("failed to transform boot object to domain: %w", err)
 		}
@@ -269,34 +294,6 @@ func (r *AnalyzeDeviceRepo) getDeviceBoots(ctx context.Context, deviceID uuid.UU
 }
 
 func (r *AnalyzeDeviceRepo) getDeviceMetrics(ctx context.Context, deviceID uuid.UUID, filters domain.GetDeviceDetailsFilters) ([]domain.Metric, error) {
-	type metricRow struct {
-		MetricID        uint64      `ch:"metric_id"`
-		AvgValue        float64     `ch:"avg_value"`
-		MinValue        float64     `ch:"min_value"`
-		MaxValue        float64     `ch:"max_value"`
-		PointValues     []float64   `ch:"point_values"`
-		PointTimestamps []time.Time `ch:"point_timestamps"`
-	}
-
-	metricToDomain := func(m metricRow) domain.Metric {
-		pointsCount := min(len(m.PointValues), len(m.PointTimestamps))
-		chartPoints := make([]domain.MetricChartPoint, 0, pointsCount)
-		for i := range pointsCount {
-			chartPoints = append(chartPoints, domain.MetricChartPoint{
-				Value:     m.PointValues[i],
-				Timestamp: m.PointTimestamps[i],
-			})
-		}
-
-		return domain.Metric{
-			MetricID:    strconv.FormatUint(m.MetricID, 10),
-			AvgValue:    m.AvgValue,
-			MinValue:    m.MinValue,
-			MaxValue:    m.MaxValue,
-			ChartPoints: chartPoints,
-		}
-	}
-
 	whereClause, args := buildDeviceTimeFilter(deviceID, filters)
 	query := fmt.Sprintf(`
 		SELECT
@@ -326,7 +323,7 @@ func (r *AnalyzeDeviceRepo) getDeviceMetrics(ctx context.Context, deviceID uuid.
 
 	domainMetrics := make([]domain.Metric, 0, len(metrics))
 	for _, m := range metrics {
-		domainMetrics = append(domainMetrics, metricToDomain(m))
+		domainMetrics = append(domainMetrics, r.metricToDomain(m))
 	}
 
 	return domainMetrics, nil
@@ -385,4 +382,133 @@ func (r *AnalyzeDeviceRepo) GetDeviceDetails(ctx context.Context, deviceID uuid.
 	}
 
 	return details, nil
+}
+
+type LatestLogRow struct {
+	ParkID           uuid.UUID `ch:"park_id"`
+	DeviceID         uuid.UUID `ch:"device_id"`
+	LatestReceiveTime time.Time `ch:"latest_recive_time"`
+}
+
+func (l LatestLogRow) ToDomain() domain.DeviceLatestReceiveTime {
+	return domain.DeviceLatestReceiveTime{
+		ParkID:    l.ParkID,
+		DeviceID:  l.DeviceID,
+		ReceivedAt: l.LatestReceiveTime,
+	}
+}
+
+func (r *AnalyzeDeviceRepo) getLatestReceivedLogs(ctx context.Context, parkID uuid.UUID, whereClause string, args []any) ([]domain.DeviceLatestReceiveTime, error) {
+	query := fmt.Sprintf(`
+		SELECT
+			l. park_id,
+			l.device_id,
+			MAX(l.received_at) as latest_receive_time
+		FROM logs as l
+		WHERE %s
+		GROUP_BY l.device_id
+	`, whereClause)
+
+	var rows []LatestLogRow
+	if err := r.db.Select(ctx, &rows, query, args...); err != nil {
+		return []domain.DeviceLatestReceiveTime{}, fmt.Errorf("failed to get last recive log time for device from db: %w", err)
+	}
+
+	domainLatestLogs := make([]domain.DeviceLatestReceiveTime, 0, len(rows))
+	for _, row := range rows {
+		domainLatestLogs = append(domainLatestLogs, row.ToDomain())
+	}
+
+	return domainLatestLogs, nil
+}
+
+func (r *AnalyzeDeviceRepo) getLatestReceivedMetrics(ctx context.Context, parkID uuid.UUID, whereClause string, args []any) ([]domain.DeviceLatestReceiveTime, error) {
+	query := fmt.Sprintf(`
+		SELECT
+			park_id,
+			device_id,
+			MAX(received_at) as latest_receive_time
+		FROM metrics
+		WHERE %s
+		GROUP BY device_id
+	`, whereClause)
+
+	var rows []LatestLogRow
+	if err := r.db.Select(ctx, &rows, query, args...); err != nil {
+		return []domain.DeviceLatestReceiveTime{}, fmt.Errorf("failed to get last receive metric time for device from db: %w", err)
+	}
+
+	domainLatestMetrics := make([]domain.DeviceLatestReceiveTime, 0, len(rows))
+	for _, row := range rows {
+		domainLatestMetrics = append(domainLatestMetrics, row.ToDomain())
+	}
+
+	return domainLatestMetrics, nil
+}
+
+func (r *AnalyzeDeviceRepo) getLatestReceivedBoots(ctx context.Context, parkID uuid.UUID, whereClause string, args []any) ([]domain.DeviceLatestReceiveTime, error) {
+	query := fmt.Sprintf(`
+		SELECT
+			park_id,
+			device_id,
+			MAX(received_at) as latest_receive_time
+		FROM boots
+		WHERE %s
+		GROUP BY device_id
+	`, whereClause)
+
+	var rows []LatestLogRow
+	if err := r.db.Select(ctx, &rows, query, args...); err != nil {
+		return []domain.DeviceLatestReceiveTime{}, fmt.Errorf("failed to get last recive boot time for device from db: %w", err)
+	}
+
+	domainLatestBoots := make([]domain.DeviceLatestReceiveTime, 0, len(rows))
+	for _, row := range rows {
+		domainLatestBoots = append(domainLatestBoots, row.ToDomain())
+	}
+
+	return domainLatestBoots, nil
+}
+
+func (r *AnalyzeDeviceRepo) getLatestReceivedCrashes(ctx context.Context, parkID uuid.UUID, whereClause string, args []any) ([]domain.DeviceLatestReceiveTime, error) {
+	query := fmt.Sprintf(`
+		SELECT
+			park_id,
+			device_id,
+			MAX(received_at) as latest_receive_time
+		FROM crashes
+		WHERE %s
+		GROUP BY device_id
+	`, whereClause)
+
+	var rows []LatestLogRow
+	if err := r.db.Select(ctx, &rows, query, args...); err != nil {
+		return []domain.DeviceLatestReceiveTime{}, fmt.Errorf("failed to get last recive crash time for device from db: %w", err)
+	}
+
+	domainLatestCrashes := make([]domain.DeviceLatestReceiveTime, 0, len(rows))
+	for _, row := range rows {
+		domainLatestCrashes = append(domainLatestCrashes, row.ToDomain())
+	}
+
+	return domainLatestCrashes, nil
+}
+
+func (r *AnalyzeDeviceRepo) GetDevicesSummary(ctx context.Context, parkID uuid.UUID, filters domain.GetDeviceSummaryFilters) (domain.DevicesSummary, error) {
+	whereClause := `park_id = ?`
+	args := []any{parkID}
+	if filters.GroupIDs != nil && len(*filters.GroupIDs) != 0 {
+		whereClause += ` AND hasAny(
+			SELECT group_ids
+			FROM group_membership as gm
+			WHERE l.device_id = gm.device_id, (?)
+		)`
+		args = append(args, *filters.GroupIDs)
+	}
+	if filters.BuildIDs != nil && len(*filters.BuildIDs) != 0 {
+		whereClause += " AND build_id IN (?)"
+		args = append(args, *filters.BuildIDs)
+	}
+
+	return domain.DevicesSummary{}, nil
 }

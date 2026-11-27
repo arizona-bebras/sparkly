@@ -13,6 +13,7 @@ import (
 
 	"connectrpc.com/connect/v2"
 	"connectrpc.com/connect/v2/connecthttp"
+	"github.com/ClickHouse/clickhouse-go/v2/lib/driver"
 	"github.com/joho/godotenv"
 
 	"sparkly/analytics/internal/config"
@@ -114,7 +115,7 @@ func run() error {
 
 	httpServer := &http.Server{
 		Addr:              ":" + cfg.Port,
-		Handler:           newMux(ingestService),
+		Handler:           newMux(ingestService, conn),
 		ReadHeaderTimeout: 5 * time.Second,
 		ReadTimeout:       15 * time.Second,
 		WriteTimeout:      15 * time.Second,
@@ -140,9 +141,13 @@ func run() error {
 	return nil
 }
 
-func newMux(ingester handlers.ParcelIngester) *http.ServeMux {
+func newMux(ingester handlers.ParcelIngester, db driver.Conn) *http.ServeMux {
 	server := connect.NewServer()
-	analyticsv1connect.RegisterAnalyticsServiceHandler(server, analyticsv1connect.UnimplementedAnalyticsServiceHandler{})
+
+	analyzeDeviceRepo := repos.NewAnalyzeDeviceRepo(db)
+	analyzeDeviceService := services.NewAnalyzeDeviceService(analyzeDeviceRepo)
+	analyzeDeviceHandler := handlers.NewAnalyzeDevicesHandler(analyzeDeviceService)
+	analyticsv1connect.RegisterAnalyticsServiceHandler(server, analyzeDeviceHandler)
 
 	mux := http.NewServeMux()
 	connecthttp.Mount(mux, server)
