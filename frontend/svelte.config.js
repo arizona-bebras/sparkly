@@ -8,6 +8,7 @@ const config = {
     adapter: adapter(),
     alias: {
       $proto: './proto/client.ts',
+      $assets: './src/assets',
       '@/*': './src/lib/*',
     },
   },

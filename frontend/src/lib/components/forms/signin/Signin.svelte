@@ -1,4 +1,5 @@
 <script lang="ts">
+  import BackgroundImage from '$assets/background.png';
   import { createMutation } from '@tanstack/svelte-query';
   import type { HTMLAttributes } from 'svelte/elements';
   import { goto } from '$app/navigation';
@@ -110,7 +111,7 @@
         class="relative z-0 animate-in fade-in md:slide-in-from-left-[50%] duration-700 ease-out hidden overflow-hidden bg-muted md:block"
       >
         <img
-          src="https://i.pinimg.com/1200x/6e/1e/54/6e1e54fbcf939af3b25df2ceacd22803.jpg"
+          src={BackgroundImage}
           alt="placeholder"
           class="absolute inset-0 h-full w-full object-fit dark:brightness-[0.2] dark:grayscale"
         />
