@@ -11,9 +11,7 @@ import (
 )
 
 type AnalyzeDeviceRepo interface {
-	// GetDevicesSummaryForPark(ctx context.Context, parkID uuid.UUID) (domain.DevicesSummary, error)
-	// GetDevicesSummaryForGroups(ctx context.Context, parkID uuid.UUID) (domain.DevicesSummary, error)
-	// GetDevicesSummaryForBuilds(ctx context.Context, parkID uuid.UUID) (domain.DevicesSummary, error)
+	GetDevicesSummary(ctx context.Context, parkID uuid.UUID, filters domain.GetDeviceSummaryFilters) (domain.DevicesSummary, error)
 	GetDeviceDetails(ctx context.Context, deviceID uuid.UUID, filters domain.GetDeviceDetailsFilters) (domain.DeviceDetails, error)
 }
 
@@ -53,10 +51,34 @@ func (s *AnalyzeDeviceService) GetDeviceDetails(ctx context.Context, deviceIDStr
 }
 
 type GetDeviceSummaryFilters struct {
-	FromTime time.Time
-	ToTime   time.Time
+	GroupIDsStr *[]string
 }
 
-func (s *AnalyzeDeviceService) GetDeviceSummaryForPark(ctx context.Context, parkIDStr string, filters *GetDeviceSummaryFilters) (domain.DevicesSummary, error) {
-	return domain.DevicesSummary{}, nil
+func (s *AnalyzeDeviceService) GetDeviceSummary(ctx context.Context, parkIDStr string, filters GetDeviceSummaryFilters) (domain.DevicesSummary, error) {
+	parkID, err := uuid.Parse(parkIDStr)
+	if err != nil {
+		return domain.DevicesSummary{}, fmt.Errorf("failed to parse park id: %w", err)
+	}
+
+	var domainFilters domain.GetDeviceSummaryFilters
+	
+	if filters.GroupIDsStr != nil {
+		groupIDs := make([]uuid.UUID, 0, len(*filters.GroupIDsStr))
+		for _, IDStr := range *filters.GroupIDsStr {
+			id, err := uuid.Parse(IDStr)
+			if err != nil {
+				return domain.DevicesSummary{}, fmt.Errorf("failed to parse group id: %w", err)
+			}
+			groupIDs = append(groupIDs, id)
+		}
+
+		domainFilters.GroupIDs = &groupIDs
+	}
+	
+	summary, err := s.repo.GetDevicesSummary(ctx, parkID, domainFilters)
+	if err != nil {
+		return domain.DevicesSummary{}, fmt.Errorf("failed to get devices summary: %w", err)
+	}
+	
+	return summary, nil
 }

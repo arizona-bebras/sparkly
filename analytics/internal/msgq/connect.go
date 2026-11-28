@@ -16,7 +16,6 @@ func NewMessageBroker(url string) (*MessageBroker, error) {
 		url = "amqp://localhost:5672/"
 	}
 
-	fmt.Println(url)
 	conn, err := amqp.Dial(url)
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to rabbitmq service: %w", err)

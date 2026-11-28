@@ -133,33 +133,13 @@ message GetSummaryResponse {
 }
 
 message GetDevicesSummaryRequest {
-  message Groups {
-    repeated string group_ids = 1 [(buf.validate.field).repeated = {
-      min_items: 1
-      items: {
-        string: {uuid: true}
-      }
-    }];
-  }
-
-  message Builds {
-    repeated string build_ids = 1 [(buf.validate.field).repeated = {
-      min_items: 1
-      items: {
-        string: {uuid: true}
-      }
-    }];
-  }
-
-  oneof object {
-    option (buf.validate.oneof).required = true;
-
-    string park_id = 1 [(buf.validate.field).string.uuid = true];
-    Groups group_ids = 2;
-    Builds build_ids = 3;
-  }
-
-  optional TimeRange timerange = 4;
+  string park_id = 1 [(buf.validate.field).string.uuid = true];
+  repeated string group_ids = 2 [(buf.validate.field).repeated = {
+    min_items: 1
+    items: {
+      string: {uuid: true}
+    }
+  }];
 }
 
 message GetDevicesSummaryResponse {

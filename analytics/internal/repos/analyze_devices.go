@@ -384,131 +384,48 @@ func (r *AnalyzeDeviceRepo) GetDeviceDetails(ctx context.Context, deviceID uuid.
 	return details, nil
 }
 
-type LatestLogRow struct {
-	ParkID           uuid.UUID `ch:"park_id"`
+type LatestMsgRow struct {
 	DeviceID         uuid.UUID `ch:"device_id"`
-	LatestReceiveTime time.Time `ch:"latest_recive_time"`
+	LatestReceiveTime time.Time `ch:"latest_receive_time"`
 }
 
-func (l LatestLogRow) ToDomain() domain.DeviceLatestReceiveTime {
-	return domain.DeviceLatestReceiveTime{
-		ParkID:    l.ParkID,
+func (l LatestMsgRow) ToDomain() domain.DeviceSummary {
+	return domain.DeviceSummary{
 		DeviceID:  l.DeviceID,
-		ReceivedAt: l.LatestReceiveTime,
+		LastSeenAt: l.LatestReceiveTime,
 	}
-}
-
-func (r *AnalyzeDeviceRepo) getLatestReceivedLogs(ctx context.Context, parkID uuid.UUID, whereClause string, args []any) ([]domain.DeviceLatestReceiveTime, error) {
-	query := fmt.Sprintf(`
-		SELECT
-			l. park_id,
-			l.device_id,
-			MAX(l.received_at) as latest_receive_time
-		FROM logs as l
-		WHERE %s
-		GROUP_BY l.device_id
-	`, whereClause)
-
-	var rows []LatestLogRow
-	if err := r.db.Select(ctx, &rows, query, args...); err != nil {
-		return []domain.DeviceLatestReceiveTime{}, fmt.Errorf("failed to get last recive log time for device from db: %w", err)
-	}
-
-	domainLatestLogs := make([]domain.DeviceLatestReceiveTime, 0, len(rows))
-	for _, row := range rows {
-		domainLatestLogs = append(domainLatestLogs, row.ToDomain())
-	}
-
-	return domainLatestLogs, nil
-}
-
-func (r *AnalyzeDeviceRepo) getLatestReceivedMetrics(ctx context.Context, parkID uuid.UUID, whereClause string, args []any) ([]domain.DeviceLatestReceiveTime, error) {
-	query := fmt.Sprintf(`
-		SELECT
-			park_id,
-			device_id,
-			MAX(received_at) as latest_receive_time
-		FROM metrics
-		WHERE %s
-		GROUP BY device_id
-	`, whereClause)
-
-	var rows []LatestLogRow
-	if err := r.db.Select(ctx, &rows, query, args...); err != nil {
-		return []domain.DeviceLatestReceiveTime{}, fmt.Errorf("failed to get last receive metric time for device from db: %w", err)
-	}
-
-	domainLatestMetrics := make([]domain.DeviceLatestReceiveTime, 0, len(rows))
-	for _, row := range rows {
-		domainLatestMetrics = append(domainLatestMetrics, row.ToDomain())
-	}
-
-	return domainLatestMetrics, nil
-}
-
-func (r *AnalyzeDeviceRepo) getLatestReceivedBoots(ctx context.Context, parkID uuid.UUID, whereClause string, args []any) ([]domain.DeviceLatestReceiveTime, error) {
-	query := fmt.Sprintf(`
-		SELECT
-			park_id,
-			device_id,
-			MAX(received_at) as latest_receive_time
-		FROM boots
-		WHERE %s
-		GROUP BY device_id
-	`, whereClause)
-
-	var rows []LatestLogRow
-	if err := r.db.Select(ctx, &rows, query, args...); err != nil {
-		return []domain.DeviceLatestReceiveTime{}, fmt.Errorf("failed to get last recive boot time for device from db: %w", err)
-	}
-
-	domainLatestBoots := make([]domain.DeviceLatestReceiveTime, 0, len(rows))
-	for _, row := range rows {
-		domainLatestBoots = append(domainLatestBoots, row.ToDomain())
-	}
-
-	return domainLatestBoots, nil
-}
-
-func (r *AnalyzeDeviceRepo) getLatestReceivedCrashes(ctx context.Context, parkID uuid.UUID, whereClause string, args []any) ([]domain.DeviceLatestReceiveTime, error) {
-	query := fmt.Sprintf(`
-		SELECT
-			park_id,
-			device_id,
-			MAX(received_at) as latest_receive_time
-		FROM crashes
-		WHERE %s
-		GROUP BY device_id
-	`, whereClause)
-
-	var rows []LatestLogRow
-	if err := r.db.Select(ctx, &rows, query, args...); err != nil {
-		return []domain.DeviceLatestReceiveTime{}, fmt.Errorf("failed to get last recive crash time for device from db: %w", err)
-	}
-
-	domainLatestCrashes := make([]domain.DeviceLatestReceiveTime, 0, len(rows))
-	for _, row := range rows {
-		domainLatestCrashes = append(domainLatestCrashes, row.ToDomain())
-	}
-
-	return domainLatestCrashes, nil
 }
 
 func (r *AnalyzeDeviceRepo) GetDevicesSummary(ctx context.Context, parkID uuid.UUID, filters domain.GetDeviceSummaryFilters) (domain.DevicesSummary, error) {
 	whereClause := `park_id = ?`
 	args := []any{parkID}
+
 	if filters.GroupIDs != nil && len(*filters.GroupIDs) != 0 {
-		whereClause += ` AND hasAny(
-			SELECT group_ids
-			FROM group_membership as gm
-			WHERE l.device_id = gm.device_id, (?)
-		)`
+		whereClause += ` AND hasAny(group_ids, CAST(? AS Array(UUID)))`
 		args = append(args, *filters.GroupIDs)
 	}
-	if filters.BuildIDs != nil && len(*filters.BuildIDs) != 0 {
-		whereClause += " AND build_id IN (?)"
-		args = append(args, *filters.BuildIDs)
+
+	query := fmt.Sprintf(`
+		SELECT
+			device_id,
+			MAX(received_at) as latest_receive_time
+		FROM raw_batches
+		WHERE %s
+		GROUP BY device_id
+	`, whereClause)
+
+	var rows []LatestMsgRow
+	if err := r.db.Select(ctx, &rows, query, args...); err != nil {
+		return domain.DevicesSummary{}, fmt.Errorf("failed to get latest devices messages from db: %w", err)
 	}
 
-	return domain.DevicesSummary{}, nil
+	domainDevicesSummary := make([]domain.DeviceSummary, 0, len(rows))
+	for _, row := range rows {
+		domainDevicesSummary = append(domainDevicesSummary, row.ToDomain())
+	}
+
+	return domain.DevicesSummary{
+		Devices:   domainDevicesSummary,
+		Timestamp: time.Now(),
+	}, nil
 }

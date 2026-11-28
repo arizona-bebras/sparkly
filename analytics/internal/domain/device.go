@@ -60,11 +60,4 @@ type GetDeviceDetailsFilters struct {
 
 type GetDeviceSummaryFilters struct {
 	GroupIDs *[]uuid.UUID
-	BuildIDs *[]uuid.UUID
-}
-
-type DeviceLatestReceiveTime struct {
-	ParkID    uuid.UUID
-	DeviceID  uuid.UUID
-	ReceivedAt time.Time
 }

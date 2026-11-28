@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"context"
+	"log"
 
 	"sparkly/analytics/internal/domain"
 	"sparkly/analytics/internal/services"
@@ -222,8 +223,44 @@ func (h *AnalyticsHandler) AnalyzeDevice(ctx context.Context, req *pb.AnalyzeDev
 
 	deviceAnalysis, err := h.service.GetDeviceDetails(ctx, deviceID, filters)
 	if err != nil {
+		log.Printf("AnalyticsService/AnalyzeDevice error: %v", err)
 		return nil, connect.NewError(connect.CodeInternal, "internal error")
 	}
 
 	return h.deviceDetailsDomainToPB(deviceAnalysis), nil
+}
+
+func deviceSummaryDomainToPB(sum domain.DeviceSummary) *pb.GetDevicesSummaryResponse_DeviceSummary {
+	return &pb.GetDevicesSummaryResponse_DeviceSummary{
+		DeviceId: sum.DeviceID.String(),
+		LastSeenAt: timestamppb.New(sum.LastSeenAt),
+	}
+}
+
+func devicesSummaryDomainToPB(sum domain.DevicesSummary) *pb.GetDevicesSummaryResponse {
+	pbSummary := make([]*pb.GetDevicesSummaryResponse_DeviceSummary, 0, len(sum.Devices))
+	for _, singleSum := range sum.Devices {
+		pbSummary = append(pbSummary, deviceSummaryDomainToPB(singleSum))
+	}
+
+	return &pb.GetDevicesSummaryResponse{
+		Devices: pbSummary,
+		Timestamp: timestamppb.New(sum.Timestamp),
+	}
+}
+
+func (h *AnalyticsHandler) GetDevicesSummary(ctx context.Context, req *pb.GetDevicesSummaryRequest) (*pb.GetDevicesSummaryResponse, error) {
+	parkID := req.GetParkId()
+
+	filters := services.GetDeviceSummaryFilters{
+		GroupIDsStr: &req.GroupIds,
+	}
+
+	summary, err := h.service.GetDeviceSummary(ctx, parkID, filters)
+	if err != nil {
+		log.Printf("AnalyticsService/GetDevicesSummary error: %v", err)
+		return nil, connect.NewError(connect.CodeInternal, "internal error")
+	}
+
+	return devicesSummaryDomainToPB(summary), nil
 }
