@@ -9,20 +9,20 @@ import (
 	"testing"
 	"time"
 
-	"sparkly/analytics/internal/domain"
 	"sparkly/analytics/internal/db"
+	"sparkly/analytics/internal/domain"
 	"sparkly/analytics/internal/parcel"
 	"sparkly/analytics/internal/services"
-
 )
 
 func TestRoutes(t *testing.T) {
 	var store routeStore
 	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
+	defer cancel()
 	conn, _, err := db.Open(ctx)
 	if err != nil {
 		cancel()
-		t.Fatalf("db init failed: %w", err)
+		t.Fatalf("db init failed: %v", err)
 	}
 	mux := newMux(services.NewIngestService(parcel.Codec{}, &store), conn)
 	request := httptest.NewRequest(http.MethodPost, "/sparkly.analytics.v1.AnalyticsService/GetSummary", strings.NewReader("{}"))

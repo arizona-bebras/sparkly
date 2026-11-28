@@ -93,26 +93,26 @@ message Incident {
 }
 
 message Boot {
-    string id = 1;
-    string device_id = 2;
-    google.protobuf.Timestamp received_at = 3;
-    optional string build_id = 4;
-    repeated string diagnostics = 5;
-    string reset_reason = 6;
-    string firmware_version = 7;
-    string agent_version = 8;
+  string id = 1;
+  string device_id = 2;
+  google.protobuf.Timestamp received_at = 3;
+  optional string build_id = 4;
+  repeated string diagnostics = 5;
+  string reset_reason = 6;
+  string firmware_version = 7;
+  string agent_version = 8;
 }
 
 message Crash {
-    string park_id = 1;
-    string device_id = 2;
-    google.protobuf.Timestamp received_at = 3;
-    optional string boot_id = 4;
-    optional string build_id = 5;
-    repeated string diagnostics = 6;
-    repeated StackFrame stack = 7;
-    optional string reason = 8;
-    map<string, string> registers = 9;
+  string park_id = 1;
+  string device_id = 2;
+  google.protobuf.Timestamp received_at = 3;
+  optional string boot_id = 4;
+  optional string build_id = 5;
+  repeated string diagnostics = 6;
+  repeated StackFrame stack = 7;
+  optional string reason = 8;
+  map<string, string> registers = 9;
 }
 
 message GetSummaryRequest {

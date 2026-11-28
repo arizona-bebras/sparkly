@@ -1,8 +1,8 @@
 package db
 
 import (
-	"database/sql"
 	"context"
+	"database/sql"
 	"fmt"
 	"net"
 	"os"
@@ -24,7 +24,7 @@ func Open(ctx context.Context) (driver.Conn, *sql.DB, error) {
 		DialTimeout: 5 * time.Second,
 		ReadTimeout: 15 * time.Second,
 	}
-	
+
 	conn, err := clickhouse.Open(opt)
 	if err != nil {
 		conn.Close()
@@ -32,7 +32,7 @@ func Open(ctx context.Context) (driver.Conn, *sql.DB, error) {
 	}
 
 	migrationDB := clickhouse.OpenDB(opt)
-	
+
 	return conn, migrationDB, nil
 }
 

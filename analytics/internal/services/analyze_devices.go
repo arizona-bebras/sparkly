@@ -61,7 +61,7 @@ func (s *AnalyzeDeviceService) GetDeviceSummary(ctx context.Context, parkIDStr s
 	}
 
 	var domainFilters domain.GetDeviceSummaryFilters
-	
+
 	if filters.GroupIDsStr != nil {
 		groupIDs := make([]uuid.UUID, 0, len(*filters.GroupIDsStr))
 		for _, IDStr := range *filters.GroupIDsStr {
@@ -74,11 +74,11 @@ func (s *AnalyzeDeviceService) GetDeviceSummary(ctx context.Context, parkIDStr s
 
 		domainFilters.GroupIDs = &groupIDs
 	}
-	
+
 	summary, err := s.repo.GetDevicesSummary(ctx, parkID, domainFilters)
 	if err != nil {
 		return domain.DevicesSummary{}, fmt.Errorf("failed to get devices summary: %w", err)
 	}
-	
+
 	return summary, nil
 }
