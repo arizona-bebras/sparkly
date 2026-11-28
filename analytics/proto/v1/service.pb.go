@@ -332,16 +332,15 @@ func (x *StackFrame) GetPc() int64 {
 
 type Log struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	DeviceId      string                 `protobuf:"bytes,2,opt,name=device_id,json=deviceId,proto3" json:"device_id,omitempty"`
-	ParkId        string                 `protobuf:"bytes,3,opt,name=park_id,json=parkId,proto3" json:"park_id,omitempty"`
-	GroupIds      []string               `protobuf:"bytes,4,rep,name=group_ids,json=groupIds,proto3" json:"group_ids,omitempty"`
-	BuildId       *string                `protobuf:"bytes,5,opt,name=build_id,json=buildId,proto3,oneof" json:"build_id,omitempty"`
-	Level         LogLevel               `protobuf:"varint,6,opt,name=level,proto3,enum=sparkly.analytics.v1.LogLevel" json:"level,omitempty"`
-	Message       string                 `protobuf:"bytes,7,opt,name=message,proto3" json:"message,omitempty"`
-	Timestamp     *timestamppb.Timestamp `protobuf:"bytes,8,opt,name=timestamp,proto3" json:"timestamp,omitempty"`
-	Stack         []*StackFrame          `protobuf:"bytes,9,rep,name=stack,proto3" json:"stack,omitempty"`
-	Attributes    map[string]string      `protobuf:"bytes,10,rep,name=attributes,proto3" json:"attributes,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	DeviceId      string                 `protobuf:"bytes,1,opt,name=device_id,json=deviceId,proto3" json:"device_id,omitempty"`
+	ParkId        string                 `protobuf:"bytes,2,opt,name=park_id,json=parkId,proto3" json:"park_id,omitempty"`
+	GroupIds      []string               `protobuf:"bytes,3,rep,name=group_ids,json=groupIds,proto3" json:"group_ids,omitempty"`
+	BuildId       *string                `protobuf:"bytes,4,opt,name=build_id,json=buildId,proto3,oneof" json:"build_id,omitempty"`
+	Level         LogLevel               `protobuf:"varint,5,opt,name=level,proto3,enum=sparkly.analytics.v1.LogLevel" json:"level,omitempty"`
+	Message       string                 `protobuf:"bytes,6,opt,name=message,proto3" json:"message,omitempty"`
+	Timestamp     *timestamppb.Timestamp `protobuf:"bytes,7,opt,name=timestamp,proto3" json:"timestamp,omitempty"`
+	Stack         []*StackFrame          `protobuf:"bytes,8,rep,name=stack,proto3" json:"stack,omitempty"`
+	Attributes    map[string]string      `protobuf:"bytes,9,rep,name=attributes,proto3" json:"attributes,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -374,13 +373,6 @@ func (x *Log) ProtoReflect() protoreflect.Message {
 // Deprecated: Use Log.ProtoReflect.Descriptor instead.
 func (*Log) Descriptor() ([]byte, []int) {
 	return file_analytics_proto_service_proto_rawDescGZIP(), []int{3}
-}
-
-func (x *Log) GetId() string {
-	if x != nil {
-		return x.Id
-	}
-	return ""
 }
 
 func (x *Log) GetDeviceId() string {
@@ -762,6 +754,114 @@ func (x *Boot) GetAgentVersion() string {
 	return ""
 }
 
+type Crash struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	ParkId        string                 `protobuf:"bytes,1,opt,name=park_id,json=parkId,proto3" json:"park_id,omitempty"`
+	DeviceId      string                 `protobuf:"bytes,2,opt,name=device_id,json=deviceId,proto3" json:"device_id,omitempty"`
+	ReceivedAt    *timestamppb.Timestamp `protobuf:"bytes,3,opt,name=received_at,json=receivedAt,proto3" json:"received_at,omitempty"`
+	BootId        *string                `protobuf:"bytes,4,opt,name=boot_id,json=bootId,proto3,oneof" json:"boot_id,omitempty"`
+	BuildId       *string                `protobuf:"bytes,5,opt,name=build_id,json=buildId,proto3,oneof" json:"build_id,omitempty"`
+	Diagnostics   []string               `protobuf:"bytes,6,rep,name=diagnostics,proto3" json:"diagnostics,omitempty"`
+	Stack         []*StackFrame          `protobuf:"bytes,7,rep,name=stack,proto3" json:"stack,omitempty"`
+	Reason        *string                `protobuf:"bytes,8,opt,name=reason,proto3,oneof" json:"reason,omitempty"`
+	Registers     map[string]string      `protobuf:"bytes,9,rep,name=registers,proto3" json:"registers,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Crash) Reset() {
+	*x = Crash{}
+	mi := &file_analytics_proto_service_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Crash) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Crash) ProtoMessage() {}
+
+func (x *Crash) ProtoReflect() protoreflect.Message {
+	mi := &file_analytics_proto_service_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Crash.ProtoReflect.Descriptor instead.
+func (*Crash) Descriptor() ([]byte, []int) {
+	return file_analytics_proto_service_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *Crash) GetParkId() string {
+	if x != nil {
+		return x.ParkId
+	}
+	return ""
+}
+
+func (x *Crash) GetDeviceId() string {
+	if x != nil {
+		return x.DeviceId
+	}
+	return ""
+}
+
+func (x *Crash) GetReceivedAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.ReceivedAt
+	}
+	return nil
+}
+
+func (x *Crash) GetBootId() string {
+	if x != nil && x.BootId != nil {
+		return *x.BootId
+	}
+	return ""
+}
+
+func (x *Crash) GetBuildId() string {
+	if x != nil && x.BuildId != nil {
+		return *x.BuildId
+	}
+	return ""
+}
+
+func (x *Crash) GetDiagnostics() []string {
+	if x != nil {
+		return x.Diagnostics
+	}
+	return nil
+}
+
+func (x *Crash) GetStack() []*StackFrame {
+	if x != nil {
+		return x.Stack
+	}
+	return nil
+}
+
+func (x *Crash) GetReason() string {
+	if x != nil && x.Reason != nil {
+		return *x.Reason
+	}
+	return ""
+}
+
+func (x *Crash) GetRegisters() map[string]string {
+	if x != nil {
+		return x.Registers
+	}
+	return nil
+}
+
 type GetSummaryRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// Types that are valid to be assigned to Object:
@@ -776,7 +876,7 @@ type GetSummaryRequest struct {
 
 func (x *GetSummaryRequest) Reset() {
 	*x = GetSummaryRequest{}
-	mi := &file_analytics_proto_service_proto_msgTypes[7]
+	mi := &file_analytics_proto_service_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -788,7 +888,7 @@ func (x *GetSummaryRequest) String() string {
 func (*GetSummaryRequest) ProtoMessage() {}
 
 func (x *GetSummaryRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_analytics_proto_service_proto_msgTypes[7]
+	mi := &file_analytics_proto_service_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -801,7 +901,7 @@ func (x *GetSummaryRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetSummaryRequest.ProtoReflect.Descriptor instead.
 func (*GetSummaryRequest) Descriptor() ([]byte, []int) {
-	return file_analytics_proto_service_proto_rawDescGZIP(), []int{7}
+	return file_analytics_proto_service_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *GetSummaryRequest) GetObject() isGetSummaryRequest_Object {
@@ -865,7 +965,7 @@ type GetSummaryResponse struct {
 
 func (x *GetSummaryResponse) Reset() {
 	*x = GetSummaryResponse{}
-	mi := &file_analytics_proto_service_proto_msgTypes[8]
+	mi := &file_analytics_proto_service_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -877,7 +977,7 @@ func (x *GetSummaryResponse) String() string {
 func (*GetSummaryResponse) ProtoMessage() {}
 
 func (x *GetSummaryResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_analytics_proto_service_proto_msgTypes[8]
+	mi := &file_analytics_proto_service_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -890,7 +990,7 @@ func (x *GetSummaryResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetSummaryResponse.ProtoReflect.Descriptor instead.
 func (*GetSummaryResponse) Descriptor() ([]byte, []int) {
-	return file_analytics_proto_service_proto_rawDescGZIP(), []int{8}
+	return file_analytics_proto_service_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *GetSummaryResponse) GetTotalDevices() int64 {
@@ -938,7 +1038,7 @@ type GetDevicesSummaryRequest struct {
 
 func (x *GetDevicesSummaryRequest) Reset() {
 	*x = GetDevicesSummaryRequest{}
-	mi := &file_analytics_proto_service_proto_msgTypes[9]
+	mi := &file_analytics_proto_service_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -950,7 +1050,7 @@ func (x *GetDevicesSummaryRequest) String() string {
 func (*GetDevicesSummaryRequest) ProtoMessage() {}
 
 func (x *GetDevicesSummaryRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_analytics_proto_service_proto_msgTypes[9]
+	mi := &file_analytics_proto_service_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -963,7 +1063,7 @@ func (x *GetDevicesSummaryRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetDevicesSummaryRequest.ProtoReflect.Descriptor instead.
 func (*GetDevicesSummaryRequest) Descriptor() ([]byte, []int) {
-	return file_analytics_proto_service_proto_rawDescGZIP(), []int{9}
+	return file_analytics_proto_service_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *GetDevicesSummaryRequest) GetParkId() string {
@@ -990,7 +1090,7 @@ type GetDevicesSummaryResponse struct {
 
 func (x *GetDevicesSummaryResponse) Reset() {
 	*x = GetDevicesSummaryResponse{}
-	mi := &file_analytics_proto_service_proto_msgTypes[10]
+	mi := &file_analytics_proto_service_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1002,7 +1102,7 @@ func (x *GetDevicesSummaryResponse) String() string {
 func (*GetDevicesSummaryResponse) ProtoMessage() {}
 
 func (x *GetDevicesSummaryResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_analytics_proto_service_proto_msgTypes[10]
+	mi := &file_analytics_proto_service_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1015,7 +1115,7 @@ func (x *GetDevicesSummaryResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetDevicesSummaryResponse.ProtoReflect.Descriptor instead.
 func (*GetDevicesSummaryResponse) Descriptor() ([]byte, []int) {
-	return file_analytics_proto_service_proto_rawDescGZIP(), []int{10}
+	return file_analytics_proto_service_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *GetDevicesSummaryResponse) GetDevices() []*GetDevicesSummaryResponse_DeviceSummary {
@@ -1042,7 +1142,7 @@ type AnalyzeDeviceRequest struct {
 
 func (x *AnalyzeDeviceRequest) Reset() {
 	*x = AnalyzeDeviceRequest{}
-	mi := &file_analytics_proto_service_proto_msgTypes[11]
+	mi := &file_analytics_proto_service_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1054,7 +1154,7 @@ func (x *AnalyzeDeviceRequest) String() string {
 func (*AnalyzeDeviceRequest) ProtoMessage() {}
 
 func (x *AnalyzeDeviceRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_analytics_proto_service_proto_msgTypes[11]
+	mi := &file_analytics_proto_service_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1067,7 +1167,7 @@ func (x *AnalyzeDeviceRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AnalyzeDeviceRequest.ProtoReflect.Descriptor instead.
 func (*AnalyzeDeviceRequest) Descriptor() ([]byte, []int) {
-	return file_analytics_proto_service_proto_rawDescGZIP(), []int{11}
+	return file_analytics_proto_service_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *AnalyzeDeviceRequest) GetDeviceId() string {
@@ -1091,16 +1191,17 @@ type AnalyzeDeviceResponse struct {
 	LogsCount     *LogsCount                        `protobuf:"bytes,3,opt,name=logs_count,json=logsCount,proto3" json:"logs_count,omitempty"`
 	Logs          []*Log                            `protobuf:"bytes,4,rep,name=logs,proto3" json:"logs,omitempty"`
 	Boots         []*Boot                           `protobuf:"bytes,5,rep,name=boots,proto3" json:"boots,omitempty"`
-	Timestamp     *timestamppb.Timestamp            `protobuf:"bytes,6,opt,name=timestamp,proto3" json:"timestamp,omitempty"`
-	Incidents     []*Incident                       `protobuf:"bytes,7,rep,name=incidents,proto3" json:"incidents,omitempty"`
-	MlInsights    *AnalyzeDeviceResponse_MLInsights `protobuf:"bytes,8,opt,name=ml_insights,json=mlInsights,proto3,oneof" json:"ml_insights,omitempty"`
+	Crashes       []*Crash                          `protobuf:"bytes,6,rep,name=crashes,proto3" json:"crashes,omitempty"`
+	Timestamp     *timestamppb.Timestamp            `protobuf:"bytes,7,opt,name=timestamp,proto3" json:"timestamp,omitempty"`
+	Incidents     []*Incident                       `protobuf:"bytes,8,rep,name=incidents,proto3" json:"incidents,omitempty"`
+	MlInsights    *AnalyzeDeviceResponse_MLInsights `protobuf:"bytes,9,opt,name=ml_insights,json=mlInsights,proto3,oneof" json:"ml_insights,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *AnalyzeDeviceResponse) Reset() {
 	*x = AnalyzeDeviceResponse{}
-	mi := &file_analytics_proto_service_proto_msgTypes[12]
+	mi := &file_analytics_proto_service_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1112,7 +1213,7 @@ func (x *AnalyzeDeviceResponse) String() string {
 func (*AnalyzeDeviceResponse) ProtoMessage() {}
 
 func (x *AnalyzeDeviceResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_analytics_proto_service_proto_msgTypes[12]
+	mi := &file_analytics_proto_service_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1125,7 +1226,7 @@ func (x *AnalyzeDeviceResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AnalyzeDeviceResponse.ProtoReflect.Descriptor instead.
 func (*AnalyzeDeviceResponse) Descriptor() ([]byte, []int) {
-	return file_analytics_proto_service_proto_rawDescGZIP(), []int{12}
+	return file_analytics_proto_service_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *AnalyzeDeviceResponse) GetDeviceId() string {
@@ -1163,6 +1264,13 @@ func (x *AnalyzeDeviceResponse) GetBoots() []*Boot {
 	return nil
 }
 
+func (x *AnalyzeDeviceResponse) GetCrashes() []*Crash {
+	if x != nil {
+		return x.Crashes
+	}
+	return nil
+}
+
 func (x *AnalyzeDeviceResponse) GetTimestamp() *timestamppb.Timestamp {
 	if x != nil {
 		return x.Timestamp
@@ -1194,7 +1302,7 @@ type AnalyzeParkRequest struct {
 
 func (x *AnalyzeParkRequest) Reset() {
 	*x = AnalyzeParkRequest{}
-	mi := &file_analytics_proto_service_proto_msgTypes[13]
+	mi := &file_analytics_proto_service_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1206,7 +1314,7 @@ func (x *AnalyzeParkRequest) String() string {
 func (*AnalyzeParkRequest) ProtoMessage() {}
 
 func (x *AnalyzeParkRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_analytics_proto_service_proto_msgTypes[13]
+	mi := &file_analytics_proto_service_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1219,7 +1327,7 @@ func (x *AnalyzeParkRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AnalyzeParkRequest.ProtoReflect.Descriptor instead.
 func (*AnalyzeParkRequest) Descriptor() ([]byte, []int) {
-	return file_analytics_proto_service_proto_rawDescGZIP(), []int{13}
+	return file_analytics_proto_service_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *AnalyzeParkRequest) GetParkId() string {
@@ -1257,7 +1365,7 @@ type AnalyzeParkResponse struct {
 
 func (x *AnalyzeParkResponse) Reset() {
 	*x = AnalyzeParkResponse{}
-	mi := &file_analytics_proto_service_proto_msgTypes[14]
+	mi := &file_analytics_proto_service_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1269,7 +1377,7 @@ func (x *AnalyzeParkResponse) String() string {
 func (*AnalyzeParkResponse) ProtoMessage() {}
 
 func (x *AnalyzeParkResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_analytics_proto_service_proto_msgTypes[14]
+	mi := &file_analytics_proto_service_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1282,7 +1390,7 @@ func (x *AnalyzeParkResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AnalyzeParkResponse.ProtoReflect.Descriptor instead.
 func (*AnalyzeParkResponse) Descriptor() ([]byte, []int) {
-	return file_analytics_proto_service_proto_rawDescGZIP(), []int{14}
+	return file_analytics_proto_service_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *AnalyzeParkResponse) GetParkId() string {
@@ -1391,7 +1499,7 @@ type GetIncidentsRequest struct {
 
 func (x *GetIncidentsRequest) Reset() {
 	*x = GetIncidentsRequest{}
-	mi := &file_analytics_proto_service_proto_msgTypes[15]
+	mi := &file_analytics_proto_service_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1403,7 +1511,7 @@ func (x *GetIncidentsRequest) String() string {
 func (*GetIncidentsRequest) ProtoMessage() {}
 
 func (x *GetIncidentsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_analytics_proto_service_proto_msgTypes[15]
+	mi := &file_analytics_proto_service_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1416,7 +1524,7 @@ func (x *GetIncidentsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetIncidentsRequest.ProtoReflect.Descriptor instead.
 func (*GetIncidentsRequest) Descriptor() ([]byte, []int) {
-	return file_analytics_proto_service_proto_rawDescGZIP(), []int{15}
+	return file_analytics_proto_service_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *GetIncidentsRequest) GetParkId() string {
@@ -1479,7 +1587,7 @@ type GetIncidentsResponse struct {
 
 func (x *GetIncidentsResponse) Reset() {
 	*x = GetIncidentsResponse{}
-	mi := &file_analytics_proto_service_proto_msgTypes[16]
+	mi := &file_analytics_proto_service_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1491,7 +1599,7 @@ func (x *GetIncidentsResponse) String() string {
 func (*GetIncidentsResponse) ProtoMessage() {}
 
 func (x *GetIncidentsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_analytics_proto_service_proto_msgTypes[16]
+	mi := &file_analytics_proto_service_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1504,7 +1612,7 @@ func (x *GetIncidentsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetIncidentsResponse.ProtoReflect.Descriptor instead.
 func (*GetIncidentsResponse) Descriptor() ([]byte, []int) {
-	return file_analytics_proto_service_proto_rawDescGZIP(), []int{16}
+	return file_analytics_proto_service_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *GetIncidentsResponse) GetIncidents() []*Incident {
@@ -1538,7 +1646,7 @@ type Metric_MetricChartPoint struct {
 
 func (x *Metric_MetricChartPoint) Reset() {
 	*x = Metric_MetricChartPoint{}
-	mi := &file_analytics_proto_service_proto_msgTypes[17]
+	mi := &file_analytics_proto_service_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1550,7 +1658,7 @@ func (x *Metric_MetricChartPoint) String() string {
 func (*Metric_MetricChartPoint) ProtoMessage() {}
 
 func (x *Metric_MetricChartPoint) ProtoReflect() protoreflect.Message {
-	mi := &file_analytics_proto_service_proto_msgTypes[17]
+	mi := &file_analytics_proto_service_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1589,7 +1697,7 @@ type GetSummaryRequest_Groups struct {
 
 func (x *GetSummaryRequest_Groups) Reset() {
 	*x = GetSummaryRequest_Groups{}
-	mi := &file_analytics_proto_service_proto_msgTypes[19]
+	mi := &file_analytics_proto_service_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1601,7 +1709,7 @@ func (x *GetSummaryRequest_Groups) String() string {
 func (*GetSummaryRequest_Groups) ProtoMessage() {}
 
 func (x *GetSummaryRequest_Groups) ProtoReflect() protoreflect.Message {
-	mi := &file_analytics_proto_service_proto_msgTypes[19]
+	mi := &file_analytics_proto_service_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1614,7 +1722,7 @@ func (x *GetSummaryRequest_Groups) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetSummaryRequest_Groups.ProtoReflect.Descriptor instead.
 func (*GetSummaryRequest_Groups) Descriptor() ([]byte, []int) {
-	return file_analytics_proto_service_proto_rawDescGZIP(), []int{7, 0}
+	return file_analytics_proto_service_proto_rawDescGZIP(), []int{8, 0}
 }
 
 func (x *GetSummaryRequest_Groups) GetGroupIds() []string {
@@ -1634,7 +1742,7 @@ type GetDevicesSummaryResponse_DeviceSummary struct {
 
 func (x *GetDevicesSummaryResponse_DeviceSummary) Reset() {
 	*x = GetDevicesSummaryResponse_DeviceSummary{}
-	mi := &file_analytics_proto_service_proto_msgTypes[20]
+	mi := &file_analytics_proto_service_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1646,7 +1754,7 @@ func (x *GetDevicesSummaryResponse_DeviceSummary) String() string {
 func (*GetDevicesSummaryResponse_DeviceSummary) ProtoMessage() {}
 
 func (x *GetDevicesSummaryResponse_DeviceSummary) ProtoReflect() protoreflect.Message {
-	mi := &file_analytics_proto_service_proto_msgTypes[20]
+	mi := &file_analytics_proto_service_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1659,7 +1767,7 @@ func (x *GetDevicesSummaryResponse_DeviceSummary) ProtoReflect() protoreflect.Me
 
 // Deprecated: Use GetDevicesSummaryResponse_DeviceSummary.ProtoReflect.Descriptor instead.
 func (*GetDevicesSummaryResponse_DeviceSummary) Descriptor() ([]byte, []int) {
-	return file_analytics_proto_service_proto_rawDescGZIP(), []int{10, 0}
+	return file_analytics_proto_service_proto_rawDescGZIP(), []int{11, 0}
 }
 
 func (x *GetDevicesSummaryResponse_DeviceSummary) GetDeviceId() string {
@@ -1684,7 +1792,7 @@ type AnalyzeDeviceResponse_MLInsights struct {
 
 func (x *AnalyzeDeviceResponse_MLInsights) Reset() {
 	*x = AnalyzeDeviceResponse_MLInsights{}
-	mi := &file_analytics_proto_service_proto_msgTypes[21]
+	mi := &file_analytics_proto_service_proto_msgTypes[23]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1696,7 +1804,7 @@ func (x *AnalyzeDeviceResponse_MLInsights) String() string {
 func (*AnalyzeDeviceResponse_MLInsights) ProtoMessage() {}
 
 func (x *AnalyzeDeviceResponse_MLInsights) ProtoReflect() protoreflect.Message {
-	mi := &file_analytics_proto_service_proto_msgTypes[21]
+	mi := &file_analytics_proto_service_proto_msgTypes[23]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1709,7 +1817,7 @@ func (x *AnalyzeDeviceResponse_MLInsights) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AnalyzeDeviceResponse_MLInsights.ProtoReflect.Descriptor instead.
 func (*AnalyzeDeviceResponse_MLInsights) Descriptor() ([]byte, []int) {
-	return file_analytics_proto_service_proto_rawDescGZIP(), []int{12, 0}
+	return file_analytics_proto_service_proto_rawDescGZIP(), []int{13, 0}
 }
 
 type AnalyzeParkResponse_IncidentsChartPoint struct {
@@ -1722,7 +1830,7 @@ type AnalyzeParkResponse_IncidentsChartPoint struct {
 
 func (x *AnalyzeParkResponse_IncidentsChartPoint) Reset() {
 	*x = AnalyzeParkResponse_IncidentsChartPoint{}
-	mi := &file_analytics_proto_service_proto_msgTypes[22]
+	mi := &file_analytics_proto_service_proto_msgTypes[24]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1734,7 +1842,7 @@ func (x *AnalyzeParkResponse_IncidentsChartPoint) String() string {
 func (*AnalyzeParkResponse_IncidentsChartPoint) ProtoMessage() {}
 
 func (x *AnalyzeParkResponse_IncidentsChartPoint) ProtoReflect() protoreflect.Message {
-	mi := &file_analytics_proto_service_proto_msgTypes[22]
+	mi := &file_analytics_proto_service_proto_msgTypes[24]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1747,7 +1855,7 @@ func (x *AnalyzeParkResponse_IncidentsChartPoint) ProtoReflect() protoreflect.Me
 
 // Deprecated: Use AnalyzeParkResponse_IncidentsChartPoint.ProtoReflect.Descriptor instead.
 func (*AnalyzeParkResponse_IncidentsChartPoint) Descriptor() ([]byte, []int) {
-	return file_analytics_proto_service_proto_rawDescGZIP(), []int{14, 0}
+	return file_analytics_proto_service_proto_rawDescGZIP(), []int{15, 0}
 }
 
 func (x *AnalyzeParkResponse_IncidentsChartPoint) GetCount() int64 {
@@ -1786,20 +1894,18 @@ const file_analytics_proto_service_proto_rawDesc = "" +
 	"StackFrame\x12\x12\n" +
 	"\x04file\x18\x01 \x01(\tR\x04file\x12\x12\n" +
 	"\x04line\x18\x02 \x01(\x05R\x04line\x12\x0e\n" +
-	"\x02pc\x18\x03 \x01(\x03R\x02pc\"\xe1\x03\n" +
-	"\x03Log\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1b\n" +
-	"\tdevice_id\x18\x02 \x01(\tR\bdeviceId\x12\x17\n" +
-	"\apark_id\x18\x03 \x01(\tR\x06parkId\x12\x1b\n" +
-	"\tgroup_ids\x18\x04 \x03(\tR\bgroupIds\x12\x1e\n" +
-	"\bbuild_id\x18\x05 \x01(\tH\x00R\abuildId\x88\x01\x01\x124\n" +
-	"\x05level\x18\x06 \x01(\x0e2\x1e.sparkly.analytics.v1.LogLevelR\x05level\x12\x18\n" +
-	"\amessage\x18\a \x01(\tR\amessage\x128\n" +
-	"\ttimestamp\x18\b \x01(\v2\x1a.google.protobuf.TimestampR\ttimestamp\x126\n" +
-	"\x05stack\x18\t \x03(\v2 .sparkly.analytics.v1.StackFrameR\x05stack\x12I\n" +
+	"\x02pc\x18\x03 \x01(\x03R\x02pc\"\xd1\x03\n" +
+	"\x03Log\x12\x1b\n" +
+	"\tdevice_id\x18\x01 \x01(\tR\bdeviceId\x12\x17\n" +
+	"\apark_id\x18\x02 \x01(\tR\x06parkId\x12\x1b\n" +
+	"\tgroup_ids\x18\x03 \x03(\tR\bgroupIds\x12\x1e\n" +
+	"\bbuild_id\x18\x04 \x01(\tH\x00R\abuildId\x88\x01\x01\x124\n" +
+	"\x05level\x18\x05 \x01(\x0e2\x1e.sparkly.analytics.v1.LogLevelR\x05level\x12\x18\n" +
+	"\amessage\x18\x06 \x01(\tR\amessage\x128\n" +
+	"\ttimestamp\x18\a \x01(\v2\x1a.google.protobuf.TimestampR\ttimestamp\x126\n" +
+	"\x05stack\x18\b \x03(\v2 .sparkly.analytics.v1.StackFrameR\x05stack\x12I\n" +
 	"\n" +
-	"attributes\x18\n" +
-	" \x03(\v2).sparkly.analytics.v1.Log.AttributesEntryR\n" +
+	"attributes\x18\t \x03(\v2).sparkly.analytics.v1.Log.AttributesEntryR\n" +
 	"attributes\x1a=\n" +
 	"\x0fAttributesEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
@@ -1838,7 +1944,25 @@ const file_analytics_proto_service_proto_rawDesc = "" +
 	"\freset_reason\x18\x06 \x01(\tR\vresetReason\x12)\n" +
 	"\x10firmware_version\x18\a \x01(\tR\x0ffirmwareVersion\x12#\n" +
 	"\ragent_version\x18\b \x01(\tR\fagentVersionB\v\n" +
-	"\t_build_id\"\xa2\x02\n" +
+	"\t_build_id\"\xdb\x03\n" +
+	"\x05Crash\x12\x17\n" +
+	"\apark_id\x18\x01 \x01(\tR\x06parkId\x12\x1b\n" +
+	"\tdevice_id\x18\x02 \x01(\tR\bdeviceId\x12;\n" +
+	"\vreceived_at\x18\x03 \x01(\v2\x1a.google.protobuf.TimestampR\n" +
+	"receivedAt\x12\x1c\n" +
+	"\aboot_id\x18\x04 \x01(\tH\x00R\x06bootId\x88\x01\x01\x12\x1e\n" +
+	"\bbuild_id\x18\x05 \x01(\tH\x01R\abuildId\x88\x01\x01\x12 \n" +
+	"\vdiagnostics\x18\x06 \x03(\tR\vdiagnostics\x126\n" +
+	"\x05stack\x18\a \x03(\v2 .sparkly.analytics.v1.StackFrameR\x05stack\x12\x1b\n" +
+	"\x06reason\x18\b \x01(\tH\x02R\x06reason\x88\x01\x01\x12H\n" +
+	"\tregisters\x18\t \x03(\v2*.sparkly.analytics.v1.Crash.RegistersEntryR\tregisters\x1a<\n" +
+	"\x0eRegistersEntry\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01B\n" +
+	"\n" +
+	"\b_boot_idB\v\n" +
+	"\t_build_idB\t\n" +
+	"\a_reason\"\xa2\x02\n" +
 	"\x11GetSummaryRequest\x12#\n" +
 	"\apark_id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01H\x00R\x06parkId\x12M\n" +
 	"\tgroup_ids\x18\x02 \x01(\v2..sparkly.analytics.v1.GetSummaryRequest.GroupsH\x00R\bgroupIds\x12B\n" +
@@ -1868,17 +1992,18 @@ const file_analytics_proto_service_proto_rawDesc = "" +
 	"\tdevice_id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\bdeviceId\x12B\n" +
 	"\ttimerange\x18\x02 \x01(\v2\x1f.sparkly.analytics.v1.TimeRangeH\x00R\ttimerange\x88\x01\x01B\f\n" +
 	"\n" +
-	"_timerange\"\x81\x04\n" +
+	"_timerange\"\xb8\x04\n" +
 	"\x15AnalyzeDeviceResponse\x12\x1b\n" +
 	"\tdevice_id\x18\x01 \x01(\tR\bdeviceId\x126\n" +
 	"\ametrics\x18\x02 \x03(\v2\x1c.sparkly.analytics.v1.MetricR\ametrics\x12>\n" +
 	"\n" +
 	"logs_count\x18\x03 \x01(\v2\x1f.sparkly.analytics.v1.LogsCountR\tlogsCount\x12-\n" +
 	"\x04logs\x18\x04 \x03(\v2\x19.sparkly.analytics.v1.LogR\x04logs\x120\n" +
-	"\x05boots\x18\x05 \x03(\v2\x1a.sparkly.analytics.v1.BootR\x05boots\x128\n" +
-	"\ttimestamp\x18\x06 \x01(\v2\x1a.google.protobuf.TimestampR\ttimestamp\x12<\n" +
-	"\tincidents\x18\a \x03(\v2\x1e.sparkly.analytics.v1.IncidentR\tincidents\x12\\\n" +
-	"\vml_insights\x18\b \x01(\v26.sparkly.analytics.v1.AnalyzeDeviceResponse.MLInsightsH\x00R\n" +
+	"\x05boots\x18\x05 \x03(\v2\x1a.sparkly.analytics.v1.BootR\x05boots\x125\n" +
+	"\acrashes\x18\x06 \x03(\v2\x1b.sparkly.analytics.v1.CrashR\acrashes\x128\n" +
+	"\ttimestamp\x18\a \x01(\v2\x1a.google.protobuf.TimestampR\ttimestamp\x12<\n" +
+	"\tincidents\x18\b \x03(\v2\x1e.sparkly.analytics.v1.IncidentR\tincidents\x12\\\n" +
+	"\vml_insights\x18\t \x01(\v26.sparkly.analytics.v1.AnalyzeDeviceResponse.MLInsightsH\x00R\n" +
 	"mlInsights\x88\x01\x01\x1a\f\n" +
 	"\n" +
 	"MLInsightsB\x0e\n" +
@@ -1967,90 +2092,96 @@ func file_analytics_proto_service_proto_rawDescGZIP() []byte {
 }
 
 var file_analytics_proto_service_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_analytics_proto_service_proto_msgTypes = make([]protoimpl.MessageInfo, 23)
+var file_analytics_proto_service_proto_msgTypes = make([]protoimpl.MessageInfo, 25)
 var file_analytics_proto_service_proto_goTypes = []any{
-	(IncidentSeverity)(0),                           // 0: sparkly.analytics.v1.IncidentSeverity
-	(LogLevel)(0),                                   // 1: sparkly.analytics.v1.LogLevel
-	(*TimeRange)(nil),                               // 2: sparkly.analytics.v1.TimeRange
-	(*Metric)(nil),                                  // 3: sparkly.analytics.v1.Metric
-	(*StackFrame)(nil),                              // 4: sparkly.analytics.v1.StackFrame
-	(*Log)(nil),                                     // 5: sparkly.analytics.v1.Log
-	(*LogsCount)(nil),                               // 6: sparkly.analytics.v1.LogsCount
-	(*Incident)(nil),                                // 7: sparkly.analytics.v1.Incident
-	(*Boot)(nil),                                    // 8: sparkly.analytics.v1.Boot
-	(*GetSummaryRequest)(nil),                       // 9: sparkly.analytics.v1.GetSummaryRequest
-	(*GetSummaryResponse)(nil),                      // 10: sparkly.analytics.v1.GetSummaryResponse
-	(*GetDevicesSummaryRequest)(nil),                // 11: sparkly.analytics.v1.GetDevicesSummaryRequest
-	(*GetDevicesSummaryResponse)(nil),               // 12: sparkly.analytics.v1.GetDevicesSummaryResponse
-	(*AnalyzeDeviceRequest)(nil),                    // 13: sparkly.analytics.v1.AnalyzeDeviceRequest
-	(*AnalyzeDeviceResponse)(nil),                   // 14: sparkly.analytics.v1.AnalyzeDeviceResponse
-	(*AnalyzeParkRequest)(nil),                      // 15: sparkly.analytics.v1.AnalyzeParkRequest
-	(*AnalyzeParkResponse)(nil),                     // 16: sparkly.analytics.v1.AnalyzeParkResponse
-	(*GetIncidentsRequest)(nil),                     // 17: sparkly.analytics.v1.GetIncidentsRequest
-	(*GetIncidentsResponse)(nil),                    // 18: sparkly.analytics.v1.GetIncidentsResponse
-	(*Metric_MetricChartPoint)(nil),                 // 19: sparkly.analytics.v1.Metric.MetricChartPoint
-	nil,                                             // 20: sparkly.analytics.v1.Log.AttributesEntry
-	(*GetSummaryRequest_Groups)(nil),                // 21: sparkly.analytics.v1.GetSummaryRequest.Groups
-	(*GetDevicesSummaryResponse_DeviceSummary)(nil), // 22: sparkly.analytics.v1.GetDevicesSummaryResponse.DeviceSummary
-	(*AnalyzeDeviceResponse_MLInsights)(nil),        // 23: sparkly.analytics.v1.AnalyzeDeviceResponse.MLInsights
-	(*AnalyzeParkResponse_IncidentsChartPoint)(nil), // 24: sparkly.analytics.v1.AnalyzeParkResponse.IncidentsChartPoint
-	(*timestamppb.Timestamp)(nil),                   // 25: google.protobuf.Timestamp
+	(IncidentSeverity)(0),             // 0: sparkly.analytics.v1.IncidentSeverity
+	(LogLevel)(0),                     // 1: sparkly.analytics.v1.LogLevel
+	(*TimeRange)(nil),                 // 2: sparkly.analytics.v1.TimeRange
+	(*Metric)(nil),                    // 3: sparkly.analytics.v1.Metric
+	(*StackFrame)(nil),                // 4: sparkly.analytics.v1.StackFrame
+	(*Log)(nil),                       // 5: sparkly.analytics.v1.Log
+	(*LogsCount)(nil),                 // 6: sparkly.analytics.v1.LogsCount
+	(*Incident)(nil),                  // 7: sparkly.analytics.v1.Incident
+	(*Boot)(nil),                      // 8: sparkly.analytics.v1.Boot
+	(*Crash)(nil),                     // 9: sparkly.analytics.v1.Crash
+	(*GetSummaryRequest)(nil),         // 10: sparkly.analytics.v1.GetSummaryRequest
+	(*GetSummaryResponse)(nil),        // 11: sparkly.analytics.v1.GetSummaryResponse
+	(*GetDevicesSummaryRequest)(nil),  // 12: sparkly.analytics.v1.GetDevicesSummaryRequest
+	(*GetDevicesSummaryResponse)(nil), // 13: sparkly.analytics.v1.GetDevicesSummaryResponse
+	(*AnalyzeDeviceRequest)(nil),      // 14: sparkly.analytics.v1.AnalyzeDeviceRequest
+	(*AnalyzeDeviceResponse)(nil),     // 15: sparkly.analytics.v1.AnalyzeDeviceResponse
+	(*AnalyzeParkRequest)(nil),        // 16: sparkly.analytics.v1.AnalyzeParkRequest
+	(*AnalyzeParkResponse)(nil),       // 17: sparkly.analytics.v1.AnalyzeParkResponse
+	(*GetIncidentsRequest)(nil),       // 18: sparkly.analytics.v1.GetIncidentsRequest
+	(*GetIncidentsResponse)(nil),      // 19: sparkly.analytics.v1.GetIncidentsResponse
+	(*Metric_MetricChartPoint)(nil),   // 20: sparkly.analytics.v1.Metric.MetricChartPoint
+	nil,                               // 21: sparkly.analytics.v1.Log.AttributesEntry
+	nil,                               // 22: sparkly.analytics.v1.Crash.RegistersEntry
+	(*GetSummaryRequest_Groups)(nil),  // 23: sparkly.analytics.v1.GetSummaryRequest.Groups
+	(*GetDevicesSummaryResponse_DeviceSummary)(nil), // 24: sparkly.analytics.v1.GetDevicesSummaryResponse.DeviceSummary
+	(*AnalyzeDeviceResponse_MLInsights)(nil),        // 25: sparkly.analytics.v1.AnalyzeDeviceResponse.MLInsights
+	(*AnalyzeParkResponse_IncidentsChartPoint)(nil), // 26: sparkly.analytics.v1.AnalyzeParkResponse.IncidentsChartPoint
+	(*timestamppb.Timestamp)(nil),                   // 27: google.protobuf.Timestamp
 }
 var file_analytics_proto_service_proto_depIdxs = []int32{
-	25, // 0: sparkly.analytics.v1.TimeRange.from_time:type_name -> google.protobuf.Timestamp
-	25, // 1: sparkly.analytics.v1.TimeRange.to_time:type_name -> google.protobuf.Timestamp
-	19, // 2: sparkly.analytics.v1.Metric.chart_points:type_name -> sparkly.analytics.v1.Metric.MetricChartPoint
+	27, // 0: sparkly.analytics.v1.TimeRange.from_time:type_name -> google.protobuf.Timestamp
+	27, // 1: sparkly.analytics.v1.TimeRange.to_time:type_name -> google.protobuf.Timestamp
+	20, // 2: sparkly.analytics.v1.Metric.chart_points:type_name -> sparkly.analytics.v1.Metric.MetricChartPoint
 	1,  // 3: sparkly.analytics.v1.Log.level:type_name -> sparkly.analytics.v1.LogLevel
-	25, // 4: sparkly.analytics.v1.Log.timestamp:type_name -> google.protobuf.Timestamp
+	27, // 4: sparkly.analytics.v1.Log.timestamp:type_name -> google.protobuf.Timestamp
 	4,  // 5: sparkly.analytics.v1.Log.stack:type_name -> sparkly.analytics.v1.StackFrame
-	20, // 6: sparkly.analytics.v1.Log.attributes:type_name -> sparkly.analytics.v1.Log.AttributesEntry
+	21, // 6: sparkly.analytics.v1.Log.attributes:type_name -> sparkly.analytics.v1.Log.AttributesEntry
 	5,  // 7: sparkly.analytics.v1.Incident.cause_log:type_name -> sparkly.analytics.v1.Log
 	3,  // 8: sparkly.analytics.v1.Incident.cause_metrics:type_name -> sparkly.analytics.v1.Metric
-	25, // 9: sparkly.analytics.v1.Incident.timestamp:type_name -> google.protobuf.Timestamp
+	27, // 9: sparkly.analytics.v1.Incident.timestamp:type_name -> google.protobuf.Timestamp
 	4,  // 10: sparkly.analytics.v1.Incident.stack:type_name -> sparkly.analytics.v1.StackFrame
 	5,  // 11: sparkly.analytics.v1.Incident.breadcrumbs:type_name -> sparkly.analytics.v1.Log
-	25, // 12: sparkly.analytics.v1.Boot.received_at:type_name -> google.protobuf.Timestamp
-	21, // 13: sparkly.analytics.v1.GetSummaryRequest.group_ids:type_name -> sparkly.analytics.v1.GetSummaryRequest.Groups
-	2,  // 14: sparkly.analytics.v1.GetSummaryRequest.timerange:type_name -> sparkly.analytics.v1.TimeRange
-	25, // 15: sparkly.analytics.v1.GetSummaryResponse.timestamp:type_name -> google.protobuf.Timestamp
-	22, // 16: sparkly.analytics.v1.GetDevicesSummaryResponse.devices:type_name -> sparkly.analytics.v1.GetDevicesSummaryResponse.DeviceSummary
-	25, // 17: sparkly.analytics.v1.GetDevicesSummaryResponse.timestamp:type_name -> google.protobuf.Timestamp
-	2,  // 18: sparkly.analytics.v1.AnalyzeDeviceRequest.timerange:type_name -> sparkly.analytics.v1.TimeRange
-	3,  // 19: sparkly.analytics.v1.AnalyzeDeviceResponse.metrics:type_name -> sparkly.analytics.v1.Metric
-	6,  // 20: sparkly.analytics.v1.AnalyzeDeviceResponse.logs_count:type_name -> sparkly.analytics.v1.LogsCount
-	5,  // 21: sparkly.analytics.v1.AnalyzeDeviceResponse.logs:type_name -> sparkly.analytics.v1.Log
-	8,  // 22: sparkly.analytics.v1.AnalyzeDeviceResponse.boots:type_name -> sparkly.analytics.v1.Boot
-	25, // 23: sparkly.analytics.v1.AnalyzeDeviceResponse.timestamp:type_name -> google.protobuf.Timestamp
-	7,  // 24: sparkly.analytics.v1.AnalyzeDeviceResponse.incidents:type_name -> sparkly.analytics.v1.Incident
-	23, // 25: sparkly.analytics.v1.AnalyzeDeviceResponse.ml_insights:type_name -> sparkly.analytics.v1.AnalyzeDeviceResponse.MLInsights
-	2,  // 26: sparkly.analytics.v1.AnalyzeParkRequest.timerange:type_name -> sparkly.analytics.v1.TimeRange
-	6,  // 27: sparkly.analytics.v1.AnalyzeParkResponse.logs_count:type_name -> sparkly.analytics.v1.LogsCount
-	5,  // 28: sparkly.analytics.v1.AnalyzeParkResponse.logs:type_name -> sparkly.analytics.v1.Log
-	25, // 29: sparkly.analytics.v1.AnalyzeParkResponse.timestamp:type_name -> google.protobuf.Timestamp
-	25, // 30: sparkly.analytics.v1.AnalyzeParkResponse.first_incident_at:type_name -> google.protobuf.Timestamp
-	25, // 31: sparkly.analytics.v1.AnalyzeParkResponse.last_incident_at:type_name -> google.protobuf.Timestamp
-	7,  // 32: sparkly.analytics.v1.AnalyzeParkResponse.recent_incidents:type_name -> sparkly.analytics.v1.Incident
-	24, // 33: sparkly.analytics.v1.AnalyzeParkResponse.chart_points:type_name -> sparkly.analytics.v1.AnalyzeParkResponse.IncidentsChartPoint
-	2,  // 34: sparkly.analytics.v1.GetIncidentsRequest.timerange:type_name -> sparkly.analytics.v1.TimeRange
-	7,  // 35: sparkly.analytics.v1.GetIncidentsResponse.incidents:type_name -> sparkly.analytics.v1.Incident
-	25, // 36: sparkly.analytics.v1.Metric.MetricChartPoint.timestamp:type_name -> google.protobuf.Timestamp
-	25, // 37: sparkly.analytics.v1.GetDevicesSummaryResponse.DeviceSummary.last_seen_at:type_name -> google.protobuf.Timestamp
-	25, // 38: sparkly.analytics.v1.AnalyzeParkResponse.IncidentsChartPoint.timestamp:type_name -> google.protobuf.Timestamp
-	9,  // 39: sparkly.analytics.v1.AnalyticsService.GetSummary:input_type -> sparkly.analytics.v1.GetSummaryRequest
-	11, // 40: sparkly.analytics.v1.AnalyticsService.GetDevicesSummary:input_type -> sparkly.analytics.v1.GetDevicesSummaryRequest
-	15, // 41: sparkly.analytics.v1.AnalyticsService.AnalyzePark:input_type -> sparkly.analytics.v1.AnalyzeParkRequest
-	13, // 42: sparkly.analytics.v1.AnalyticsService.AnalyzeDevice:input_type -> sparkly.analytics.v1.AnalyzeDeviceRequest
-	17, // 43: sparkly.analytics.v1.AnalyticsService.GetIncidents:input_type -> sparkly.analytics.v1.GetIncidentsRequest
-	10, // 44: sparkly.analytics.v1.AnalyticsService.GetSummary:output_type -> sparkly.analytics.v1.GetSummaryResponse
-	12, // 45: sparkly.analytics.v1.AnalyticsService.GetDevicesSummary:output_type -> sparkly.analytics.v1.GetDevicesSummaryResponse
-	16, // 46: sparkly.analytics.v1.AnalyticsService.AnalyzePark:output_type -> sparkly.analytics.v1.AnalyzeParkResponse
-	14, // 47: sparkly.analytics.v1.AnalyticsService.AnalyzeDevice:output_type -> sparkly.analytics.v1.AnalyzeDeviceResponse
-	18, // 48: sparkly.analytics.v1.AnalyticsService.GetIncidents:output_type -> sparkly.analytics.v1.GetIncidentsResponse
-	44, // [44:49] is the sub-list for method output_type
-	39, // [39:44] is the sub-list for method input_type
-	39, // [39:39] is the sub-list for extension type_name
-	39, // [39:39] is the sub-list for extension extendee
-	0,  // [0:39] is the sub-list for field type_name
+	27, // 12: sparkly.analytics.v1.Boot.received_at:type_name -> google.protobuf.Timestamp
+	27, // 13: sparkly.analytics.v1.Crash.received_at:type_name -> google.protobuf.Timestamp
+	4,  // 14: sparkly.analytics.v1.Crash.stack:type_name -> sparkly.analytics.v1.StackFrame
+	22, // 15: sparkly.analytics.v1.Crash.registers:type_name -> sparkly.analytics.v1.Crash.RegistersEntry
+	23, // 16: sparkly.analytics.v1.GetSummaryRequest.group_ids:type_name -> sparkly.analytics.v1.GetSummaryRequest.Groups
+	2,  // 17: sparkly.analytics.v1.GetSummaryRequest.timerange:type_name -> sparkly.analytics.v1.TimeRange
+	27, // 18: sparkly.analytics.v1.GetSummaryResponse.timestamp:type_name -> google.protobuf.Timestamp
+	24, // 19: sparkly.analytics.v1.GetDevicesSummaryResponse.devices:type_name -> sparkly.analytics.v1.GetDevicesSummaryResponse.DeviceSummary
+	27, // 20: sparkly.analytics.v1.GetDevicesSummaryResponse.timestamp:type_name -> google.protobuf.Timestamp
+	2,  // 21: sparkly.analytics.v1.AnalyzeDeviceRequest.timerange:type_name -> sparkly.analytics.v1.TimeRange
+	3,  // 22: sparkly.analytics.v1.AnalyzeDeviceResponse.metrics:type_name -> sparkly.analytics.v1.Metric
+	6,  // 23: sparkly.analytics.v1.AnalyzeDeviceResponse.logs_count:type_name -> sparkly.analytics.v1.LogsCount
+	5,  // 24: sparkly.analytics.v1.AnalyzeDeviceResponse.logs:type_name -> sparkly.analytics.v1.Log
+	8,  // 25: sparkly.analytics.v1.AnalyzeDeviceResponse.boots:type_name -> sparkly.analytics.v1.Boot
+	9,  // 26: sparkly.analytics.v1.AnalyzeDeviceResponse.crashes:type_name -> sparkly.analytics.v1.Crash
+	27, // 27: sparkly.analytics.v1.AnalyzeDeviceResponse.timestamp:type_name -> google.protobuf.Timestamp
+	7,  // 28: sparkly.analytics.v1.AnalyzeDeviceResponse.incidents:type_name -> sparkly.analytics.v1.Incident
+	25, // 29: sparkly.analytics.v1.AnalyzeDeviceResponse.ml_insights:type_name -> sparkly.analytics.v1.AnalyzeDeviceResponse.MLInsights
+	2,  // 30: sparkly.analytics.v1.AnalyzeParkRequest.timerange:type_name -> sparkly.analytics.v1.TimeRange
+	6,  // 31: sparkly.analytics.v1.AnalyzeParkResponse.logs_count:type_name -> sparkly.analytics.v1.LogsCount
+	5,  // 32: sparkly.analytics.v1.AnalyzeParkResponse.logs:type_name -> sparkly.analytics.v1.Log
+	27, // 33: sparkly.analytics.v1.AnalyzeParkResponse.timestamp:type_name -> google.protobuf.Timestamp
+	27, // 34: sparkly.analytics.v1.AnalyzeParkResponse.first_incident_at:type_name -> google.protobuf.Timestamp
+	27, // 35: sparkly.analytics.v1.AnalyzeParkResponse.last_incident_at:type_name -> google.protobuf.Timestamp
+	7,  // 36: sparkly.analytics.v1.AnalyzeParkResponse.recent_incidents:type_name -> sparkly.analytics.v1.Incident
+	26, // 37: sparkly.analytics.v1.AnalyzeParkResponse.chart_points:type_name -> sparkly.analytics.v1.AnalyzeParkResponse.IncidentsChartPoint
+	2,  // 38: sparkly.analytics.v1.GetIncidentsRequest.timerange:type_name -> sparkly.analytics.v1.TimeRange
+	7,  // 39: sparkly.analytics.v1.GetIncidentsResponse.incidents:type_name -> sparkly.analytics.v1.Incident
+	27, // 40: sparkly.analytics.v1.Metric.MetricChartPoint.timestamp:type_name -> google.protobuf.Timestamp
+	27, // 41: sparkly.analytics.v1.GetDevicesSummaryResponse.DeviceSummary.last_seen_at:type_name -> google.protobuf.Timestamp
+	27, // 42: sparkly.analytics.v1.AnalyzeParkResponse.IncidentsChartPoint.timestamp:type_name -> google.protobuf.Timestamp
+	10, // 43: sparkly.analytics.v1.AnalyticsService.GetSummary:input_type -> sparkly.analytics.v1.GetSummaryRequest
+	12, // 44: sparkly.analytics.v1.AnalyticsService.GetDevicesSummary:input_type -> sparkly.analytics.v1.GetDevicesSummaryRequest
+	16, // 45: sparkly.analytics.v1.AnalyticsService.AnalyzePark:input_type -> sparkly.analytics.v1.AnalyzeParkRequest
+	14, // 46: sparkly.analytics.v1.AnalyticsService.AnalyzeDevice:input_type -> sparkly.analytics.v1.AnalyzeDeviceRequest
+	18, // 47: sparkly.analytics.v1.AnalyticsService.GetIncidents:input_type -> sparkly.analytics.v1.GetIncidentsRequest
+	11, // 48: sparkly.analytics.v1.AnalyticsService.GetSummary:output_type -> sparkly.analytics.v1.GetSummaryResponse
+	13, // 49: sparkly.analytics.v1.AnalyticsService.GetDevicesSummary:output_type -> sparkly.analytics.v1.GetDevicesSummaryResponse
+	17, // 50: sparkly.analytics.v1.AnalyticsService.AnalyzePark:output_type -> sparkly.analytics.v1.AnalyzeParkResponse
+	15, // 51: sparkly.analytics.v1.AnalyticsService.AnalyzeDevice:output_type -> sparkly.analytics.v1.AnalyzeDeviceResponse
+	19, // 52: sparkly.analytics.v1.AnalyticsService.GetIncidents:output_type -> sparkly.analytics.v1.GetIncidentsResponse
+	48, // [48:53] is the sub-list for method output_type
+	43, // [43:48] is the sub-list for method input_type
+	43, // [43:43] is the sub-list for extension type_name
+	43, // [43:43] is the sub-list for extension extendee
+	0,  // [0:43] is the sub-list for field type_name
 }
 
 func init() { file_analytics_proto_service_proto_init() }
@@ -2061,22 +2192,23 @@ func file_analytics_proto_service_proto_init() {
 	file_analytics_proto_service_proto_msgTypes[3].OneofWrappers = []any{}
 	file_analytics_proto_service_proto_msgTypes[5].OneofWrappers = []any{}
 	file_analytics_proto_service_proto_msgTypes[6].OneofWrappers = []any{}
-	file_analytics_proto_service_proto_msgTypes[7].OneofWrappers = []any{
+	file_analytics_proto_service_proto_msgTypes[7].OneofWrappers = []any{}
+	file_analytics_proto_service_proto_msgTypes[8].OneofWrappers = []any{
 		(*GetSummaryRequest_ParkId)(nil),
 		(*GetSummaryRequest_GroupIds)(nil),
 	}
-	file_analytics_proto_service_proto_msgTypes[11].OneofWrappers = []any{}
 	file_analytics_proto_service_proto_msgTypes[12].OneofWrappers = []any{}
 	file_analytics_proto_service_proto_msgTypes[13].OneofWrappers = []any{}
-	file_analytics_proto_service_proto_msgTypes[15].OneofWrappers = []any{}
+	file_analytics_proto_service_proto_msgTypes[14].OneofWrappers = []any{}
 	file_analytics_proto_service_proto_msgTypes[16].OneofWrappers = []any{}
+	file_analytics_proto_service_proto_msgTypes[17].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_analytics_proto_service_proto_rawDesc), len(file_analytics_proto_service_proto_rawDesc)),
 			NumEnums:      2,
-			NumMessages:   23,
+			NumMessages:   25,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

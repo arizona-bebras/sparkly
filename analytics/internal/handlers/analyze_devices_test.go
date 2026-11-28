@@ -18,7 +18,9 @@ func TestDeviceDetailsDomainToPB(t *testing.T) {
 	parkID := uuid.MustParse("22222222-2222-2222-2222-222222222222")
 	buildID := uuid.MustParse("33333333-3333-3333-3333-333333333333")
 	groupID := uuid.MustParse("44444444-4444-4444-4444-444444444444")
+	bootID := uuid.MustParse("55555555-5555-5555-5555-555555555555")
 	fileName := "src/main.c"
+	reason := "hard_fault"
 
 	details := domain.DeviceDetails{
 		DeviceID: deviceID,
@@ -58,6 +60,17 @@ func TestDeviceDetailsDomainToPB(t *testing.T) {
 			FirmwareVersion: "1.4.2",
 			AgentVersion:    "0.9.1",
 		}},
+		Crashes: []domain.Crash{{
+			ParkID:      parkID,
+			DeviceID:    deviceID,
+			ReceivedAt:  now,
+			BootID:      &bootID,
+			BuildID:     &buildID,
+			Diagnostics: []string{"fault"},
+			StackFrames: []domain.StackFrame{{File: &fileName, Line: 7, PC: 99}},
+			Reason:      &reason,
+			Registers:   map[string]uint64{"pc": 4096, "lr": 8192},
+		}},
 		Timestamp: now,
 		Incidents: []domain.Incident{{
 			ID:       "incident-1",
@@ -88,6 +101,7 @@ func TestDeviceDetailsDomainToPB(t *testing.T) {
 	}
 
 	buildIDStr := buildID.String()
+	bootIDStr := bootID.String()
 	want := &pb.AnalyzeDeviceResponse{
 		DeviceId: deviceID.String(),
 		Metrics: []*pb.Metric{{
@@ -125,6 +139,17 @@ func TestDeviceDetailsDomainToPB(t *testing.T) {
 			ResetReason:     "power_on",
 			FirmwareVersion: "1.4.2",
 			AgentVersion:    "0.9.1",
+		}},
+		Crashes: []*pb.Crash{{
+			ParkId:      parkID.String(),
+			DeviceId:    deviceID.String(),
+			ReceivedAt:  timestamppb.New(now),
+			BootId:      &bootIDStr,
+			BuildId:     &buildIDStr,
+			Diagnostics: []string{"fault"},
+			Stack:       []*pb.StackFrame{{File: fileName, Line: 7, Pc: 99}},
+			Reason:      &reason,
+			Registers:   map[string]string{"pc": "4096", "lr": "8192"},
 		}},
 		Timestamp: timestamppb.New(now),
 		Incidents: []*pb.Incident{{

@@ -3,6 +3,7 @@ package handlers
 import (
 	"context"
 	"log"
+	"strconv"
 
 	"sparkly/analytics/internal/domain"
 	"sparkly/analytics/internal/services"
@@ -41,6 +42,11 @@ func (h *AnalyticsHandler) deviceDetailsDomainToPB(details domain.DeviceDetails)
 		boots = append(boots, bootDomainToPB(boot))
 	}
 
+	crashes := make([]*pb.Crash, 0, len(details.Crashes))
+	for _, crash := range details.Crashes {
+		crashes = append(crashes, crashDomainToPB(crash))
+	}
+
 	incidents := make([]*pb.Incident, 0, len(details.Incidents))
 	for _, incident := range details.Incidents {
 		incidents = append(incidents, incidentDomainToPB(incident))
@@ -52,6 +58,7 @@ func (h *AnalyticsHandler) deviceDetailsDomainToPB(details domain.DeviceDetails)
 		LogsCount:  logsCountDomainToPB(details.LogsCount),
 		Logs:       logs,
 		Boots:      boots,
+		Crashes:    crashes,
 		Timestamp:  timestamppb.New(details.Timestamp),
 		Incidents:  incidents,
 		MlInsights: mlInsightsDomainToPB(details.MLInsights),
@@ -151,6 +158,30 @@ func bootDomainToPB(boot domain.Boot) *pb.Boot {
 	}
 }
 
+func crashDomainToPB(crash domain.Crash) *pb.Crash {
+	stack := make([]*pb.StackFrame, 0, len(crash.StackFrames))
+	for _, frame := range crash.StackFrames {
+		stack = append(stack, stackFrameDomainToPB(frame))
+	}
+
+	registers := make(map[string]string, len(crash.Registers))
+	for name, value := range crash.Registers {
+		registers[name] = strconv.FormatUint(value, 10)
+	}
+
+	return &pb.Crash{
+		ParkId:      crash.ParkID.String(),
+		DeviceId:    crash.DeviceID.String(),
+		ReceivedAt:  timestamppb.New(crash.ReceivedAt),
+		BootId:      optionalUUIDToString(crash.BootID),
+		BuildId:     optionalUUIDToString(crash.BuildID),
+		Diagnostics: crash.Diagnostics,
+		Stack:       stack,
+		Reason:      crash.Reason,
+		Registers:   registers,
+	}
+}
+
 func incidentDomainToPB(incident domain.Incident) *pb.Incident {
 	var causeLog *pb.Log
 	if incident.CauseLog != nil {
@@ -232,7 +263,7 @@ func (h *AnalyticsHandler) AnalyzeDevice(ctx context.Context, req *pb.AnalyzeDev
 
 func deviceSummaryDomainToPB(sum domain.DeviceSummary) *pb.GetDevicesSummaryResponse_DeviceSummary {
 	return &pb.GetDevicesSummaryResponse_DeviceSummary{
-		DeviceId: sum.DeviceID.String(),
+		DeviceId:   sum.DeviceID.String(),
 		LastSeenAt: timestamppb.New(sum.LastSeenAt),
 	}
 }
@@ -244,7 +275,7 @@ func devicesSummaryDomainToPB(sum domain.DevicesSummary) *pb.GetDevicesSummaryRe
 	}
 
 	return &pb.GetDevicesSummaryResponse{
-		Devices: pbSummary,
+		Devices:   pbSummary,
 		Timestamp: timestamppb.New(sum.Timestamp),
 	}
 }

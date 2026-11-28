@@ -40,7 +40,7 @@ func buildDeviceTimeFilter(deviceID uuid.UUID, filters domain.GetDeviceDetailsFi
 	return clause, args
 }
 
-type logFrameRow struct {
+type frameRow struct {
 	PC       uint64  `ch:"pc"`
 	Function *string `ch:"function"`
 	File     *string `ch:"file"`
@@ -55,7 +55,7 @@ type logRow struct {
 	BuildID    sql.NullString `ch:"build_id"`
 	Level      sql.NullString `ch:"level"`
 	Message    sql.NullString `ch:"message"`
-	Frames     []logFrameRow  `ch:"frames"`
+	Frames     []frameRow     `ch:"frames"`
 }
 
 type logsCountRow struct {
@@ -79,6 +79,18 @@ type bootRow struct {
 	AgentVersion    string         `ch:"agent_version"`
 }
 
+type crashRow struct {
+	ParkID      uuid.UUID         `ch:"park_id"`
+	DeviceID    uuid.UUID         `ch:"device_id"`
+	ReceivedAt  time.Time         `ch:"received_at"`
+	BootID      sql.NullString    `ch:"boot_id"`
+	BuildID     sql.NullString    `ch:"build_id"`
+	Diagnostics []string          `ch:"diagnostics"`
+	Frames      []frameRow        `ch:"frames"`
+	Reason      sql.NullString    `ch:"reason"`
+	Registers   map[string]uint64 `ch:"registers"`
+}
+
 type metricRow struct {
 	MetricID        uint64      `ch:"metric_id"`
 	AvgValue        float64     `ch:"avg_value"`
@@ -88,7 +100,7 @@ type metricRow struct {
 	PointTimestamps []time.Time `ch:"point_timestamps"`
 }
 
-func (r *AnalyzeDeviceRepo) logFrameToDomain(f logFrameRow) domain.StackFrame {
+func (r *AnalyzeDeviceRepo) logFrameToDomain(f frameRow) domain.StackFrame {
 	var line uint32
 	if f.Line != nil {
 		line = *f.Line
@@ -175,6 +187,54 @@ func (r *AnalyzeDeviceRepo) bootToDomain(b bootRow) (domain.Boot, error) {
 		ResetReason:     b.ResetReason,
 		FirmwareVersion: b.FirmwareVersion,
 		AgentVersion:    b.AgentVersion,
+	}, nil
+}
+
+func (r *AnalyzeDeviceRepo) crashToDomain(c crashRow) (domain.Crash, error) {
+	var bootID *uuid.UUID
+	if c.BootID.Valid {
+		inMemBootID, err := uuid.Parse(c.BootID.String)
+		if err != nil {
+			return domain.Crash{}, fmt.Errorf("failed to parse boot_id in crash row: %w", err)
+		}
+		bootID = &inMemBootID
+	}
+
+	var buildID *uuid.UUID
+	if c.BuildID.Valid {
+		inMemBuildID, err := uuid.Parse(c.BuildID.String)
+		if err != nil {
+			return domain.Crash{}, fmt.Errorf("failed to parse build_id in crash row: %w", err)
+		}
+		buildID = &inMemBuildID
+	}
+
+	diagnostics := c.Diagnostics
+	if diagnostics == nil {
+		diagnostics = make([]string, 0)
+	}
+
+	stackFrames := make([]domain.StackFrame, 0, len(c.Frames))
+	for _, f := range c.Frames {
+		stackFrames = append(stackFrames, r.logFrameToDomain(f))
+	}
+
+	var reason *string
+	if c.Reason.Valid {
+		value := c.Reason.String
+		reason = &value
+	}
+
+	return domain.Crash{
+		ParkID:      c.ParkID,
+		DeviceID:    c.DeviceID,
+		ReceivedAt:  c.ReceivedAt,
+		BootID:      bootID,
+		BuildID:     buildID,
+		Diagnostics: diagnostics,
+		StackFrames: stackFrames,
+		Reason:      reason,
+		Registers:   c.Registers,
 	}, nil
 }
 
@@ -293,6 +353,42 @@ func (r *AnalyzeDeviceRepo) getDeviceBoots(ctx context.Context, deviceID uuid.UU
 	return domainBoots, nil
 }
 
+func (r *AnalyzeDeviceRepo) getDeviceCrashes(ctx context.Context, deviceID uuid.UUID, filters domain.GetDeviceDetailsFilters) ([]domain.Crash, error) {
+	whereClause, args := buildDeviceTimeFilter(deviceID, filters)
+	query := fmt.Sprintf(`
+		SELECT
+			park_id,
+			device_id,
+			received_at,
+			boot_id,
+			build_id,
+			diagnostics,
+			frames,
+			reason,
+			registers
+		FROM crashes_deduplicated
+		%s
+		ORDER BY received_at DESC
+	`, whereClause)
+
+	var crashes []crashRow
+	if err := r.db.Select(ctx, &crashes, query, args...); err != nil {
+		return nil, fmt.Errorf("failed to get device crashes from db: %w", err)
+	}
+
+	domainCrashes := make([]domain.Crash, 0, len(crashes))
+	for _, c := range crashes {
+		domainCrash, err := r.crashToDomain(c)
+		if err != nil {
+			return nil, fmt.Errorf("failed to transform crash object to domain: %w", err)
+		}
+
+		domainCrashes = append(domainCrashes, domainCrash)
+	}
+
+	return domainCrashes, nil
+}
+
 func (r *AnalyzeDeviceRepo) getDeviceMetrics(ctx context.Context, deviceID uuid.UUID, filters domain.GetDeviceDetailsFilters) ([]domain.Metric, error) {
 	whereClause, args := buildDeviceTimeFilter(deviceID, filters)
 	query := fmt.Sprintf(`
@@ -335,6 +431,7 @@ func (r *AnalyzeDeviceRepo) GetDeviceDetails(ctx context.Context, deviceID uuid.
 		Metrics:   make([]domain.Metric, 0),
 		Logs:      make([]domain.Log, 0),
 		Boots:     make([]domain.Boot, 0),
+		Crashes:   make([]domain.Crash, 0),
 		Incidents: make([]domain.Incident, 0),
 		Timestamp: time.Now().UTC(),
 	}
@@ -377,6 +474,15 @@ func (r *AnalyzeDeviceRepo) GetDeviceDetails(ctx context.Context, deviceID uuid.
 		return nil
 	})
 
+	g.Go(func() error {
+		crashes, err := r.getDeviceCrashes(gCtx, deviceID, filters)
+		if err != nil {
+			return err
+		}
+		details.Crashes = crashes
+		return nil
+	})
+
 	if err := g.Wait(); err != nil {
 		return domain.DeviceDetails{}, fmt.Errorf("failed to get data associated to device from db: %w", err)
 	}
@@ -385,13 +491,13 @@ func (r *AnalyzeDeviceRepo) GetDeviceDetails(ctx context.Context, deviceID uuid.
 }
 
 type LatestMsgRow struct {
-	DeviceID         uuid.UUID `ch:"device_id"`
+	DeviceID          uuid.UUID `ch:"device_id"`
 	LatestReceiveTime time.Time `ch:"latest_receive_time"`
 }
 
 func (l LatestMsgRow) ToDomain() domain.DeviceSummary {
 	return domain.DeviceSummary{
-		DeviceID:  l.DeviceID,
+		DeviceID:   l.DeviceID,
 		LastSeenAt: l.LatestReceiveTime,
 	}
 }

@@ -30,6 +30,18 @@ type Incident struct {
 	Breadcrumbs  []Log
 }
 
+type Crash struct {
+	ParkID      uuid.UUID
+	DeviceID    uuid.UUID
+	ReceivedAt  time.Time
+	BootID      *uuid.UUID
+	BuildID     *uuid.UUID
+	Diagnostics []string
+	StackFrames []StackFrame
+	Reason      *string
+	Registers   map[string]uint64
+}
+
 type MLInsights struct{}
 
 type DeviceSummary struct {
@@ -48,6 +60,7 @@ type DeviceDetails struct {
 	LogsCount  LogsCount
 	Logs       []Log
 	Boots      []Boot
+	Crashes    []Crash
 	Timestamp  time.Time
 	Incidents  []Incident
 	MLInsights *MLInsights

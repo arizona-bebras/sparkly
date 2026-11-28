@@ -57,16 +57,15 @@ message StackFrame {
 }
 
 message Log {
-  string id = 1;
-  string device_id = 2;
-  string park_id = 3;
-  repeated string group_ids = 4;
-  optional string build_id = 5;
-  LogLevel level = 6;
-  string message = 7;
-  google.protobuf.Timestamp timestamp = 8;
-  repeated StackFrame stack = 9;
-  map<string, string> attributes = 10;
+  string device_id = 1;
+  string park_id = 2;
+  repeated string group_ids = 3;
+  optional string build_id = 4;
+  LogLevel level = 5;
+  string message = 6;
+  google.protobuf.Timestamp timestamp = 7;
+  repeated StackFrame stack = 8;
+  map<string, string> attributes = 9;
 }
 
 message LogsCount {
@@ -102,6 +101,18 @@ message Boot {
     string reset_reason = 6;
     string firmware_version = 7;
     string agent_version = 8;
+}
+
+message Crash {
+    string park_id = 1;
+    string device_id = 2;
+    google.protobuf.Timestamp received_at = 3;
+    optional string boot_id = 4;
+    optional string build_id = 5;
+    repeated string diagnostics = 6;
+    repeated StackFrame stack = 7;
+    optional string reason = 8;
+    map<string, string> registers = 9;
 }
 
 message GetSummaryRequest {
@@ -162,10 +173,11 @@ message AnalyzeDeviceResponse {
   LogsCount logs_count = 3;
   repeated Log logs = 4;
   repeated Boot boots = 5;
-  google.protobuf.Timestamp timestamp = 6;
-  repeated Incident incidents = 7;
+  repeated Crash crashes = 6;
+  google.protobuf.Timestamp timestamp = 7;
+  repeated Incident incidents = 8;
   message MLInsights {}
-  optional MLInsights ml_insights = 8;
+  optional MLInsights ml_insights = 9;
 }
 
 message AnalyzeParkRequest {
