@@ -9,11 +9,12 @@ import (
 	"time"
 
 	"github.com/ClickHouse/clickhouse-go/v2"
+	"github.com/ClickHouse/clickhouse-go/v2/lib/driver"
 )
 
 // Open connects to an existing ClickHouse database and verifies it is reachable.
-func Open(ctx context.Context) (*sql.DB, error) {
-	conn := clickhouse.OpenDB(&clickhouse.Options{
+func Open(ctx context.Context) (driver.Conn, *sql.DB, error) {
+	opt := &clickhouse.Options{
 		Addr: []string{net.JoinHostPort(env("CLICKHOUSE_HOST", "localhost"), env("CLICKHOUSE_NATIVE_PORT", "9000"))},
 		Auth: clickhouse.Auth{
 			Database: env("CLICKHOUSE_DB", "sparkly"),
@@ -22,12 +23,17 @@ func Open(ctx context.Context) (*sql.DB, error) {
 		},
 		DialTimeout: 5 * time.Second,
 		ReadTimeout: 15 * time.Second,
-	})
-	if err := conn.PingContext(ctx); err != nil {
-		conn.Close()
-		return nil, fmt.Errorf("connect to ClickHouse: %w", err)
 	}
-	return conn, nil
+
+	conn, err := clickhouse.Open(opt)
+	if err != nil {
+		conn.Close()
+		return nil, nil, fmt.Errorf("connect to ClickHouse: %w", err)
+	}
+
+	migrationDB := clickhouse.OpenDB(opt)
+
+	return conn, migrationDB, nil
 }
 
 func env(key, fallback string) string {

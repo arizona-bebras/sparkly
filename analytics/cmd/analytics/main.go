@@ -13,6 +13,7 @@ import (
 
 	"connectrpc.com/connect/v2"
 	"connectrpc.com/connect/v2/connecthttp"
+	"github.com/ClickHouse/clickhouse-go/v2/lib/driver"
 	"github.com/joho/godotenv"
 
 	"sparkly/analytics/internal/config"
@@ -41,13 +42,13 @@ func run() error {
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
-	conn, err := db.Open(ctx)
+	conn, migrationConn, err := db.Open(ctx)
 	if err != nil {
 		cancel()
 		return fmt.Errorf("db init failed: %w", err)
 	}
 	defer conn.Close()
-	if err := db.Migrate(ctx, conn); err != nil {
+	if err := db.Migrate(ctx, migrationConn); err != nil {
 		cancel()
 		return fmt.Errorf("db migration failed: %w", err)
 	}
@@ -114,7 +115,7 @@ func run() error {
 
 	httpServer := &http.Server{
 		Addr:              ":" + cfg.Port,
-		Handler:           newMux(ingestService),
+		Handler:           newMux(ingestService, conn),
 		ReadHeaderTimeout: 5 * time.Second,
 		ReadTimeout:       15 * time.Second,
 		WriteTimeout:      15 * time.Second,
@@ -140,9 +141,13 @@ func run() error {
 	return nil
 }
 
-func newMux(ingester handlers.ParcelIngester) *http.ServeMux {
+func newMux(ingester handlers.ParcelIngester, db driver.Conn) *http.ServeMux {
 	server := connect.NewServer()
-	analyticsv1connect.RegisterAnalyticsServiceHandler(server, analyticsv1connect.UnimplementedAnalyticsServiceHandler{})
+
+	analyzeDeviceRepo := repos.NewAnalyzeDeviceRepo(db)
+	analyzeDeviceService := services.NewAnalyzeDeviceService(analyzeDeviceRepo)
+	analyzeDeviceHandler := handlers.NewAnalyzeDevicesHandler(analyzeDeviceService)
+	analyticsv1connect.RegisterAnalyticsServiceHandler(server, analyzeDeviceHandler)
 
 	mux := http.NewServeMux()
 	connecthttp.Mount(mux, server)

@@ -2,18 +2,18 @@ package repos
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
 	"sparkly/analytics/internal/domain"
 
 	"github.com/ClickHouse/clickhouse-go/v2"
+	"github.com/ClickHouse/clickhouse-go/v2/lib/driver"
 )
 
 type GroupMembershipRepo struct {
-	db *sql.DB
+	db driver.Conn
 }
 
-func NewGroupMembershipRepo(db *sql.DB) *GroupMembershipRepo {
+func NewGroupMembershipRepo(db driver.Conn) *GroupMembershipRepo {
 	return &GroupMembershipRepo{
 		db: db,
 	}
@@ -26,7 +26,7 @@ func (r *GroupMembershipRepo) WriteAssociatedGroups(ctx context.Context, params 
 	}
 
 	ctx = clickhouse.Context(ctx)
-	if _, err := r.db.ExecContext(ctx,
+	if err := r.db.Exec(ctx,
 		`INSERT INTO group_membership (device_id, group_ids, version)
 		VALUES (toUUID(?), CAST(? AS Array(UUID)), fromUnixTimestamp64Milli(?, 'UTC'))`,
 		params.DeviceID.String(), groupIDs, params.Version.UTC().UnixMilli()); err != nil {

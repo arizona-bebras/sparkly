@@ -7,6 +7,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/ClickHouse/clickhouse-go/v2/lib/driver"
 	"github.com/google/uuid"
 	"github.com/pressly/goose/v3"
 	"google.golang.org/protobuf/encoding/protojson"
@@ -18,42 +19,42 @@ import (
 	agentv1 "sparkly/analytics/proto/agent/v1"
 )
 
-func testClickHouse(t *testing.T) (context.Context, *sql.DB) {
+func testClickHouse(t *testing.T) (context.Context, *sql.DB, driver.Conn) {
 	t.Helper()
 	if os.Getenv("CLICKHOUSE_TEST") != "1" {
 		t.Skip("set CLICKHOUSE_TEST=1 to test against ClickHouse")
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
 	t.Cleanup(cancel)
-	admin, err := db.Open(ctx)
+	admin, _, err := db.Open(ctx)
 	if err != nil {
 		t.Fatal(err)
 	}
 	t.Cleanup(func() { admin.Close() })
 	name := "analytics_test_" + uuid.New().String()[:8]
-	if _, err := admin.ExecContext(ctx, "CREATE DATABASE "+name); err != nil {
+	if err := admin.Exec(ctx, "CREATE DATABASE "+name); err != nil {
 		t.Fatal(err)
 	}
 	t.Cleanup(func() {
 		cleanup, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancel()
-		if _, err := admin.ExecContext(cleanup, "DROP DATABASE "+name); err != nil {
+		if err := admin.Exec(cleanup, "DROP DATABASE "+name); err != nil {
 			t.Error(err)
 		}
 	})
 	t.Setenv("CLICKHOUSE_DB", name)
-	conn, err := db.Open(ctx)
+	conn, migrationDB, err := db.Open(ctx)
 	if err != nil {
 		t.Fatal(err)
 	}
 	t.Cleanup(func() { conn.Close() })
-	return ctx, conn
+	return ctx, migrationDB, conn
 }
 
 func TestClickHouseRawBatchRepository(t *testing.T) {
-	ctx, conn := testClickHouse(t)
+	ctx, migrationDB, conn := testClickHouse(t)
 	for range 2 {
-		if err := db.Migrate(ctx, conn); err != nil {
+		if err := db.Migrate(ctx, migrationDB); err != nil {
 			t.Fatal(err)
 		}
 	}
@@ -88,7 +89,7 @@ func TestClickHouseRawBatchRepository(t *testing.T) {
 	var groups uint64
 	var received time.Time
 	// A successful write must be immediately visible, without polling for a flush.
-	err = conn.QueryRowContext(ctx, `SELECT toString(batch_id), toString(device_id), toString(park_id),
+	err = conn.QueryRow(ctx, `SELECT toString(batch_id), toString(device_id), toString(park_id),
    length(group_ids), received_at, toJSONString(payload_raw) FROM raw_batches`).Scan(
 		&id, &device, &park, &groups, &received, &payload)
 	if err != nil {
@@ -115,7 +116,7 @@ func TestClickHouseRawBatchRepository(t *testing.T) {
 		t.Fatalf("stored payload = %s, want %v", payload, want)
 	}
 	var versions uint64
-	if err := conn.QueryRowContext(ctx, "SELECT count() FROM goose_db_version WHERE version_id = 1 AND is_applied = 1").Scan(&versions); err != nil {
+	if err := conn.QueryRow(ctx, "SELECT count() FROM goose_db_version WHERE version_id = 1 AND is_applied = 1").Scan(&versions); err != nil {
 		t.Fatal(err)
 	}
 	if versions != 1 {
@@ -124,8 +125,8 @@ func TestClickHouseRawBatchRepository(t *testing.T) {
 }
 
 func TestClickHouseSymbolicatedEventsMigration(t *testing.T) {
-	ctx, conn := testClickHouse(t)
-	migrations, err := goose.NewProvider(goose.DialectClickHouse, conn, os.DirFS("migrations"))
+	ctx, migrationDB, conn := testClickHouse(t)
+	migrations, err := goose.NewProvider(goose.DialectClickHouse, migrationDB, os.DirFS("migrations"))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -139,12 +140,12 @@ func TestClickHouseSymbolicatedEventsMigration(t *testing.T) {
 			AND name IN ('logs', 'metrics', 'boots', 'crashes', 'logs_deduplicated',
 				'metrics_deduplicated', 'boots_deduplicated', 'crashes_deduplicated')`
 		var got uint64
-		if err := conn.QueryRowContext(ctx, query).Scan(&got); err != nil || got != want {
+		if err := conn.QueryRow(ctx, query).Scan(&got); err != nil || got != want {
 			t.Fatalf("event schema objects: got %d, want %d, error %v", got, want, err)
 		}
 	}
 	assertEventSchemaCount(0)
-	if err := db.Migrate(ctx, conn); err != nil {
+	if err := db.Migrate(ctx, migrationDB); err != nil {
 		t.Fatal(err)
 	}
 	assertEventSchemaCount(8)
